@@ -5,7 +5,7 @@
 #	acis_bad_pix_create_data_table.perl: create a data display html sub pages 		#
 #												#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)					#
-#	last update: Jul 25, 2005								#
+#	last update: Jul 29, 2005								#
 #												#
 #################################################################################################
 
@@ -141,7 +141,7 @@ for($iccd = 0; $iccd < 10; $iccd++){
 	$file_name = "$web_dir".'/Html_dir/ccd_data'."$iccd".'.html';
 	open(OUT, ">$file_name");
 	print OUT '<HTML><BODY TEXT="#FFFFFF" BGCOLOR="#000000" LINK="#00CCFF"'; 
-	print OUT 'VLINK="maroon"ALINK="#FF0000" background="./stars.jpg">',"\n";
+	print OUT 'VLINK="yellow" ALINK="#FF0000" background="./stars.jpg">',"\n";
 	print OUT '<title> ACIS Bad Pixel List:',"CCD$iccd",'</title>',"\n";
 
 	print OUT '<h3>CCD',"$iccd",'</h3>',"\n";

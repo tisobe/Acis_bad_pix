@@ -10,8 +10,10 @@ set path = (/home/ascds/DS.release/bin/  $path)
 perl /data/mta4/MTA/bin/acis_bad_pix_find_bad_pix.perl live
 perl /data/mta4/MTA/bin/acis_bad_pix_create_data_table.perl
 
-perl /data/mta4/MTA/bin/acis_bias_plot_bias.perl
 perl /data/mta4/MTA/bin/acis_bias_print_today_data.perl
+perl /data/mta4/MTA/bin/acis_bias_compute_avg.perl ./Working_dir/today_input_data
 perl /data/mta4/MTA/bin/acis_bias_get_info.perl ./Working_dir/today_input_data
+perl /data/mta4/MTA/bin/acis_bias_plot_bias.perl
 perl /data/mta4/MTA/bin/acis_bias_plot_sub_info.perl
 
+rm -rf ./Working_dir

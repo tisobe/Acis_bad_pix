@@ -3,13 +3,32 @@ use PGPLOT;
 
 #########################################################################
 #									#
-#	plot_bias.perl: plots three types of figs for bias background	#
-#			html display					#
+#	acis_bias_plot_bias.perl: plots three types of figs for bias    #
+#				  background html display		#
 #									#
 #	author: t. isobe (tisobe@cfa.harvard.edu)			#
-#	last upate: Jul 9, 2004						#
+#	last upate: Aug 01, 2005					#
 #									#
 #########################################################################
+
+#######################################
+#
+#--- setting a few paramters
+#
+
+#--- output directory
+
+$bin_dir       = '/data/mta4/MTA/bin/';
+$bdat_dir      = '/data/mta4/MTA/data/';
+$web_dir       = '/data/mta/www/mta_bad_pixel/';
+$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+
+$bin_dir       = '/data/mta4/MTA/bin/';
+$bdat_dir      = '/data/mta4/MTA/data/';
+$web_dir       = '/data/mta/www/mta_bad_pixel/Test/';
+$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
+
+#######################################
 
 for($ccd = 0; $ccd < 10; $ccd++){
 
@@ -19,20 +38,21 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	pgslw(2);	
 
 	for($quad = 0; $quad < 4; $quad++){
-		$file = '../Data/Bias_save/'."CCD$ccd".'/'."quad$quad";
-		@time = ();
-		@bias = ();
-		@error = ();
+		$file    = "$web_dir".'/Bias_save/'."CCD$ccd".'/'."quad$quad";
+		@time    = ();
+		@bias    = ();
+		@error   = ();
 		@overclk = ();
-		$cnt = 0;
-		$sum1 = 0;
-		$sum2 = 0;
-		$sum3 = 0;
+		$cnt     = 0;
+		$sum1    = 0;
+		$sum2    = 0;
+		$sum3    = 0;
+
 		open(FH, "$file"); 
 		while(<FH>){
 			chomp $_;
 			@atemp = split(/\s+/,$_);
-			$time = ($atemp[0] - 48902399)/86400;
+			$time  = ($atemp[0] - 48902399)/86400;
 			push(@time, $time);
 			push(@bias, $atemp[1]);
 			push(@error, $atemp[2]);
@@ -44,13 +64,13 @@ for($ccd = 0; $ccd < 10; $ccd++){
 		}
 		close(FH);
 
-		$diff = $time[$cnt-1] - $time[0];
+		$diff  = $time[$cnt-1] - $time[0];
 		$extra = 0.05 * $diff;
-		$xmin = $time[0] - $extra;
-		$xmax = $time[$cnt-1] + $extra;
+		$xmin  = $time[0] - $extra;
+		$xmax  = $time[$cnt-1] + $extra;
 
-		$ymin = $sum1/$cnt - 100;
-		$ymax = $sum1/$cnt + 100;
+		$ymin  = $sum1/$cnt - 100;
+		$ymax  = $sum1/$cnt + 100;
 
 		pgenv($xmin, $xmax, $ymin, $ymax, 0, 0);
 		pgslw(4);
@@ -63,7 +83,9 @@ for($ccd = 0; $ccd < 10; $ccd++){
 		pglabel("Time (DOM)", 'Bias', "$title");
 	}
 	pgclos();
-	system("./Prog/ps2gif  pgplot.ps ../Data/Plots/Bias_bkg/ccd$ccd.gif");
+
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $web_dir/Plots/Bias_bkg/ccd$ccd.gif");
+
 	system("rm pgplot.ps");
 
 	pgbegin(0, "/ps",1,1);
@@ -72,15 +94,16 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	pgslw(2);	
 
 	for($quad = 0; $quad < 4; $quad++){
-		$file = '../Data/Bias_save/'."CCD$ccd".'/'."quad$quad";
-		@time = ();
-		@bias = ();
-		@error = ();
+		$file    = "$web_dir".'/Bias_save/'."CCD$ccd".'/'."quad$quad";
+		@time    = ();
+		@bias    = ();
+		@error   = ();
 		@overclk = ();
-		$cnt = 0;
-		$sum1 = 0;
-		$sum2 = 0;
-		$sum3 = 0;
+		$cnt     = 0;
+		$sum1    = 0;
+		$sum2    = 0;
+		$sum3    = 0;
+
 		open(FH, "$file"); 
 		while(<FH>){
 			chomp $_;
@@ -97,13 +120,13 @@ for($ccd = 0; $ccd < 10; $ccd++){
 		}
 		close(FH);
 
-		$diff = $time[$cnt-1] - $time[0];
+		$diff  = $time[$cnt-1] - $time[0];
 		$extra = 0.05 * $diff;
-		$xmin = $time[0] - $extra;
-		$xmax = $time[$cnt-1] + $extra;
+		$xmin  = $time[0] - $extra;
+		$xmax  = $time[$cnt-1] + $extra;
 
-		$ymin = $sum3/$cnt -  50;
-		$ymax = $sum3/$cnt + 150;
+		$ymin  = $sum3/$cnt -  50;
+		$ymax  = $sum3/$cnt + 150;
 
 		pgenv($xmin, $xmax, $ymin, $ymax, 0, 0);
 		pgslw(4);
@@ -118,7 +141,8 @@ for($ccd = 0; $ccd < 10; $ccd++){
 		pglabel("Time (DOM)", 'Overclock Level', "$title");
 	}
 	pgclos();
-	system("./Prog/ps2gif  pgplot.ps ../Data/Plots/Overclock/ccd$ccd.gif");
+
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $web_dir/Plots/Overclock/ccd$ccd.gif");
 	system("rm pgplot.ps");
 
 	pgbegin(0, "/ps",1,1);
@@ -127,16 +151,17 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	pgslw(2);	
 
 	for($quad = 0; $quad < 4; $quad++){
-		$file = '../Data/Bias_save/'."CCD$ccd".'/'."quad$quad";
-		@time = ();
-		@bias = ();
-		@error = ();
+		$file    = "$web_dir".'/Bias_save/'."CCD$ccd".'/'."quad$quad";
+		@time    = ();
+		@bias    = ();
+		@error   = ();
 		@overclk = ();
-		@save = ();
-		$cnt = 0;
-		$sum1 = 0;
-		$sum2 = 0;
-		$sum3 = 0;
+		@save    = ();
+		$cnt     = 0;
+		$sum1    = 0;
+		$sum2    = 0;
+		$sum3    = 0;
+
 		open(FH, "$file"); 
 		while(<FH>){
 			chomp $_;
@@ -155,13 +180,13 @@ for($ccd = 0; $ccd < 10; $ccd++){
 		}
 		close(FH);
 
-		$diff = $time[$cnt-1] - $time[0];
+		$diff  = $time[$cnt-1] - $time[0];
 		$extra = 0.05 * $diff;
-		$xmin = $time[0] - $extra;
-		$xmax = $time[$cnt-1] + $extra;
+		$xmin  = $time[0] - $extra;
+		$xmax  = $time[$cnt-1] + $extra;
 
-		$ymin = -0.5;
-		$ymax =  1.5;
+		$ymin  = -0.5;
+		$ymax  =  1.5;
 		if($ccd == 7){
 			$ymin = 3.5;
 			$ymax = 5.5;
@@ -178,7 +203,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 		pglabel("Time (DOM)", 'Bias', "$title");
 	}
 	pgclos();
-	system("./Prog/ps2gif  pgplot.ps ../Data/Plots/Sub/ccd$ccd.gif");
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $web_dir/Plots/Sub/ccd$ccd.gif");
 	system("rm pgplot.ps");
 }
 			

@@ -9,20 +9,40 @@ use PGPLOT;
 #		last update: Jul 9, 2004						#
 #											#
 #########################################################################################
+
+#######################################
+#
+#--- setting a few paramters
+#
+
+#--- output directory
+
+$bin_dir       = '/data/mta4/MTA/bin/';
+$bdat_dir      = '/data/mta4/MTA/data/';
+$web_dir       = '/data/mta/www/mta_bad_pixel/';
+$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+
+$bin_dir       = '/data/mta4/MTA/bin/';
+$bdat_dir      = '/data/mta4/MTA/data/';
+$web_dir       = '/data/mta/www/mta_bad_pixel/Test/';
+$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
+
+#######################################
+
 	
 for($ccd = 0; $ccd < 10; $ccd++){
 	for($quad = 0; $quad < 4; $quad++){
-		$dir = '../Data/Info_dir/CCD'."$ccd".'/quad'."$quad";
+		$dir = "$web_dir".'/Info_dir/CCD'."$ccd".'/quad'."$quad";
 #	
 #--- overclock
 #
-		$dir2 = '../Data/Plots/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_q'."$quad";
+		$dir2 = "$web_dir".'/Plots/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_q'."$quad";
 		plot_param_dep();
 #
 #---- bias backgound
 #
 
-		$dir3 = '../Data/Plots/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_bias_q'."$quad";
+		$dir3 = "$web_dir".'/Plots/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_bias_q'."$quad";
 		plot_param_dep2();
 	}
 }
@@ -137,7 +157,9 @@ sub plot_param_dep{
 		plot_routine();
 		
 		pgclos();
-		system("./Prog/ps2gif  pgplot.ps $dest_dir/obs_mode.gif");
+
+		system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/obs_mode.gif");
+
 		system("rm pgplot.ps");
 		
 		for($i = 0; $i < $cnt; $i++){
@@ -170,7 +192,9 @@ sub plot_param_dep{
 		plot_routine();
 		
 		pgclos();
-		system("./Prog/ps2gif  pgplot.ps $dest_dir/partial_readout.gif");
+
+		system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/partial_readout.gif");
+
 		system("rm pgplot.ps");
 		
 		for($i = 0; $i < $cnt; $i++){
@@ -213,7 +237,9 @@ sub plot_param_dep{
 		plot_routine();
 	
 		pgclos();
-		system("./Prog/ps2gif  pgplot.ps $dest_dir/bias_arg1.gif");
+
+		system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/bias_arg1.gif");
+
 		system("rm pgplot.ps");
 	
 	
@@ -266,7 +292,8 @@ sub plot_param_dep{
 		
 		pgclos();
 							
-		system("./Prog/ps2gif  pgplot.ps $dest_dir/no_ccds.gif");
+		system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/no_ccds.gif");
+
 		system("rm pgplots.ps");
 	}
 }
@@ -398,7 +425,9 @@ sub plot_param_dep2{
 	plot_routine();
 	
 	pgclos();
-	system("./Prog/ps2gif  pgplot.ps $dest_dir/obs_mode.gif");
+
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/obs_mode.gif");
+
 	system("rm pgplot.ps");
 	
 	for($i = 0; $i < $cnt; $i++){
@@ -431,7 +460,9 @@ sub plot_param_dep2{
 	plot_routine();
 	
 	pgclos();
-	system("./Prog/ps2gif  pgplot.ps $dest_dir/partial_readout.gif");
+
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/partial_readout.gif");
+
 	system("rm pgplot.ps");
 	
 	for($i = 0; $i < $cnt; $i++){
@@ -474,7 +505,9 @@ sub plot_param_dep2{
 	plot_routine();
 	
 	pgclos();
-	system("./Prog/ps2gif  pgplot.ps $dest_dir/bias_arg1.gif");
+
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/bias_arg1.gif");
+
 	system("rm pgplot.ps");
 	
 	
@@ -527,7 +560,8 @@ sub plot_param_dep2{
 	
 	pgclos();
 						
-	system("./Prog/ps2gif  pgplot.ps $dest_dir/no_ccds.gif");
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/no_ccds.gif");
+
 	system("rm pgplot.ps");
 
 }
