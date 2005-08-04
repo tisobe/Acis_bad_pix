@@ -3294,7 +3294,7 @@ sub print_html{
 		if(${ccd_ind.$i} > 0  || ${hccd_ind.$i} > 0){
 			print OUT '<td><a href = "./Html_dir/ccd_data',"$i",'.html">Bad Pixels Today</a></td>',"\n";
 		}else{
-			print OUT '<td>No Bad Pixels Today</a></td>',"\n";
+			print OUT '<td><a href = "./Html_dir/ccd_data',"$i",'.html">No Bad Pixels Today</a></td>',"\n";
 		}
 
 #----- warm pix history
