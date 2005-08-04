@@ -197,7 +197,7 @@ sub int_file_for_day{
 						printf QIN "%10.1f\t%4.2f\t",$htime,$overclock;
 						print  QIN "$datamode\t";
 						print  QIN "$fep_id\t$start_row\t$rowcnt\t$orc_mode\t";
-						print  QIN $deagain\t"$biasalg\t$biasarg0\t$biasarg1\t";
+						print  QIN "$deagain\t"$biasalg\t$biasarg0\t$biasarg1\t";
 						print  QIN "$biasarg2\t$biasarg3\t$biasarg4\n";
 						close(QIN);
 		
