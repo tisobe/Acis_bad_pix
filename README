@@ -131,3 +131,11 @@ output:		$web_dir/Info_dir/CCD*/quad*	a data list
 					bias argument 2
 					bias argument 3
 					bias argument 4
+
+acis_bias_html_update
+---------------------
+This script update bias background html page
+
+input:	 	bias_home.html
+
+output:		bias_home.html
