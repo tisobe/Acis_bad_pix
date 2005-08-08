@@ -5,7 +5,7 @@ TASK = ACIS_bad_pix
 
 include /data/mta4/MTA/include/Makefile.MTA
 
-BIN  = acis_bad_pix_create_data_table.perl acis_bad_pix_find_bad_pix.perl  acis_bad_pix_main_script acis_bad_pix_wrap_script acis_bias_compute_avg.perl acis_bias_get_info.perl acis_bias_plot_bias.perl acis_bias_plot_sub_info.perl acis_bias_print_today_data.perl
+BIN  = acis_bad_pix_create_data_table.perl acis_bad_pix_find_bad_pix.perl  acis_bad_pix_main_script acis_bad_pix_wrap_script acis_bias_compute_avg.perl acis_bias_get_info.perl acis_bias_plot_bias.perl acis_bias_plot_sub_info.perl acis_bias_print_today_data.perl acis_bias_html_update.perl
 
 DOC  = README
 

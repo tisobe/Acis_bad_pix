@@ -15,5 +15,6 @@ perl /data/mta4/MTA/bin/acis_bias_compute_avg.perl ./Working_dir/today_input_dat
 perl /data/mta4/MTA/bin/acis_bias_get_info.perl ./Working_dir/today_input_data
 perl /data/mta4/MTA/bin/acis_bias_plot_bias.perl
 perl /data/mta4/MTA/bin/acis_bias_plot_sub_info.perl
+perl /data/mta4/MTA/bin/acis_bias_html_update.perl
 
 rm -rf ./Working_dir
