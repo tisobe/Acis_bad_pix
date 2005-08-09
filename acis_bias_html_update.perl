@@ -49,6 +49,3 @@ while(<FH>){
 close(OUT);
 close(FH);
 system("mv ./temp $web_dir/bias_home.html");
-system("rm ./temp");
-	
-
