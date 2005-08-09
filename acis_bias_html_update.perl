@@ -32,12 +32,12 @@ $house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
 
 ($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst) = localtime(time);
 $uyear += 1900;
-$month += $umon;
+$month = $umon + 1;
 
-$line "Last Update: $month/$umday/$uyear";
+$line =  "Last Update: $month/$umday/$uyear";
 
 open(FH, "$web_dir/bias_home.html");
-open(OUT, "./temp");
+open(OUT, "> ./temp");
 while(<FH>){
 	chomp $_;
 	if($_ =~ /Last Update/){
