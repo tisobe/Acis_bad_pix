@@ -57,47 +57,29 @@ sub int_file_for_day{
 		$file_time  = $normal_time;			# $normal_time is output of timeconv1
 		@ftemp      = split(/:/, $file_time);
 		$today_time = "$ftemp[0]:$ftemp[1]";
-		system("fdump $file zdump  - 1 clobber='yes'");			# dump the fits header and find
+
+#$$$##		system("fdump $file zdump  - 1 clobber='yes'");			# dump the fits header and find
+		system("dmlist infile=$file opt=head outfile=./zdump");
 
 		open(FH, './zdump');				# informaiton needed (ccd id, readmode)
 		$ccd_id = -999;
 		$readmode = 'INDEF';
-		$date_obs = 'INDEF';
-		$dir_name = 'INDEF';
 
 		while(<FH>){
 			chomp $_;
-			@atemp = split(/=/, $_);
-			if($atemp[0] eq 'CCD_ID  '){
-				@btemp = split(/\s+/, $atemp[1]);
-				OUTER:
-				foreach $ent (@btemp){
-					if($ent =~ /\d/){
-						$ccd_id = $ent;
-						last OUTER;
-					}
-				}
-			}elsif($atemp[0] eq 'READMODE'){
-				@btemp = split(/\'/,$atemp[1]);
-				$readmode = $btemp[1];
-			}elsif($atemp[0] eq 'DATE-OBS'){
-				@btemp = split(/\'/, $atemp[1]);
-				$date_obs = $file_time;
-				@dtemp = split(/:/,$file_time);
-				$dtime = "$dtemp[0]:$dtemp[1]";
-				$dir_name = $ctemp[1];
-			}elsif($atemp[0] eq 'INITOCLA'){
-				@btemp = split(/\'/, $atemp[1]);
-				$overclock_a = $btemp[0];
-			}elsif($atemp[0] eq 'INITOCLB'){
-				@btemp = split(/\'/, $atemp[1]);
-				$overclock_b = $btemp[0];
-			}elsif($atemp[0] eq 'INITOCLC'){
-				@btemp = split(/\'/, $atemp[1]);
-				$overclock_c = $btemp[0];
-			}elsif($atemp[0] eq 'INITOCLD'){
-				@btemp = split(/\'/, $atemp[1]);
-				$overclock_d = $btemp[0];
+			@atemp = split(/\s+/, $_);
+			if($_ =~  /CCD_ID/'){
+				$ccd_id      = $atemp[2];
+			}elsif($_ =~ /READMODE/){
+				$readmode    = $atemp[2];
+			}elsif($_ =~ /INITOCLA/){
+				$overclock_a = $atemp[2];
+			}elsif($_ =~ /INITOCLB/){
+				$overclock_b = $atemp[2];
+			}elsif($_ =~ /INITOCLC/){
+				$overclock_c = $atemp[2];
+			}elsif($_ =~ /INITOCLD/){
+				$overclock_d = $atemp[2];
 			}
 		}
 		close(FH);
@@ -121,7 +103,8 @@ sub int_file_for_day{
 				$line ="$file".'[opt type=i4,null=-9999]';
                                 system("dmcopy \"$line\"  temp.fits clobber='yes'");
 
-				system("fimgtrim  infile=temp.fits outfile=comb.fits  threshlo=indef threshup=4000  const_up=0 clobber='yes'");
+#$$$##				system("fimgtrim  infile=temp.fits outfile=comb.fits  threshlo=indef threshup=4000  const_up=0 clobber='yes'");
+				system("dmimgthresh infile=temp.fits outfile=comb.fits cut=0:4000 clobber='yes'");
 				
 	
 				system("dmcopy \"comb.fits[x=1:256]\" out1.fits clobber='yes'");

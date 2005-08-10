@@ -63,93 +63,65 @@ sub int_file_for_day{
 #
 #--- dump the fits header and find informaiton needed (ccd id, readmode)
 #
-		system("fdump $file ./Working_dir/zdump  - 1 clobber=yes");	
+#$$$##		system("fdump $file ./Working_dir/zdump  - 1 clobber=yes");	
+		system("dmlist infile=$file outfile=./Working_dir/zdump opt=head");
 		open(FH, './Working_dir/zdump');				
 		$ccd_id = -999;
 		$readmode = 'INDEF';
-		$date_obs = 'INDEF';
-		$dir_name = 'INDEF';
 
 		while(<FH>){
 			chomp $_;
-			@atemp = split(/=/, $_);
-			if($atemp[0] eq 'CCD_ID  '){
-				@btemp = split(/\s+/, $atemp[1]);
-				OUTER:
-				foreach $ent (@btemp){
-					if($ent =~ /\d/){
-						$ccd_id = $ent;
-						last OUTER;
-					}
-				}
-			}elsif($atemp[0]     =~ /READMODE/){
-				@btemp       = split(/\'/,$atemp[1]);
-				$readmode    = $btemp[1];
-			}elsif($atemp[0]     =~ /DATE-OBS/){
-				@btemp       = split(/\'/, $atemp[1]);
-				$date_obs    = $file_time;
-				@dtemp       = split(/:/,$file_time);
-				$dtime       = "$dtemp[0]:$dtemp[1]";
-				$dir_name    = $ctemp[1];
-			}elsif($atemp[0]     =~ /DATAMODE/){
-				@btemp       = split(/\'/,$atemp[1]);
-				$datamode    = $btemp[1];
+			@atemp = split(/\s+/, $_);
+			if($_ =~ /CCD_ID/){
+				$ccd_id      = $atemp[2];
+				$ccd_id      =~ s/\s+//g;
+			}elsif($_     =~ /READMODE/){
+				$readmode    = $atemp[2];
+				$readmode    =~ s/\s+//g;
+			}elsif($_            =~ /DATAMODE/){
+				$datamode    = $atemp[2];
 				$datamode    =~ s/\s+//g;
-			}elsif($atemp[0]     =~ /FEP_ID/){
-				@btemp       = split(/\//, $atemp[1]);
-				$fep_id      = $btemp[0];
+			}elsif($_            =~ /FEP_ID/){
+				$fep_id      = $atemp[2];
 				$fep_id      =~ s/\s+//g;
-			}elsif($atemp[0]     =~ /STARTROW/){
-				@btemp       = split(/\//, $atemp[1]);
-				$start_row   = $btemp[0];
+			}elsif($_            =~ /STARTROW/){
+				$start_row   = $atemp[2];
 				$start_row   =~ s/\s+//g;
-			}elsif($atemp[0]     =~ /ROWCNT/){
-				@btemp       = split(/\//, $atemp[1]);
-				$rowcnt      = $btemp[0];
+			}elsif($_            =~ /ROWCNT/){
+				$rowcnt      = $atemp[2];
 				$rowcnt      =~ s/\s+//g;
-			}elsif($atemp[0]     =~ /ORC_MODE/){
-				@btemp       = split(/\//, $atemp[1]);
-				$orc_mode    = $btemp[0];
+			}elsif($_            =~ /ORC_MODE/){
+				$orc_mode    = $atemp[2];
 				$orc_mode    =~ s/\s+//g;
-			}elsif($atemp[0]     =~ /DEAGAIN/){
-				@btemp       = split(/\//, $atemp[1]);
-				$deagain     = $btemp[0];
+			}elsif($_            =~ /DEAGAIN/){
+				$deagain     = $atemp[2];
 				$deagain     =~ s/\s+//g;
-			}elsif($atemp[0]     =~ /BIASALG/){
-				@btemp       = split(/\//, $atemp[1]);
-				$biasalg     = $btemp[0];
+			}elsif($_            =~ /BIASALG/){
+				$biasalg     = $atemp[2];
 				$biasalg     =~ s/\s+//g;
-			}elsif($atemp[0]     =~ /BIASARG0/){
-				@btemp       = split(/\//, $atemp[1]);
-				$biasarg0    = $btemp[0];
+			}elsif($_            =~ /BIASARG0/){
+				$biasarg0    = $atemp[2];
 				$biasarg0    =~ s/\s+//g;
-			}elsif($atemp[0]     =~ /BIASARG1/){
-				@btemp       = split(/\//, $atemp[1]);
-				$biasarg1    = $btemp[0];
+			}elsif($_            =~ /BIASARG1/){
+				$biasarg1    = $atemp[2];
 				$biasarg1    =~ s/\s+//g;
-			}elsif($atemp[0]     =~ /BIASARG2/){
-				@btemp       = split(/\//, $atemp[1]);
-				$biasarg2    = $btemp[0];
+			}elsif($_            =~ /BIASARG2/){
+				$biasarg2    = $atemp[2];
 				$biasarg2    =~ s/\s+//g;
-			}elsif($atemp[0]     =~ /BIASARG3/){
-				@btemp       = split(/\//, $atemp[1]);
-				$biasarg3    = $btemp[0];
+			}elsif($_            =~ /BIASARG3/){
+				$biasarg3    = $atemp[2];
 				$biasarg3    =~ s/\s+//g;
-			}elsif($atemp[0]     =~ /INITOCLA/){
-				@btemp       = split(/\//, $atemp[1]);
-				$overclock_a = $btemp[0];
+			}elsif($_            =~ /INITOCLA/){
+				$overclock_a = $atemp[2];
 				$overclock_a =~ s/\s+//g;
-			}elsif($atemp[0]     =~ /INITOCLB/){
-				@btemp       = split(/\//, $atemp[1]);
-				$overclock_b = $btemp[0];
+			}elsif($_            =~ /INITOCLB/){
+				$overclock_b = $atemp[2];
 				$overclock_b =~ s/\s+//g;
-			}elsif($atemp[0]     =~ /INITOCLC/){
-				@btemp       = split(/\//, $atemp[1]);
-				$overclock_c = $btemp[0];
+			}elsif($_            =~ /INITOCLC/){
+				$overclock_c = $atemp[2];
 				$overclock_c =~ s/\s+//g;
-			}elsif($atemp[0]     =~ /INITOCLD/){
-				@btemp       = split(/\//, $atemp[1]);
-				$overclock_d = $btemp[0];
+			}elsif($_            =~ /INITOCLD/){
+				$overclock_d = $atemp[2];
 				$overclock_d =~ s/\s+//g;
 			}
 		}

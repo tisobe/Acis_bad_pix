@@ -477,45 +477,31 @@ sub int_file_for_day{
 #
 #---  dump the fits header and find informaiton needed (ccd id, readmode)
 #
-		system("fdump $file ./Working_dir/zdump  - 1 clobber=yes");	
+#$$$##		system("fdump $file ./Working_dir/zdump  - 1 clobber=yes");	
+		system("dmlist infile=$file opt=head outfile=./Working_dir/zdump");
 		open(FH, './Working_dir/zdump');			
 		$ccd_id   = -999;
 		$readmode = 'INDEF';
 		$date_obs = 'INDEF';
-		$dir_name = 'INDEF';
 		while(<FH>){
 			chomp $_;
-			@atemp = split(/=/, $_);
-			if($atemp[0] eq 'CCD_ID  '){
-				@btemp = split(/\s+/, $atemp[1]);
-				OUTER:
-				foreach $ent (@btemp){
-					if($ent =~ /\d/){
-						$ccd_id = $ent;
-						last OUTER;
-					}
-				}
-			}elsif($atemp[0] =~ /READMODE/){
-				@btemp = split(/\'/,$atemp[1]);
-				$readmode = $btemp[1];
-			}elsif($atemp[0] =~ /DATE-OBS/){
-				@btemp = split(/\'/, $atemp[1]);
-				$date_obs = $file_time;
-				@dtemp = split(/:/,$file_time);
-				$dtime = "$dtemp[0]:$dtemp[1]";
-				$dir_name = $ctemp[1];
-                        }elsif($atemp[0] =~ /INITOCLA/){
-                                @btemp = split(/\//, $atemp[1]);
-                                $overclock_a = $btemp[0];
-                        }elsif($atemp[0] =~ /INITOCLB/){
-                                @btemp = split(/\//, $atemp[1]);
-                                $overclock_b = $btemp[0];
-                        }elsif($atemp[0] =~ /INITOCLC/){
-                                @btemp = split(/\//, $atemp[1]);
-                                $overclock_c = $btemp[0];
-                        }elsif($atemp[0] =~ /INITOCLD/){
-                                @btemp = split(/\//, $atemp[1]);
-                                $overclock_d = $btemp[0];
+			@atemp = split(/\s+/, $_);
+			if($_ =~ /CCD_ID/){
+				$ccd_id      = $atemp[2];
+			}elsif($_ =~ /READMODE/){
+				$readmode    = $atemp[2];
+			}elsif($_ =~ /DATE-OBS/){
+				$date_obs    = $file_time;
+				@dtemp       = split(/:/,$file_time);
+				$dtime       = "$dtemp[0]:$dtemp[1]";
+                        }elsif($_ =~ /INITOCLA/){
+                                $overclock_a = $atemp[2];
+                        }elsif($_ =~ /INITOCLB/){
+                                $overclock_b = $atemp[2];
+                        }elsif($_ =~ /INITOCLC/){
+                                $overclock_c = $atemp[2];
+                        }elsif($_ =~ /INITOCLD/){
+                                $overclock_d = $atemp[2];
 			}
 		}
 		close(FH);
