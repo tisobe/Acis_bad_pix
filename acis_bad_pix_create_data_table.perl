@@ -16,7 +16,7 @@
 
 #--- output directory
 
-$bin_dir = '/data/mta4/MTA/bin/';
+$bin_dir = '/data/mta/MTA/bin/';
 $web_dir = '/data/mta/www/mta_bad_pixel/Test/';
 
 #######################################

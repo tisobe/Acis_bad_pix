@@ -124,14 +124,14 @@ use PGPLOT;
 
 #--- output directory
 
-$bin_dir       = '/data/mta4/MTA/bin/';
-$bdat_dir      = '/data/mta4/MTA/data/';
+$bin_dir       = '/data/mta/MTA/bin/';
+$bdat_dir      = '/data/mta/MTA/data/';
 $web_dir       = '/data/mta/www/mta_bad_pixel/';
 $old_dir       = $web_dir;
 $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 
-$bin_dir       = '/data/mta4/MTA/bin/';
-$bdat_dir      = '/data/mta4/MTA/data/';
+$bin_dir       = '/data/mta/MTA/bin/';
+$bdat_dir      = '/data/mta/MTA/data/';
 $web_dir       = '/data/mta/www/mta_bad_pixel/Test/';
 $old_dir       = $web_dir;
 $house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';

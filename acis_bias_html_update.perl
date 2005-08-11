@@ -18,13 +18,13 @@
 
 #--- output directory
 
-$bin_dir       = '/data/mta4/MTA/bin/';
-$bdat_dir      = '/data/mta4/MTA/data/';
+$bin_dir       = '/data/mta/MTA/bin/';
+$bdat_dir      = '/data/mta/MTA/data/';
 $web_dir       = '/data/mta_www/mta_bias_bkg/';
 $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 
-$bin_dir       = '/data/mta4/MTA/bin/';
-$bdat_dir      = '/data/mta4/MTA/data/';
+$bin_dir       = '/data/mta/MTA/bin/';
+$bdat_dir      = '/data/mta/MTA/data/';
 $web_dir       = '/data/mta_www/mta_bias_bkg_test/';
 $house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
 
