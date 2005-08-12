@@ -562,7 +562,7 @@ sub int_file_for_day{
 					print OUT "./Working_dir/temp2.fits,0,0\n";
 					close(OUT);
 #$$##					system("fimgmerge ./Working_dir/comb.fits  \@./Working_dir/zadd ./Working_dir/comb2.fits clobber=yes");
-					system("dmmerge "./Working_dir/comb.fits,./Working_dir/temp2.fits" outfile=./Working_dir/comb2.fits  outBlock='' columnList='' lookupTab=\"$lookup\" clobber=yes");
+					system("dmmerge \"./Working_dir/comb.fits,./Working_dir/temp2.fits" outfile=./Working_dir/comb2.fits\"  outBlock='' columnList='' lookupTab=\"$lookup\" clobber=yes");
 					system("mv ./Working_dir/comb2.fits ./Working_dir/comb.fits");
 				}
 
