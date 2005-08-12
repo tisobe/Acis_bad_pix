@@ -136,6 +136,8 @@ $web_dir       = '/data/mta/www/mta_bad_pixel/Test/';
 $old_dir       = $web_dir;
 $house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
 
+$lookup   = '/home/ascds/DS.release/data/dmmerge_header_lookup.txt';    # dmmerge header rule lookup table
+
 #--- factor for how may std out from the mean
 
 $factor     = 5.0;
@@ -554,11 +556,13 @@ sub int_file_for_day{
 				foreach $pfile (@{todaylist.$im}){
 					$line ="$pfile".'[opt type=i4,null=-9999]';
 					system("dmcopy \"$line\"  ./Working_dir/temp.fits clobber='yes'");
-					system("fimgtrim  infile=./Working_dir/temp.fits outfile=./Working_dir/temp2.fits  threshlo=indef threshup=4000  const_up=0 clobber=yes");
+#$$##					system("fimgtrim  infile=./Working_dir/temp.fits outfile=./Working_dir/temp2.fits  threshlo=indef threshup=4000  const_up=0 clobber=yes");
+					system("dmimgthresh infile=./Working_dir/temp.fits outfile=./Working_dir/temp2.fits cut=\"0:4000\" value=0 clobber=yes");
 					open(OUT, '>./Working_dir/zadd');			
 					print OUT "./Working_dir/temp2.fits,0,0\n";
 					close(OUT);
-					system("fimgmerge ./Working_dir/comb.fits  \@./Working_dir/zadd ./Working_dir/comb2.fits clobber=yes");
+#$$##					system("fimgmerge ./Working_dir/comb.fits  \@./Working_dir/zadd ./Working_dir/comb2.fits clobber=yes");
+					system("dmmerge "./Working_dir/comb.fits,./Working_dir/temp2.fits" outfile=./Working_dir/comb2.fits  outBlock='' columnList='' lookupTab=\"$lookup\" clobber=yes");
 					system("mv ./Working_dir/comb2.fits ./Working_dir/comb.fits");
 				}
 
@@ -572,7 +576,8 @@ sub int_file_for_day{
 				$date_obs = "$ftemp[0]:$ftemp[1]";
 				$line     = "$first".'[opt type=i4,null=-9999]';
 				system("dmcopy \"$line\"  ./Working_dir/temp.fits clobber='yes'");
-				system("fimgtrim  infile=./Working_dir/temp.fits outfile=./Working_dir/comb.fits  threshlo=indef threshup=4000  const_up=0 clobber=yes");
+#$$##				system("fimgtrim  infile=./Working_dir/temp.fits outfile=./Working_dir/comb.fits  threshlo=indef threshup=4000  const_up=0 clobber=yes");
+				system("dmimgthresh infile=./Working_dir/temp.fits outfile=./Working_dir/comb.fits cut=\"0:4000\" value=0 clobber=yes");
 			}
 			
 			$ccd_dir = "$house_keeping/Defect/CCD"."$im";
