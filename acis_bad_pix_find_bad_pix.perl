@@ -549,7 +549,7 @@ sub int_file_for_day{
 #---  change fits file format to LONG
 #
 				$line ="$first".'[opt type=i4,null=-9999]';
-				system("dmcopy \"$line\"  ./Working_dir/comb.fits clobber='yes'");
+				system("dmcopy infile=\"$line\"  outfile=./Working_dir/comb.fits clobber='yes'");
 #
 #--- merge all data into one
 #
@@ -561,8 +561,8 @@ sub int_file_for_day{
 					open(OUT, '>./Working_dir/zadd');			
 					print OUT "./Working_dir/temp2.fits,0,0\n";
 					close(OUT);
-#$$##					system("fimgmerge ./Working_dir/comb.fits  \@./Working_dir/zadd ./Working_dir/comb2.fits clobber=yes");
-					system("dmmerge \"./Working_dir/comb.fits,./Working_dir/temp2.fits\" outfile=./Working_dir/comb2.fits  outBlock='' columnList='' lookupTab=\"$lookup\" clobber=yes");
+					system("fimgmerge ./Working_dir/comb.fits  \@./Working_dir/zadd ./Working_dir/comb2.fits clobber=yes");
+#####					system("dmmerge \"./Working_dir/comb.fits,./Working_dir/temp2.fits\" outfile=./Working_dir/comb2.fits  outBlock='' columnList='' lookupTab=\"$lookup\" clobber=yes");
 					system("mv ./Working_dir/comb2.fits ./Working_dir/comb.fits");
 				}
 
@@ -2294,7 +2294,7 @@ sub chk_old_data{
 			if($btemp[0] < $month_ago){
 #			if($btemp[0] < $week_ago){
 				system("mv $ent $old_dir/Old_data/CCD$k/.");
-				system("gzip $old_dir/Old_data/CCD$k/$ent");
+				system("gzip $old_dir/Old_data/CCD$k/$atemp[1]");
 			}
 		}
 	}
