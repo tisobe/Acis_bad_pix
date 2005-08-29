@@ -6,7 +6,7 @@
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: Aug 2, 2005							#
+#	last update: Aug 25, 2005							#
 #											#
 #########################################################################################
 
@@ -58,7 +58,6 @@ sub int_file_for_day{
 		@ftemp      = split(/:/, $file_time);
 		$today_time = "$ftemp[0]:$ftemp[1]";
 
-#$$$##		system("fdump $file zdump  - 1 clobber='yes'");			# dump the fits header and find
 		system("dmlist infile=$file opt=head outfile=./zdump");
 
 		open(FH, './zdump');				# informaiton needed (ccd id, readmode)
@@ -68,7 +67,7 @@ sub int_file_for_day{
 		while(<FH>){
 			chomp $_;
 			@atemp = split(/\s+/, $_);
-			if($_ =~  /CCD_ID/'){
+			if($_ =~  /CCD_ID/){
 				$ccd_id      = $atemp[2];
 			}elsif($_ =~ /READMODE/){
 				$readmode    = $atemp[2];
@@ -103,7 +102,6 @@ sub int_file_for_day{
 				$line ="$file".'[opt type=i4,null=-9999]';
                                 system("dmcopy \"$line\"  temp.fits clobber='yes'");
 
-#$$$##				system("fimgtrim  infile=temp.fits outfile=comb.fits  threshlo=indef threshup=4000  const_up=0 clobber='yes'");
 				system("dmimgthresh infile=temp.fits outfile=comb.fits cut=0:4000 clobber='yes'");
 				
 	
@@ -195,58 +193,35 @@ sub int_file_for_day{
 sub quad_sep{
 
 	system("rm zout");
-	system("fimgdmp $q_file zout 1 256  1 1024");	# dump the image to an acsii file
+#
+#---  dump the image to an acsii file
+#
+	system("dmlist $q_file opt=array > ./zout");
 
-	@warm_list = ();
-	@hot_list = ();
         open(FH, './zout');
-
-	for($i = 1;  $i <= 256; $i++){
-		$sum[$i] = 0;
-		$sum2[$i] = 0;
-		$cnt[$i] = 0;
-		@{value.$i} = ();
-	}
-
-        OUTER:
         while(<FH>){
                 chomp $_;
-                @line = split(/\s+/, $_);		# since the ascii table is
-                $lcnt = 0;				# 7 columns by all y arrays
-		foreach(@line){				# you need to do some tricks
-			$lcnt++;			# to read in the data.
-		}
-
-                if($lcnt > 0 && $lcnt <=  8 && $div == 0) {
-                        @x_axis = @line;		# reading column #
-                        $div = 1;
-                        $y_cnt = 0;
-                        next OUTER;
-                }
-
-                if($lcnt > 0) {
-                        $y_pos = $line[1];
-                        for($i = 2; $i < $lcnt; $i++){		#reading data
-                                $x_pos = $x_axis[$i-1];
-                                $val = $line[$i];
-				$ent = 7*($y_pos - 1) + $x_pos;
-                                if($val > 0){			# blank space is -9999 
-					${value.$x_pos}[$y_pos] = $val;
-                                        $count++;
-					$sum[$x_pos] += $val;
-					$sum2[$x_pos] += $val*$val;
-					$cnt[$x_pos]++;
-                                }else{
-					${value.$x_pos}[$y_pos] = -9999;
-				}
-                        }
-                        $y_cnt++;
-                        if($y_cnt >= 1024){
-                                $div = 0;
-                        }
+                @ctemp         = split(/\s+/, $_);
+                if($ctemp[3] =~ /\d/ && $ctemp[4] =~ /\d/){
+                        $x             = $ctemp[3];
+                        $y             = $ctemp[4];
+                        $val[$x][$y]   = $ctemp[6];
                 }
         }
-        close(FH);
+
+        for($i = 1;  $i <= 256; $i++){
+                $sum[$i]    = 0;
+                $sum2[$i]   = 0;
+                $cnt[$i]    = 0;
+        }
+        for($i = 1; $i <= 256; $i++){
+                for($j = 1; $j <= 256; $j++){
+                        $sum[$i] += $val[$i][$j];
+                        $sum2[$i] += $val[$i][$j] * $val[$i][$j];
+                        $cnt[$i]++;
+                }
+        }
+
 	system("rm zout");
 
 	find_mean();					# find bad columns

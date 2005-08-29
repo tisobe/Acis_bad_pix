@@ -7,7 +7,7 @@ use PGPLOT;
 #				and warm columns and plots the results		#
 #										#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)			#
-#	last update:	Jul 29, 2005						#
+#	last update:	Aug 25, 2005						#
 #										#
 #	input:									#
 #		if $ARGV[0] = live: /dsops/ap/sdp/cache/*/acis/*bias0.fits	#
@@ -230,7 +230,7 @@ if($dcnt > 0){						# yes we have new data, so let compute
 
 mv_old_data();						# move old data from an active dir to a save dir
 
-system("rm -rf ./Working_dir/");
+#system("rm -rf ./Working_dir/");
 
 
 #########################################################
@@ -327,6 +327,7 @@ sub get_dir {
 		}
 		push(@cnew_list, $ent);
 	}
+
 	$chk_date = shift(@cnew_list);
 	$plast_date = pop(@past_date_list);
 		
@@ -370,6 +371,7 @@ sub get_dir {
 		push(@dir1, $ent);
 	}
 
+	open(OUT, '>./Working_dir/today_input_data');
 	@bias_bg_comp_list = ();	# this list will be used to compute bias background.
 	$kdir = 0;			# find bias0 file names in today's new directories
 	OUTER:
@@ -382,12 +384,14 @@ sub get_dir {
 			chomp $ent;
 			push(@{day_list.$kdir}, $ent);
 			push(@bias_bg_comp_list, $ent);
+			print OUT "$ent\n";
 			$chk++;
 		}
 		if($chk > 0){
 			$kdir++;
 		}
 	}
+	close(OUT);
 	if($kdir > 0){
 		$kdir--;
 	}
@@ -479,7 +483,6 @@ sub int_file_for_day{
 #
 #---  dump the fits header and find informaiton needed (ccd id, readmode)
 #
-#$$$##		system("fdump $file ./Working_dir/zdump  - 1 clobber=yes");	
 		system("dmlist infile=$file opt=head outfile=./Working_dir/zdump");
 		open(FH, './Working_dir/zdump');			
 		$ccd_id   = -999;
@@ -555,14 +558,15 @@ sub int_file_for_day{
 #
 				foreach $pfile (@{todaylist.$im}){
 					$line ="$pfile".'[opt type=i4,null=-9999]';
+
 					system("dmcopy \"$line\"  ./Working_dir/temp.fits clobber='yes'");
-#$$##					system("fimgtrim  infile=./Working_dir/temp.fits outfile=./Working_dir/temp2.fits  threshlo=indef threshup=4000  const_up=0 clobber=yes");
+
 					system("dmimgthresh infile=./Working_dir/temp.fits outfile=./Working_dir/temp2.fits cut=\"0:4000\" value=0 clobber=yes");
 					open(OUT, '>./Working_dir/zadd');			
 					print OUT "./Working_dir/temp2.fits,0,0\n";
 					close(OUT);
-					system("fimgmerge ./Working_dir/comb.fits  \@./Working_dir/zadd ./Working_dir/comb2.fits clobber=yes");
-#####					system("dmmerge \"./Working_dir/comb.fits,./Working_dir/temp2.fits\" outfile=./Working_dir/comb2.fits  outBlock='' columnList='' lookupTab=\"$lookup\" clobber=yes");
+
+					system("dmimgcalc infile=./Working_dir/comb.fits infile2=./Working_dir/temp2.fits outfile=./Working_dir/comb2.fits operation=add clobber=yes");
 					system("mv ./Working_dir/comb2.fits ./Working_dir/comb.fits");
 				}
 
@@ -575,8 +579,9 @@ sub int_file_for_day{
 				@ftemp    = split(/:/, $file_time);
 				$date_obs = "$ftemp[0]:$ftemp[1]";
 				$line     = "$first".'[opt type=i4,null=-9999]';
+
 				system("dmcopy \"$line\"  ./Working_dir/temp.fits clobber='yes'");
-#$$##				system("fimgtrim  infile=./Working_dir/temp.fits outfile=./Working_dir/comb.fits  threshlo=indef threshup=4000  const_up=0 clobber=yes");
+
 				system("dmimgthresh infile=./Working_dir/temp.fits outfile=./Working_dir/comb.fits cut=\"0:4000\" value=0 clobber=yes");
 			}
 			
@@ -651,136 +656,97 @@ sub extract {
 	close(HOT);
 
 	system("rm ./Working_dir/zout");
-	system("fimgdmp ./Working_dir/$q_file ./Working_dir/zout 1 256  1 1024");# dump the image to an acsii file
-
-	@warm_list = ();
-	@hot_list = ();
+        system("dmlist ./Working_dir/$q_file opt=array > ./Working_dir/zout");
         open(FH, './Working_dir/zout');
-
-	for($i = 1;  $i <= 256; $i++){
-		$sum[$i]    = 0;
-		$sum2[$i]   = 0;
-		$cnt[$i]    = 0;
-		@{value.$i} = ();
-	}
-
-#
-#--- since the ascii table is 7 columns by all y arrays you need to do some tricks to read in the data.
-#
-        OUTER:
         while(<FH>){
                 chomp $_;
-                @line = split(/\s+/, $_);
-                $lcnt = 0;		
-		foreach(@line){		
-			$lcnt++;	
-		}
-
-                if($lcnt > 0 && $lcnt <=  8 && $div == 0) {
-#
-#--- reading column
-#
-                        @x_axis = @line;
-                        $div    = 1;
-                        $y_cnt  = 0;
-                        next OUTER;
-                }
-
-                if($lcnt > 0) {
-                        $y_pos = $line[1];
-#
-#--- reading data
-#
-                        for($i = 2; $i < $lcnt; $i++){
-                                $x_pos = $x_axis[$i-1];
-                                $val = $line[$i];
-				$ent = 7*($y_pos - 1) + $x_pos;
-#
-#--- blank space is -9999
-#
-                                if($val > 0){
-					${value.$x_pos}[$y_pos] = $val;
-                                        $count++;
-					$sum[$x_pos] += $val;
-					$sum2[$x_pos] += $val*$val;
-					$cnt[$x_pos]++;
-                                }else{
-					${value.$x_pos}[$y_pos] = -9999;
-				}
-                        }
-                        $y_cnt++;
-                        if($y_cnt >= 1024){
-                                $div = 0;
-                        }
+                @ctemp         = split(/\s+/, $_);
+                if($ctemp[3] =~ /\d/ && $ctemp[4] =~ /\d/){
+                        $x             = $ctemp[3];
+                        $y             = $ctemp[4];
+                        $val[$x][$y]   = $ctemp[6];
                 }
         }
-        close(FH);
 
-	find_bad_col();		# find bad columns
+#
+#--- find bad cloumns
+#
+        for($i = 1;  $i <= 256; $i++){
+                $sum[$i]    = 0;
+                $sum2[$i]   = 0;
+                $cnt[$i]    = 0;
+        }
+        for($i = 1; $i <= 256; $i++){
+                for($j = 1; $j <= 256; $j++){
+                        $sum[$i] += $val[$i][$j];
+                        $sum2[$i] += $val[$i][$j] * $val[$i][$j];
+                        $cnt[$i]++;
+                }
+        }
+
+        find_bad_col();
+
 #
 #--- devide the quad to 8x32 areas so that we can compare the each pix to a local average
 #
-	for($ry = 0;$ry < 32; $ry++){
-		$ybot = 32*$ry + 1; 
-		$ytop = $ybot + 31;	
-		OUTER3:
-		for($rx = 0; $rx < 8; $rx++){
-			$xbot = 32*$rx + 1;
-			$xtop = $xbot + 31;
-			$sum = 0;
-			$sum2 = 0;
-			$count = 0;
-			for($ix = $xbot; $ix<=$xtop; $ix++){
-				OUTER2:
-				for($iy = $ybot; $iy<=$ytop; $iy++){
-					$val = ${value.$ix}[$iy];
-					if($val == -999){
-						next OUTER2;
-					}
-					$sum += $val;
-					$sum2 += $val * $val;
-					$count++;
-				}
-			}
-			if($count < 1){
-				next OUTER3;
-			}
-			$mean = $sum/$count;			# here is the local mean
-			$std  = sqrt($sum2/$count - $mean * $mean);
-			$warm = $mean + $factor*$std;		# define warm pix
-			$hot  = $mean + $hot_factor;		# define hot pix
+        for($ry = 0;$ry < 32; $ry++){
+                $ybot = 32*$ry + 1;
+                $ytop = $ybot + 31;
+                OUTER3:
+                for($rx = 0; $rx < 8; $rx++){
+                        $xbot = 32*$rx + 1;
+                        $xtop = $xbot + 31;
+                        $sum = 0;
+                        $sum2 = 0;
+                        $count = 0;
+                        for($ix = $xbot; $ix<=$xtop; $ix++){
+                                OUTER2:
+                                for($iy = $ybot; $iy<=$ytop; $iy++){
+                                        $sum  += $val[$ix][$iy];
+                                        $sum2 += $val[$ix][$iy] * $val[$ix][$iy];
+                                        $count++;
+                                }
+                        }
+                        if($count < 1){
+                                next OUTER3;
+                        }
+                        $mean = $sum/$count;                    # here is the local mean
+                        $std  = sqrt($sum2/$count - $mean * $mean);
+                        $warm = $mean + $factor*$std;           # define warm pix
+                        $hot  = $mean + $hot_factor;            # define hot pix
 #
 #--- now find bad pix candidates
 #
-			for($ix = $xbot; $ix<=$xtop; $ix++){
-				OUTER2:
-				for($iy = $ybot; $iy<=$ytop; $iy++){
-					$val = ${value.$ix}[$iy];
-					if($val == -999){
-								# warm pix candidates	
-						next OUTER2;
-					}elsif($val > $warm && $val < $hot){
-						local_chk();	# recompute a local mean 
-						if($val > $cwarm){
-							open(UPPER, ">>$ccd_dir/$max_file");
-							print UPPER "$ix\t$iy\t$val\t$date_obs\t$cmean\t$cstd\n";
-							close(UPPER);
-							push(@warm_list,"$ccd_dir/$max_file");
-						}
-								# hot pix candidates
-					}elsif($val >= $hot){
-						local_chk();
-						if($val > $chot){
-							open(HOT,">>$ccd_dir/$hot_max_file");
-							print HOT "$ix\t$iy\t$val\t$date_obs\t$cmean\t$cstd\n";
-							close(HOT);
-							push(@hot_list,"$ccd_dir/$hot_max_file");
-						}
-					}
-				}
-			}
-		}
-	}
+                        for($ix = $xbot; $ix<=$xtop; $ix++){
+                                OUTER2:
+                                for($iy = $ybot; $iy<=$ytop; $iy++){
+#
+#--- warm pix candidates
+#
+                                        if($val[$ix][$iy] > $warm && $val[$ix][$iy] < $hot){
+                                                local_chk();    # recompute a local mean
+                                                if($val[$ix][$iy] > $cwarm){
+                                                        open(UPPER, ">>$ccd_dir/$max_file");
+                                                        print UPPER "$ix\t$iy\t$val[$ix][$iy]\t$date_obs\t$cmean\t$cstd\n";
+                                                        close(UPPER);
+                                                        push(@warm_list,"$ccd_dir/$max_file");
+                                                }
+#
+#--- hot pix candidates
+#
+                                        }elsif($val[$ix][$iy] >= $hot){
+                                                local_chk();
+                                                if($val[$ix][$iy] > $chot){
+                                                        open(HOT,">>$ccd_dir/$hot_max_file");
+                                                        print HOT "$ix\t$iy\t$val[$ix][$iy]\t$date_obs\t$cmean\t$cstd\n";
+                                                        close(HOT);
+                                                        push(@hot_list,"$ccd_dir/$hot_max_file");
+                                                }
+                                        }
+                                }
+                        }
+                }
+        }
 #
 #--- checking duplicates, if there are, remove it.
 #
@@ -856,7 +822,7 @@ sub local_chk {
 	for($xx = $x1; $xx <= $x2; $xx++){
 		OUTER2:
 		for($yy = $y1; $yy <= $y2; $yy++){
-			$cval = ${value.$xx}[$yy];
+			$cval = $val[$xx][$yy];
 			if($cval == -999){
 				next OUTER2;
 			}

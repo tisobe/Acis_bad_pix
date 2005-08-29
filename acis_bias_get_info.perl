@@ -63,7 +63,6 @@ sub int_file_for_day{
 #
 #--- dump the fits header and find informaiton needed (ccd id, readmode)
 #
-#$$$##		system("fdump $file ./Working_dir/zdump  - 1 clobber=yes");	
 		system("dmlist infile=$file outfile=./Working_dir/zdump opt=head");
 		open(FH, './Working_dir/zdump');				
 		$ccd_id = -999;
