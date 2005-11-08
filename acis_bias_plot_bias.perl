@@ -7,7 +7,7 @@ use PGPLOT;
 #				  background html display		#
 #									#
 #	author: t. isobe (tisobe@cfa.harvard.edu)			#
-#	last upate: Aug 01, 2005					#
+#	last upate: Sep 19, 2005					#
 #									#
 #########################################################################
 
@@ -23,10 +23,10 @@ $bdat_dir      = '/data/mta/MTA/data/';
 $web_dir       = '/data/mta_www/mta_bias_bkg/';
 $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 
-$bin_dir       = '/data/mta/MTA/bin/';
-$bdat_dir      = '/data/mta/MTA/data/';
-$web_dir       = '/data/mta_www/mta_bias_bkg_test/';
-$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
+#$bin_dir       = '/data/mta/MTA/bin/';
+#$bdat_dir      = '/data/mta/MTA/data/';
+#$web_dir       = '/data/mta_www/mta_bias_bkg_test/';
+#$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
 
 #######################################
 

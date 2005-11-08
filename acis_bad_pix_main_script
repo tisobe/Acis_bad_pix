@@ -8,6 +8,7 @@ setenv PFILES "${PDIRS}:${SYSPFILES}"
 set path = (/home/ascds/DS.release/bin/  $path)
 
 perl /data/mta/MTA/bin/acis_bad_pix_find_bad_pix.perl live
+perl /data/mta/MTA/bin/acis_bad_pix_clean_up.perl
 perl /data/mta/MTA/bin/acis_bad_pix_create_data_table.perl
 
 perl /data/mta/MTA/bin/acis_bias_print_today_data.perl

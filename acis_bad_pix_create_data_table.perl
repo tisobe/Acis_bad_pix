@@ -5,7 +5,7 @@
 #	acis_bad_pix_create_data_table.perl: create a data display html sub pages 		#
 #												#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)					#
-#	last update: Jul 29, 2005								#
+#	last update: Sep 19, 2005								#
 #												#
 #################################################################################################
 
@@ -17,7 +17,8 @@
 #--- output directory
 
 $bin_dir = '/data/mta/MTA/bin/';
-$web_dir = '/data/mta/www/mta_bad_pixel/Test/';
+$web_dir = '/data/mta/www/mta_bad_pixel/';
+#$web_dir = '/data/mta/www/mta_bad_pixel/Test/';
 
 #######################################
 

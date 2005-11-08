@@ -7,7 +7,7 @@ use PGPLOT;
 #				and warm columns and plots the results		#
 #										#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)			#
-#	last update:	Aug 25, 2005						#
+#	last update:	Sep 19, 2005						#
 #										#
 #	input:									#
 #		if $ARGV[0] = live: /dsops/ap/sdp/cache/*/acis/*bias0.fits	#
@@ -130,11 +130,11 @@ $web_dir       = '/data/mta/www/mta_bad_pixel/';
 $old_dir       = $web_dir;
 $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 
-$bin_dir       = '/data/mta/MTA/bin/';
-$bdat_dir      = '/data/mta/MTA/data/';
-$web_dir       = '/data/mta/www/mta_bad_pixel/Test/';
-$old_dir       = $web_dir;
-$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
+#$bin_dir       = '/data/mta/MTA/bin/';
+#$bdat_dir      = '/data/mta/MTA/data/';
+#$web_dir       = '/data/mta/www/mta_bad_pixel/Test/';
+#$old_dir       = $web_dir;
+#$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
 
 $lookup   = '/home/ascds/DS.release/data/dmmerge_header_lookup.txt';    # dmmerge header rule lookup table
 
