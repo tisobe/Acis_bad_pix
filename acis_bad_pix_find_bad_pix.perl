@@ -2435,13 +2435,19 @@ sub count_new_imp {
 	print OUT "$dtime:$today_dom:$hot_pix_cnt\n";
 	close(OUT);
 
+	clearnup_duplicate("$web_dir/Disp_dir/hot_pix_cnt");
+
 	open(OUT,">>$web_dir/Disp_dir/hot_pix_cnt5");		# total hot pix: ccd 5
 	print OUT "$dtime:$today_dom:$hot_pix_cnt5\n";
 	close(OUT);
 
+	clearnup_duplicate("$web_dir/Disp_dir/hot_pix_cnt5");
+
 	open(OUT,">>$web_dir/Disp_dir/hot_pix_cnt7");		# total hot pix: ccd 7
 	print OUT "$dtime:$today_dom:$hot_pix_cnt7\n";
 	close(OUT);
+
+	clearnup_duplicate("$web_dir/Disp_dir/hot_pix_cnt7");
 
 #
 #--- col list count starts here
@@ -2518,13 +2524,19 @@ sub count_new_imp {
 	print OUT "$dtime:$today_dom:$bad_col_cnt\n";
 	close(OUT);
 
+	clearnup_duplicate("$web_dir/Disp_dir/bad_col_cnt");
+
 	open(OUT,">>$web_dir/Disp_dir/bad_col_cnt5");		# total bad col: ccd 5
 	print OUT "$dtime:$today_dom:$bad_col_cnt5\n";
 	close(OUT);
 
+	clearnup_duplicate("$web_dir/Disp_dir/bad_col_cnt5");
+
 	open(OUT,">>$web_dir/Disp_dir/bad_col_cnt7");		# total bad col: ccd 7
 	print OUT "$dtime:$today_dom:$bad_col_cnt7\n";
 	close(OUT);
+
+	clearnup_duplicate("$web_dir/Disp_dir/bad_col_cnt7");
 }
 
 
@@ -4751,7 +4763,9 @@ sub adjust_hist_count{
 		}
 		close(FH);
 		close(OUT);
-		print OUT "$year:$date:$today_dom:$cnt\n";
+
+		clearnup_duplicate($out);
+
 		if($iccd != 5 && $iccd != 7){
 			$ind = "$year.$date";
 			$add = ${data.$ind}{cnt}[0] + $cnt;
@@ -4784,6 +4798,42 @@ sub adjust_hist_count{
 			print OUT "${data.$ent}{dom}[0]:${data.$ent}{cnt}[0]\n";
 		}
 		close(OUT);
+	}
+}
+
+################################################################
+### sub clearnup_duplicate: remove duplicated lines          ###
+################################################################
+
+sub clearnup_duplicate {
+	($in_file) = @_;
+	@test = ();
+	open(CL, "$in_file");
+	while(<CL>){
+		chomp $_;
+		push(@test, $_);
+	}
+	close(CHL);
+	@ctemp = sort{$a<=>$b} @test;
+	$first = shift(@ctemp);
+	@cnew  = ($first);
+	COUTER:
+	foreach $cent (@ctemp){
+		foreach $ccomp (@cnew){
+			@dtemp = split(/:/, $cent);
+			@etemp = split(/:/, $ccomp);
+			if($dtemp[0] == $etemp[0] && $dtemp[1] == $etemp[1]){
+				next COUTER;
+			}
+		}
+		push(@cnew, $cent);
+	}
+
+	@test = sort{$a<=>$b} @cnew;
+
+	open(COUT, "> $in_file");
+	foreach $cent (@test){
+		print COUT "$cent\n";
 	}
 }
 
