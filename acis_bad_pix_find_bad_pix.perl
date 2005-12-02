@@ -3403,7 +3403,7 @@ sub plot_hist{
 	$ymin = -1;
 	$ymax = 20;						# setting y plotting range
 
-	pgbegin(0, "/ps",1,1);                                  # here the plotting start
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
 	pgsubp(1,3);                                            # pg routine: panel
 	pgsch(2);                                               # pg routine: charactor size
 	pgslw(4);          
@@ -3476,7 +3476,7 @@ sub plot_hist{
 	$ymin = -1;
 	$ymax = 20;
 	
-	pgbegin(0, "/ps",1,1);                                  # here the plotting start
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
 	pgsubp(1,3);                                            # pg routine: panel
 	pgsch(2);                                               # pg routine: charactor size
 	pgslw(4);          
@@ -3547,7 +3547,7 @@ sub plot_hist{
 	$ymin = -1;
 	$ymax = 20;
 	
-	pgbegin(0, "/ps",1,1);                                  # here the plotting start
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
 	pgsubp(1,3);                                            # pg routine: panel
 	pgsch(2);                                               # pg routine: charactor size
 	pgslw(4);          
@@ -3624,7 +3624,7 @@ sub plot_hist{
 	$ymin = -1;
 	$ymax = 20;						# setting y plotting range
 
-	pgbegin(0, "/ps",1,1);                                  # here the plotting start
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
 	pgsubp(1,3);                                            # pg routine: panel
 	pgsch(2);                                               # pg routine: charactor size
 	pgslw(4);          
@@ -3697,7 +3697,7 @@ sub plot_hist{
 	$ymin = -1;
 	$ymax = 20;
 	
-	pgbegin(0, "/ps",1,1);                                  # here the plotting start
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
 	pgsubp(1,3);                                            # pg routine: panel
 	pgsch(2);                                               # pg routine: charactor size
 	pgslw(4);          
@@ -3767,7 +3767,7 @@ sub plot_hist{
 	$ymin = -1;
 	$ymax = 20;
 	
-	pgbegin(0, "/ps",1,1);                                  # here the plotting start
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
 	pgsubp(1,3);                                            # pg routine: panel
 	pgsch(2);                                               # pg routine: charactor size
 	pgslw(4);          
@@ -3838,8 +3838,7 @@ sub plot_hist{
 	$ymin = -1;
 	$ymax = 20;
 	
-	pgbegin(0, "/ps",1,1);                                  # here the plotting start
-	pgbegin(0, "/ps",1,1);                                  # here the plotting start
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
 	pgsubp(1,3);                                            # pg routine: panel
 	pgsch(2);                                               # pg routine: charactor size
 	pgslw(4);          
@@ -3922,8 +3921,7 @@ sub plot_hist{
 		$ymax = $ymax_temp;
 	}
 	
-	pgbegin(0, "/ps",1,1);                                  # here the plotting start
-	pgbegin(0, "/ps",1,1);                                  # here the plotting start
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
 	pgsubp(1,3);                                            # pg routine: panel
 	pgsch(2);                                               # pg routine: charactor size
 	pgslw(4);          
@@ -3995,8 +3993,7 @@ sub plot_hist{
 	$ymin = -1;
 	$ymax = 20;
 	
-	pgbegin(0, "/ps",1,1);                                  # here the plotting start
-	pgbegin(0, "/ps",1,1);                                  # here the plotting start
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
 	pgsubp(1,3);                                            # pg routine: panel
 	pgsch(2);                                               # pg routine: charactor size
 	pgslw(4);          
@@ -4125,235 +4122,523 @@ sub count_bad_pix {
 #---- bad pixels
 #
 	open(FH, "$web_dir/Disp_dir/bad_pix_cnt");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@day_list, $atemp[2]);
-		push(@diff_day_list, $atemp[2]);
-		push(@diff_list, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
 	}
 	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@diff_day_list, $btemp[0]);
+		push(@diff_list, $btemp[1]);
+	}
 
 	open(FH, "$web_dir/Disp_dir/bad_pix_cnt5");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@diff_day_list5, $atemp[2]);
-		push(@diff_list5, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
 	}
 	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@diff_day_list5, $btemp[0]);
+		push(@diff_list5, $btemp[1]);
+	}
 
 	open(FH, "$web_dir/Disp_dir/bad_pix_cnt7");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@diff_day_list7, $atemp[2]);
-		push(@diff_list7, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
 	}
 	close(FH);
-
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@diff_day_list7, $btemp[0]);
+		push(@diff_list7, $btemp[1]);
+	}
 
 	open(FH, "$web_dir/Disp_dir/hot_pix_cnt");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@diff_day_hlist, $atemp[2]);
-		push(@diff_hlist, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
 	}
 	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@diff_day_hlist, $btemp[0]);
+		push(@diff_hlist, $btemp[1]);
+	}
 
 	open(FH, "$web_dir/Disp_dir/hot_pix_cnt5");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@diff_day_hlist5, $atemp[2]);
-		push(@diff_hlist5, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
 	}
 	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@diff_day_hlist5, $btemp[0]);
+		push(@diff_hlist5, $btemp[1]);
+	}
 
 	open(FH, "$web_dir/Disp_dir/hot_pix_cnt7");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@diff_day_hlist7, $atemp[2]);
-		push(@diff_hist7, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
 	}
 	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@diff_day_hlist7, $btemp[0]);
+		push(@diff_hlist7, $btemp[1]);
+	}
 
 	open(FH, "$web_dir/Disp_dir/bad_col_cnt");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@diff_day_col_list, $atemp[2]);
-		push(@diff_col_list, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
 	}
 	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@diff_day_col_list, $btemp[0]);
+		push(@diff_col_list, $btemp[1]);
+	}
 
 	open(FH, "$web_dir/Disp_dir/bad_col_cnt5");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@diff_day_col_list5, $atemp[2]);
-		push(@diff_col_list5, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
 	}
 	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@diff_day_col_list5, $btemp[0]);
+		push(@diff_col_list5, $btemp[1]);
+	}
 
 	open(FH, "$web_dir/Disp_dir/bad_col_cnt7");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@diff_day_col_list7, $atemp[2]);
-		push(@diff_col_list7, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
 	}
 	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@diff_day_col_list7, $btemp[0]);
+		push(@diff_col_list7, $btemp[1]);
+	}
 #
 #---	New
 #
 	open(FH, "$web_dir/Disp_dir/new_bad_pix_save");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@new_day_list, $atemp[2]);
-		push(@new_list, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@new_day_list, $btemp[0]);
+		push(@new_list, $btemp[1]);
 	}
 
 	open(FH, "$web_dir/Disp_dir/new_bad_pix_save5");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@new_day_list5, $atemp[2]);
-		push(@new_list5, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@new_day_list5, $btemp[0]);
+		push(@new_list5, $btemp[1]);
 	}
 
 	open(FH, "$web_dir/Disp_dir/new_bad_pix_save7");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@new_day_list7, $atemp[2]);
-		push(@new_list7, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@new_day_list7, $btemp[0]);
+		push(@new_list7, $btemp[1]);
 	}
 
 	open(FH, "$web_dir/Disp_dir/new_hot_pix_save");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@new_day_hlist, $atemp[2]);
-		push(@new_hlist, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@new_day_hlist, $btemp[0]);
+		push(@new_hlist, $btemp[1]);
 	}
 
 	open(FH, "$web_dir/Disp_dir/new_hot_pix_save5");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@new_day_hlist5, $atemp[2]);
-		push(@new_hlist5, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@new_day_hlist5, $btemp[0]);
+		push(@new_hlist5, $btemp[1]);
 	}
 
 	open(FH, "$web_dir/Disp_dir/new_hot_pix_save7");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@new_day_hlist7, $atemp[2]);
-		push(@new_hlist7, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@new_day_hlist7, $btemp[0]);
+		push(@new_hlist7, $btemp[1]);
 	}
 
 
 	open(FH, "$web_dir/Disp_dir/new_bad_col_save");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@new_day_col_list, $atemp[2]);
-		push(@new_col_list, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@new_day_col_list, $btemp[0]);
+		push(@new_col_list, $btemp[1]);
 	}
 
 	open(FH, "$web_dir/Disp_dir/new_bad_col_save5");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@new_day_col_list5, $atemp[2]);
-		push(@new_col_list5, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@new_day_col_list5, $btemp[0]);
+		push(@new_col_list5, $btemp[1]);
 	}
 
 	open(FH, "$web_dir/Disp_dir/new_bad_col_save7");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@new_day_col_list7, $atemp[2]);
-		push(@new_col_list7, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@new_day_col_list7, $btemp[0]);
+		push(@new_col_list7, $btemp[1]);
 	}
 #
 #--- Improved
 #
 	open(FH, "$web_dir/Disp_dir/imp_bad_pix_save");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@imp_day_list, $atemp[2]);
-		push(@imp_list, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@imp_day_list, $btemp[0]);
+		push(@imp_list, $btemp[1]);
 	}
 
 	open(FH, "$web_dir/Disp_dir/imp_bad_pix_save5");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@imp_day_list5, $atemp[2]);
-		push(@imp_list5, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
 	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@imp_day_list5, $btemp[0]);
+		push(@imp_list5, $btemp[1]);
+	}
+
 
 	open(FH, "$web_dir/Disp_dir/imp_bad_pix_save7");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@imp_day_list7, $atemp[2]);
-		push(@imp_list7, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@imp_day_list7, $btemp[0]);
+		push(@imp_list7, $btemp[1]);
 	}
 
+
 	open(FH, "$web_dir/Disp_dir/imp_hot_pix_save");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@imp_day_hlist, $atemp[2]);
-		push(@imp_hlist, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@imp_day_hlist, $btemp[0]);
+		push(@imp_hlist, $btemp[1]);
 	}
 
 	open(FH, "$web_dir/Disp_dir/imp_hot_pix_save5");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@imp_day_hlist5, $atemp[2]);
-		push(@imp_hlist5, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@imp_day_hlist5, $btemp[0]);
+		push(@imp_hlist5, $btemp[1]);
 	}
 
 	open(FH, "$web_dir/Disp_dir/imp_hot_pix_save7");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@imp_day_hlist7, $atemp[2]);
-		push(@imp_hlist7, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@imp_day_hlist7, $btemp[0]);
+		push(@imp_hlist7, $btemp[1]);
 	}
 
 	open(FH, "$web_dir/Disp_dir/imp_bad_col_save");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@imp_day_col_list, $atemp[2]);
-		push(@imp_col_list, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@imp_day_col_list, $btemp[0]);
+		push(@imp_col_list, $btemp[1]);
 	}
 
 	open(FH, "$web_dir/Disp_dir/imp_bad_col_save5");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@imp_day_col_list5, $atemp[2]);
-		push(@imp_col_list5, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@imp_day_col_list5, $btemp[0]);
+		push(@imp_col_list5, $btemp[1]);
 	}
 
 	open(FH, "$web_dir/Disp_dir/imp_bad_col_save7");
+	@temp_in = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/:/,$_);
-		push(@imp_day_col_list7, $atemp[2]);
-		push(@imp_col_list7, $atemp[3]);
+		$line = "$atemp[2]:$atemp[3]";
+		push(@temp_in, $line);
+	}
+	close(FH);
+	@temp = sort{$a<=>$b} @temp_in;
+	foreach $ent (@temp){
+		@btemp = split(/:/, $ent);
+		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
+			next;
+		}
+		push(@imp_day_col_list7, $btemp[0]);
+		push(@imp_col_list7, $btemp[1]);
 	}
 }
 
@@ -4378,8 +4663,10 @@ sub plot_diff {
 
 	if($no_write == 1) {	
 		pgpt(1,$xb,$yb,-1);
+		pgsci(2);
 		pgdraw($xe,$ye);
 		pgtext($xmin+5,$ymax-4,"Slope: $slope");
+		pgsci(1);
 	}
 }
 
