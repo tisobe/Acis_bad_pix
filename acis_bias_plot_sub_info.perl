@@ -31,7 +31,7 @@ $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 
 	
 for($ccd = 0; $ccd < 10; $ccd++){
-	for($quad = 0; $quad < 1; $quad++){
+	for($quad = 0; $quad < 4; $quad++){
 		$y_axis = 'Bias';
 		$dir = "$web_dir".'/Info_dir/CCD'."$ccd".'/quad'."$quad";
 	}
@@ -40,7 +40,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 #--- overclock
 #
 for($ccd = 0; $ccd < 10; $ccd++){
-	for($quad = 0; $quad < 1; $quad++){
+	for($quad = 0; $quad < 4; $quad++){
 		$y_axis = 'Bias';
                 $dir2 = "$web_dir".'/Plots/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_q'."$quad";
                 plot_param_dep();
@@ -51,7 +51,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 #---- bias backgound
 #
 for($ccd = 0; $ccd < 10; $ccd++){
-	for($quad = 0; $quad < 1; $quad++){
+	for($quad = 0; $quad < 4; $quad++){
 
 		$y_axis = 'Bias';
 		$dir3 = "$web_dir".'/Plots/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_bias_q'."$quad";
