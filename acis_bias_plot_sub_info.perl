@@ -6,7 +6,7 @@ use PGPLOT;
 #	plot_sub_info.perl: plot bias background data of different classifications	#
 #											#
 #		author: t. isobe (tiosbe@cfa.harvard.edu)				#
-#		last update: Aug 19, 2004						#
+#		last update: Mar 08, 2006						#
 #											#
 #########################################################################################
 
@@ -31,17 +31,29 @@ $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 
 	
 for($ccd = 0; $ccd < 10; $ccd++){
-	for($quad = 0; $quad < 4; $quad++){
+	for($quad = 0; $quad < 1; $quad++){
+		$y_axis = 'Bias';
 		$dir = "$web_dir".'/Info_dir/CCD'."$ccd".'/quad'."$quad";
+	}
+}
 #	
 #--- overclock
 #
-		$dir2 = "$web_dir".'/Plots/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_q'."$quad";
-		plot_param_dep();
+for($ccd = 0; $ccd < 10; $ccd++){
+	for($quad = 0; $quad < 1; $quad++){
+		$y_axis = 'Bias';
+                $dir2 = "$web_dir".'/Plots/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_q'."$quad";
+                plot_param_dep();
+	}
+}
+
 #
 #---- bias backgound
 #
+for($ccd = 0; $ccd < 10; $ccd++){
+	for($quad = 0; $quad < 1; $quad++){
 
+		$y_axis = 'Bias';
 		$dir3 = "$web_dir".'/Plots/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_bias_q'."$quad";
 		plot_param_dep2();
 	}
@@ -109,8 +121,14 @@ sub plot_param_dep{
 		$cnt++;
 	}
 	close(FH);
-	
 	if($cnt > 0){
+	
+		@x1 = ();
+		@y1 = ();
+		@x2 = ();
+		@y2 = ();
+		@x3 = ();
+		@y3 = ();
 		for($i = 0; $i < $cnt; $i++){
 			if($mode[$i] eq 'FAINT'){
 				push(@x1, $time[$i]);
@@ -161,6 +179,13 @@ sub plot_param_dep{
 		system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/obs_mode.gif");
 
 		system("rm pgplot.ps");
+
+		@x1 = ();
+		@y1 = ();
+		@x2 = ();
+		@y2 = ();
+		$cnt1 = 0;
+		$cnt2 = 0;
 		
 		for($i = 0; $i < $cnt; $i++){
 			if($num_row[$i] == 1024){
@@ -196,6 +221,16 @@ sub plot_param_dep{
 		system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/partial_readout.gif");
 
 		system("rm pgplot.ps");
+
+		@x1 = ();
+		@y1 = ();
+		@x2 = ();
+		@y2 = ();
+		@x3 = ();
+		@y3 = ();
+		$cnt1 = 0;
+		$cnt2 = 0;
+		$cnt3 = 0;
 		
 		for($i = 0; $i < $cnt; $i++){
         		if($biasarg1[$i] == 9){
@@ -244,6 +279,17 @@ sub plot_param_dep{
 	
 	
 		$mstep = 0;
+
+		@x1 = ();
+		@y1 = ();
+		@x2 = ();
+		@y2 = ();
+		@x3 = ();
+		@y3 = ();
+		$cnt1 = 0;
+		$cnt2 = 0;
+		$cnt3 = 0;
+
 		OUTER:
 		for($i = 0; $i < $cnt; $i++){
 			for($m = $mstep; $m < $cnt; $m++){
@@ -367,7 +413,7 @@ sub plot_param_dep2{
 	}
 	close(FH);
 	
-	open(FH, "../Data/Bias_save/$in_file");
+	open(FH, "$web_dir/Bias_save/$in_file");
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/\s+/, $_);
@@ -379,6 +425,16 @@ sub plot_param_dep2{
 	}
 	close(FH);
 	
+	@x1 = ();
+	@y1 = ();
+	@x2 = ();
+	@y2 = ();
+	@x3 = ();
+	@y3 = ();
+	$cnt1 = 0;
+	$cnt2 = 0;
+	$cnt3 = 0;
+
 	for($i = 0; $i < $cnt; $i++){
 		if($mode[$i] eq 'FAINT'){
 			push(@x1, $time[$i]);
@@ -430,6 +486,17 @@ sub plot_param_dep2{
 
 	system("rm pgplot.ps");
 	
+	
+	@x1 = ();
+	@y1 = ();
+	@x2 = ();
+	@y2 = ();
+	@x3 = ();
+	@y3 = ();
+	$cnt1 = 0;
+	$cnt2 = 0;
+	$cnt3 = 0;
+
 	for($i = 0; $i < $cnt; $i++){
 		if($num_row[$i] == 1024){
 			push(@x1, $time[$i]);
@@ -464,6 +531,16 @@ sub plot_param_dep2{
 	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/partial_readout.gif");
 
 	system("rm pgplot.ps");
+	
+	@x1 = ();
+	@y1 = ();
+	@x2 = ();
+	@y2 = ();
+	@x3 = ();
+	@y3 = ();
+	$cnt1 = 0;
+	$cnt2 = 0;
+	$cnt3 = 0;
 	
 	for($i = 0; $i < $cnt; $i++){
         	if($biasarg1[$i] == 9){
@@ -512,6 +589,16 @@ sub plot_param_dep2{
 	
 	
 	$mstep = 0;
+	
+	@x1 = ();
+	@y1 = ();
+	@x2 = ();
+	@y2 = ();
+	@x3 = ();
+	@y3 = ();
+	$cnt1 = 0;
+	$cnt2 = 0;
+	$cnt3 = 0;
 	OUTER:
 	for($i = 0; $i < $cnt; $i++){
 		for($m = $mstep; $m < $cnt; $m++){
@@ -571,21 +658,37 @@ sub plot_param_dep2{
 ####################################################################
 
 sub plot_routine{
-	least_fit();
+#	least_fit();
+	@xdata = @x;
+	@ydata = @y;
+	$data_cnt = $tot;
+	if($tot > 0){
+		@temp = sort{$a<=>$b} @x;
+		$txmin = $temp[0];
+		$txmax = $temp[$tot-1];
+		$txdiff = $txmax - $txmin;
+		if($txdiff > 0){
+			robust_fit();
+			$slope = sprintf "%2.4f",$slope;
+		}
+	}else{
+		$slope = 'N/A';
+	}
+
 	pgenv($xmin, $xmax, $ymin, $ymax, 0, 0);
 	pgslw(3);
 	for($m = 0; $m < $tot; $m++){
 		pgpt(1,$x[$m], $y[$m], -1);
 	}
-	$ys = $int + $slope*$x[0];
-	$ye = $int + $slope*$x[$tot-1];
-	pgpt(1,$x[0],$ys,-1);
-	pgdraw($x[$tot-1],$ye);
+	$ys = $int + $slope*$xmin;
+	$ye = $int + $slope*$xmax;
+	pgmove($xmin, $ys);
+	pgdraw($xmax, $ye);
 	pgslw(2);
 	$xw = $x[0]+ 30;
 	$yw = $ymax -0.3;
 	pgptxt($xw, $yw, 0, 0, "Slope: $slope");
-	pglabel("Time (DOM)", 'Bias', "$title");
+	pglabel("Time (DOM)", "$y_axis", "$title");
 }
 
 ####################################################################
@@ -600,7 +703,10 @@ sub least_fit{
         $lsumx2 = 0;
         $lsumy2 = 0;
 
-        for($fit_i = 0; $fit_i < $tot;$fit_i++) {
+        for($fit_i = 0; $fit_i < $tot; $fit_i++) {
+		if($y[$fit_i] !~ /\d/){
+			next;
+		}
                 $lsum++;
                 $lsumx += $x[$fit_i];
                 $lsumy += $y[$fit_i];
@@ -619,3 +725,186 @@ sub least_fit{
 		$slope = 0.0;
 	}
 }
+
+####################################################################
+### robust_fit: linear fit for data with medfit robust fit metho  ##
+####################################################################
+
+sub robust_fit{
+        $sumx = 0;
+        $symy = 0;
+        for($n = 0; $n < $data_cnt; $n++){
+                $sumx += $xdata[$n];
+                $symy += $ydata[$n];
+        }
+        $xavg = $sumx/$data_cnt;
+        $yavg = $sumy/$data_cnt;
+#
+#--- robust fit works better if the intercept is close to the
+#--- middle of the data cluster.
+#
+        @xbin = ();
+        @ybin = ();
+        for($n = 0; $n < $data_cnt; $n++){
+                $xbin[$n] = $xdata[$n] - $xavg;
+                $ybin[$n] = $ydata[$n] - $yavg;
+        }
+
+        $total = $data_cnt;
+        medfit();
+
+        $alpha += $beta * (-1.0 * $xavg) + $yavg;
+
+        $int   = $alpha;
+        $slope = $beta;
+}
+
+
+####################################################################
+### medfit: robust filt routine                                  ###
+####################################################################
+
+sub medfit{
+
+#########################################################################
+#                                                                       #
+#       fit a straight line according to robust fit                     #
+#       Numerical Recipes (FORTRAN version) p.544                       #
+#                                                                       #
+#       Input:          @xbin   independent variable                    #
+#                       @ybin   dependent variable                      #
+#                       total   # of data points                        #
+#                                                                       #
+#       Output:         alpha:  intercept                               #
+#                       beta:   slope                                   #
+#                                                                       #
+#       sub:            rofunc evaluate SUM( x * sgn(y- a - b * x)      #
+#                       sign   FORTRAN/C sign function                  #
+#                                                                       #
+#########################################################################
+
+        my $sx  = 0;
+        my $sy  = 0;
+        my $sxy = 0;
+        my $sxx = 0;
+
+        my (@xt, @yt, $del,$bb, $chisq, $b1, $b2, $f1, $f2, $sigb);
+#
+#---- first compute least sq solution
+#
+        for($j = 0; $j < $total; $j++){
+                $xt[$j] = $xbin[$j];
+                $yt[$j] = $ybin[$j];
+                $sx  += $xbin[$j];
+                $sy  += $ybin[$j];
+                $sxy += $xbin[$j] * $ybin[$j];
+                $sxx += $xbin[$j] * $xbin[$j];
+        }
+
+        $del = $total * $sxx - $sx * $sx;
+#
+#----- least sq. solutions
+#
+        $aa = ($sxx * $sy - $sx * $sxy)/$del;
+        $bb = ($total * $sxy - $sx * $sy)/$del;
+        $asave = $aa;
+        $bsave = $bb;
+
+        $chisq = 0.0;
+        for($j = 0; $j < $total; $j++){
+                $diff   = $ybin[$j] - ($aa + $bb * $xbin[$j]);
+                $chisq += $diff * $diff;
+        }
+        $sigb = sqrt($chisq/$del);
+        $b1   = $bb;
+        $f1   = rofunc($b1);
+        $b2   = $bb + sign(3.0 * $sigb, $f1);
+        $f2   = rofunc($b2);
+
+        $iter = 0;
+        OUTER:
+        while($f1 * $f2 > 0.0){
+                $bb = 2.0 * $b2 - $b1;
+                $b1 = $b2;
+                $f1 = $f2;
+                $b2 = $bb;
+                $f2 = rofunc($b2);
+                $iter++;
+                if($iter > 100){
+                        last OUTER;
+                }
+        }
+
+        $sigb *= 0.01;
+        $iter = 0;
+        OUTER1:
+        while(abs($b2 - $b1) > $sigb){
+                $bb = 0.5 * ($b1 + $b2);
+                if($bb == $b1 || $bb == $b2){
+                        last OUTER1;
+                }
+                $f = rofunc($bb);
+                if($f * $f1 >= 0.0){
+                        $f1 = $f;
+                        $b1 = $bb;
+                }else{
+                        $f2 = $f;
+                        $b2 = $bb;
+                }
+                $iter++;
+                if($iter > 100){
+                        last OTUER1;
+                }
+        }
+        $alpha = $aa;
+        $beta  = $bb;
+        if($iter >= 100){
+                $alpha = $asave;
+                $beta  = $bsave;
+        }
+        $abdev = $abdev/$total;
+}
+
+##########################################################
+### rofunc: evaluatate 0 = SUM[ x *sign(y - a bx)]     ###
+##########################################################
+
+sub rofunc{
+        my ($b_in, @arr, $n1, $nml, $nmh, $sum);
+
+        ($b_in) = @_;
+        $n1  = $total + 1;
+        $nml = 0.5 * $n1;
+        $nmh = $n1 - $nml;
+        @arr = ();
+        for($j = 0; $j < $total; $j++){
+                $arr[$j] = $ybin[$j] - $b_in * $xbin[$j];
+        }
+        @arr = sort{$a<=>$b} @arr;
+        $aa = 0.5 * ($arr[$nml] + $arr[$nmh]);
+        $sum = 0.0;
+        $abdev = 0.0;
+        for($j = 0; $j < $total; $j++){
+                $d = $ybin[$j] - ($b_in * $xbin[$j] + $aa);
+                $abdev += abs($d);
+                $sum += $xbin[$j] * sign(1.0, $d);
+        }
+        return($sum);
+}
+
+
+##########################################################
+### sign: sign function                                ###
+##########################################################
+
+sub sign{
+        my ($e1, $e2, $sign);
+        ($e1, $e2) = @_;
+        if($e2 >= 0){
+                $sign = 1;
+        }else{
+                $sign = -1;
+        }
+        return $sign * $e1;
+}
+
