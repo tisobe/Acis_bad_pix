@@ -217,7 +217,7 @@ sub int_file_for_day{
 		foreach $ent (@stamp_list){
 			${cnt.$ent}{cnt}[0]++;
 		}
-		open(CNO, '>>./Working_dir/list_of_ccd_no');
+		open(CNO, ">>$web_dir/Info_dir/list_of_ccd_no");
 		foreach $ent (@new){
 			@atemp = split(/\./, $ent);
 			print CNO "$atemp[0]\t${cnt.$ent}{cnt}[0]\n";

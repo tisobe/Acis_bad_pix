@@ -69,7 +69,7 @@ sub plot_param_dep{
 	
 	$dest_dir = $dir2;
 	
-	open(FH, './Working_dir/list_of_ccd_no');
+	open(FH, "$web_dir/Info_dir/list_of_ccd_no");
 	@ttime = ();
 	@ccd_no = ();
 	while(<FH>){
