@@ -72,14 +72,16 @@ sub plot_param_dep{
 	open(FH, "$web_dir/Info_dir/list_of_ccd_no");
 	@ttime = ();
 	@ccd_no = ();
+	$c_nt   = 0;
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/\s+/, $_);
-		push(@ttime, $atemp[0]);
+		$dom = ($atemp[0] - 48902399)/86400;
+		push(@ttime, $dom);
 		push(@ccd_no, $atemp[1]);
+		$c_cnt++;
 	}
 	close(FH);
-	
 	
 	@time      = ();
 	@overclock = ();
@@ -292,7 +294,7 @@ sub plot_param_dep{
 
 		OUTER:
 		for($i = 0; $i < $cnt; $i++){
-			for($m = $mstep; $m < $cnt; $m++){
+			for($m = $mstep; $m < $c_cnt; $m++){
 				if($time[$i] == $ttime[$m]){
 					if($ccd_no == 6){
 						push(@x1, $time[$i]);
@@ -308,6 +310,8 @@ sub plot_param_dep{
 						$cnt3++;
 					}
 					$mstep = $m;
+					next OUTER;
+				}elsif($time[$i] < $ttime[$m]){
 					next OUTER;
 				}
 			}
