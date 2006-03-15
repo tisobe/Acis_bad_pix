@@ -18,4 +18,6 @@ perl /data/mta/MTA/bin/acis_bias_plot_bias.perl
 perl /data/mta/MTA/bin/acis_bias_plot_sub_info.perl
 perl /data/mta/MTA/bin/acis_bias_html_update.perl
 
+perl /data/mta/MTA/bin/acis_bias_run_all_ccd.perl
+
 rm -rf ./Working_dir
