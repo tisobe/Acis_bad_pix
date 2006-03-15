@@ -41,7 +41,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 #
 for($ccd = 0; $ccd < 10; $ccd++){
 	for($quad = 0; $quad < 4; $quad++){
-		$y_axis = 'Bias';
+		$y_axis = 'Overclock';
                 $dir2 = "$web_dir".'/Plots/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_q'."$quad";
                 plot_param_dep();
 	}
@@ -364,7 +364,7 @@ sub plot_param_dep2{
 	$in_file = 'CCD'."$btemp[1]";
 	
 	
-	open(FH, '$web_dir/Info_dir/list_of_ccd_no');
+	open(FH, "$web_dir/Info_dir/list_of_ccd_no");
 	@ttime = ();
 	@ccd_no = ();
 	while(<FH>){
@@ -375,7 +375,6 @@ sub plot_param_dep2{
 		push(@ccd_no, $atemp[1]);
 	}
 	close(FH);
-	
 	
 	@time      = ();
 	@overclock = ();
