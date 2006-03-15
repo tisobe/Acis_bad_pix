@@ -296,11 +296,11 @@ sub plot_param_dep{
 		for($i = 0; $i < $cnt; $i++){
 			for($m = $mstep; $m < $c_cnt; $m++){
 				if($time[$i] == $ttime[$m]){
-					if($ccd_no == 6){
+					if($ccd_no[$m] == 6){
 						push(@x1, $time[$i]);
 						push(@y1, $overclock[$i]);
 						$cnt1++;
-					}elsif($ccd_no == 5){
+					}elsif($ccd_no[$m] == 5){
 						push(@x2, $time[$i]);
 						push(@y2, $overclock[$i]);
 						$cnt2++;
@@ -364,13 +364,14 @@ sub plot_param_dep2{
 	$in_file = 'CCD'."$btemp[1]";
 	
 	
-	open(FH, './Working_dir/list_of_ccd_no');
+	open(FH, '$web_dir/Info_dir/list_of_ccd_no');
 	@ttime = ();
 	@ccd_no = ();
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/\s+/, $_);
-		push(@ttime, $atemp[0]);
+                $dom = ($atemp[0] - 48902399)/86400;
+                push(@ttime, $dom);
 		push(@ccd_no, $atemp[1]);
 	}
 	close(FH);
@@ -607,11 +608,11 @@ sub plot_param_dep2{
 	for($i = 0; $i < $cnt; $i++){
 		for($m = $mstep; $m < $cnt; $m++){
 			if($time[$i] == $ttime[$m]){
-				if($ccd_no == 6){
+				if($ccd_no[$m] == 6){
 					push(@x1, $time[$i]);
 					push(@y1, $bias[$i]);
 					$cnt1++;
-				}elsif($ccd_no == 5){
+				}elsif($ccd_no[$m] == 5){
 					push(@x2, $time[$i]);
 					push(@y2, $bias[$i]);
 					$cnt2++;
