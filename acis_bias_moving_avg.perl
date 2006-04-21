@@ -367,7 +367,7 @@ if($total > 20){
 }
 #pgsci(5);
 #pgdraw($xmax, $yest);
-#pgsci(1);
+pgsci(1);
 
 
 pglabel("Time (DOM)", "Sigma of Moving Average", "$title");
