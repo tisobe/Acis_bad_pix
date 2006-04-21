@@ -6,27 +6,45 @@ use PGPLOT;
 #											#
 #	acis_bias_moving_avg.perl: fit a moving average, 5th degree polynomial, 	#
 #				  and envelope to bias-overclock data			#
+#       this version is modified for weekly trending, not for a memo			#
+#	(we do not extend the prediction for 1 year)					#
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: 03/14/2006								#
+#	last update: 04/21/2006								#
 #											#
 #########################################################################################
+
+
+#######################################
+#
+#--- setting a few paramters
+#
+
+#--- output directory
+
+$bin_dir       = '/data/mta/MTA/bin/';
+$bdat_dir      = '/data/mta/MTA/data/';
+$web_dir       = '/data/mta_www/mta_bias_bkg/';
+$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+
+#$bin_dir       = '/data/mta/MTA/bin/';
+#$bdat_dir      = '/data/mta/MTA/data/';
+#$web_dir       = '/data/mta_www/mta_bias_bkg_test';
+#$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
+
+#######################################
 
 #
 #----- an example input: /data/mta_www/mta_bias_bkg/Bias_save/CCD3/quad0
 #
 
-$file = $ARGV[0];
+$file   = $ARGV[0];
+$pstart = $ARGV[1];
+$pend   = $ARTV[2];
 chomp $file;
-#
-#----- since the plotting range for CCD7 is siginificantly different from others,
-#----- we need to mark it
-#
-$special = 0;
-if($file =~ /CCD7/){
-	$special = 7;
-}
+chomp $pstart;
+chomp $pend;
 #
 #--- extract CCD name and Node #
 #
@@ -43,44 +61,26 @@ $out_name = 'bias_plot_'."$atemp[$ncnt-2]".'_'."$atemp[$ncnt-1]".'.gif';
 #
 #--- start reading data
 #
-@line = ();
-@time = ();
-@bias = ();
-@err  = ();
-@ovck = ();
+@date = ();
 @bmo  = ();
+@err  = ();
 $cnt  = 0;
 
 open(FH, "$file");
+OUTER:
 while(<FH>){
 	chomp $_;
-	push(@line, $_);
-}
-close(FH);
-#
-#---- sort data with date, and then remove duplicated lines
-#
-@temp = sort{$a<=>$b} @line;
-$first = shift(@temp);
-@new = ($first);
-OUTER:
-foreach $ent (@temp){
-	foreach $comp (@new){
-		if($ent eq $comp){
-			next OUTER;
-		}
-	}
-	push(@new, $ent);
-}
-
-$chk = 0;
-$sum = 0;
-foreach $ent (@new){
-	@atemp = split(/\s+/, $ent);
+	@atemp = split(/\s+/, $_);
 #
 #---- dom is  day of mission
 #
 	$dom   = $atemp[0]/86400 - 567;
+	if($pstart =~ /\d/ && $dom < $pstart){
+		next OUTER;
+	}
+	if($pend =~ /\d/ && $dom > $pend){
+		last OUTER;
+	}
 #
 #---- diff is difference between bias - overclock
 #
@@ -91,128 +91,93 @@ foreach $ent (@new){
 #---- consequently.
 #---- we call that time is to $stop_date.
 #
-	if($atemp[2] > 20 && $chk ==  0){
-		$stop_date = $dom;
-		if($err[$cnt-1] > 20 && $err[$cnt-2] > 20 && $err[$cnt-3] > 20 && $err[$cnt-10] > 20){
-			$stop_date = $time[$cnt-11];
-			$chk++;
+	if($pstart !~ /\d/ && $pend !~ /\d/){
+		if($atemp[2] > 20 && $chk ==  0){
+			$stop_date = $dom;
+			if($err[$cnt-1] > 20 && $err[$cnt-2] > 20 && $err[$cnt-3] > 20 && $err[$cnt-10] > 20){
+				$stop_date = $date[$cnt-11];
+				$chk++;
+				last OUTER;
+			}
 		}
 	}
-	push(@time, $dom);
-	push(@bias, $atemp[1]);
-	push(@err,  $atemp[2]);
-	push(@ovck, $atemp[3]);
-	push(@bmo, $diff);
 	if($chk == 0){
 		$stop_date = $dom;
 	}
-	$sum += $diff;
+	push(@date, $dom);
+	push(@err,  $atemp[2]);
+	push(@bmo,  $diff);
 	$cnt++;
 }
+close(FH);
+open(OUT, '>temp_data');
+for($m = 0; $m < $cnt; $m++){
+	print OUT  "$date[$m]\t$bmo[$m]\n";
+}
+close(OUT);
+#
+#-- the following perl script computes a moving average, envelopes, and
+#-- polynomial fit for the data
+#
+system("perl $bin_dir/find_moving_avg.perl temp_data 5 4 out_data");
+#
+#--- read the data just computed
+#
+open(FH, "out_data");
 
-#
-#--- tmp_avg will be used to find outlayers for CCD 7
-#
-$tmp_avg = $sum/$cnt;
-
-@date  = ();
-@mvavg = ();
-@sigma = ();
-@max_sv = ();
-@min_sv = ();
-$tot   = 0;
-#
-#---- now computing 30 day moving average
-#
-$arange = 30;
-#
-#---- setting upper and lower rnage of moving arvarge computation this one is for CCD7
-#---- others are set between -0.5 and 2.0
-#
-$sp_bot = $tmp_avg -2;
-$sp_top = $tmp_avg +3;
-for($i = $arange; $i < $cnt; $i++){
-	$sum = 0;
-	$sum2 = 0;
-	$max = -1.e+5;
-	$min = 1.e+5;
-	if($time[$i] > $stop_date){
-		last;
-	}
-#
-#---- add the last 30 days of data
-#
-	for($j = 0; $j < $arange; $j++){
-		if($special == 7){
-			if($bmo[$i - $j] < $sp_bot || $bmo[$i - $j] > $sp_top){
-				next;
-			}
-		}else{
-			if($bmo[$i - $j] <-0.5 || $bmo[$i - $j] > 2.0){
-				next;
-			}
-		}
-		$sum += $bmo[$i - $j];
-		$sum2+= $bmo[$i - $j] * $bmo[$i - $j];
-		if($bmo[$i - $j] > $max){
-			$max = $bmo[$i - $j];
-		}
-		if($bmo[$i - $j] < $min){
-			$min = $bmo[$i - $j];
-		}
-	}
-	$avg = $sum/$arange;
-	$std = sqrt($sum2/$arange - $avg * $avg);
-	push(@mvavg, $avg);
-	push(@sigma, $std);
-	push(@max_sv, $max);
-	push(@min_sv, $min);
-	push(@date, $time[$i]);
+@time    = ();
+@mvavg   = ();
+@sigma   = ();
+@bottom  = ();
+@middle  = ();
+@top     = ();
+$tot     = 0;
+$sum     = 0;
+while(<FH>){
+	chomp $_;
+	@atemp = split(/\s+/, $_);
+	push(@time,   $atemp[0]);
+	push(@mvavg,  $atemp[1]);
+	push(@sigma,  $atemp[2]);
+	push(@bottom, $atemp[3]);
+	push(@middle, $atemp[4]);
+	push(@top,    $atemp[5]);
+	push(@std_fit,$atemp[6]);
 	$tot++;
+	$sum += $atemp[1];
 }
+close(FH);
+$avg = $sum/$tot;
 #
-#---- here we try to find a average of central part of data for CCD7
+#--- set a plotting range for x
 #
-$sum = 0;
-$scnt = 0;
-$st = int(0.40 * $tot);
-$ed = int(0.60 * $tot);
-for($j = $st; $j < $ed; $j++){
-	$sum += $mvavg[$j];
-	$scnt++;
-}
-$all_avg = $sum/$scnt;
+@temp  = sort{$a<=>$b}@date;
+$xmin  = $temp[0];
+$xmax  = $temp[$cnt-1];
+#
+#--- set sampling period
+#
+@temp    = sort{$a<=>$b} @time;
+$msample = int(0.03 * $tot);
+$mpos    = $tot - $msample;
+$xsampl  = $temp[$mpos];
 
-@temp = sort{$a<=>$b}@time;
-$xmin = $temp[0];
-$xmax = $temp[$cnt-1];
+#
+#--- extend xmax for another 1 year: we are not doing this for this version
+#
+$xmaxs  = $xmax;
+###$xmax += 365;
 
-if($special == 7){
-	$int_avg = int($all_avg);
-	$idiff = $all_avg - $int_avg;
-	if($idiff > 0.875){
-		$int_avg++;
-	}elsif($idiff > 0.625){
-		$int_avg += 0.75;
-	}elsif($idiff > 0.375){
-		$int_avg += 0.5;
-	}elsif($idiff > 0.125){
-		$int_avg += 0.25;
-	}
+
 #
-#---- here is a plotting range for CCD7
-#	
-	$ymin = 4.0;
-	$ymax = 5.5;
-	$ymin = $int_avg - 0.5;
-	$ymax = $int_avg + 1.5;
-}else{
+#--- plotting range for  y
 #
-#--- plotting range for all others
+$ymin =  $avg - 1.0;
+$ymax =  $avg + 1.0;
+
 #
-	$ymin =  -0.5;
-	$ymax =  1.5;
-}
+#--- plotting start here
+#
 
 pgbegin(0, "/cps",1,1);
 pgsubp(1,2);
@@ -220,93 +185,141 @@ pgsch(2);
 pgslw(2);
 pgenv($xmin, $xmax, $ymin, $ymax, 0, 0);
 #
-#---- data point plot
+#---- data point plotting
 #
 for($m = 0; $m < $cnt; $m++){
-	pgpt(1,$time[$m], $bmo[$m], -1);
+	pgpt(1,$date[$m], $bmo[$m], -1);
 }
+
+#
+#--  the bottom envelope
+#
+#--- to estimate a future trend, sample data (last 3% of data)
+#
+@xsample = ();
+@ysample = ();
+$s_cnt   = 0;
 
 pgsci(4);
-#
-#---- 5th degree polynomial fitting: bottom envelope
-#
-$nterms = 5;
-$mode = 0;
-$npts = $tot;
-@x_in = @date;
-@y_in = @min_sv;
-svdfit($npts, $nterms);
-
-$yest = pol_val($nterms, $date[0]);
-pgmove($date[0], $yest);
+pgmove($time[0], $bottom[0]);
 for($m = 1; $m < $tot; $m++){
-	$yest = pol_val($nterms, $date[$m]);
-	pgdraw($date[$m], $yest);
-}
 #
-#---- 5th degree polynomial fitting: top envelope
+#--- sampling data for future trend
 #
-$nterms = 5;
-$mode = 0;
-$npts = $tot;
-@x_in = @date;
-@y_in = @max_sv;
-svdfit($npts, $nterms);
-#
-#---- moving average line
-#
-$yest = pol_val($nterms, $date[0]);
-pgmove($date[0], $yest);
-for($m = 1; $m < $tot; $m++){
-	$yest = pol_val($nterms, $date[$m]);
-	pgdraw($date[$m], $yest);
-}
-pgsci(1);
-
-pgsci(2);
-pgmove($date[0], $mvavg[0]);
-for($m = 1; $m < $tot; $m++){
-	pgdraw($date[$m], $mvavg[$m]);
-}
-pgsci(1);
-#
-#---- 5th degree polynomial fitting:  moving average
-#---- avoid earlier data, since the variations are too large to fit
-#---- a nice smooth line
-#
-$nterms = 5;
-$mode = 0;
-$npts = 0;
-$pstart = 50;
-$pend   = $xmax;
-@x_in = ();
-@y_in = ();
-
-for($m = 0; $m < $cnt; $m++){
-	if($date[$m] > $pstart && $date[$m] < $pend){
-		$x_in[$npts] = $date[$m];
-		$y_in[$npts] = $mvavg[$m];
-		$npts++;
+	pgdraw($time[$m], $bottom[$m]);
+	if($time[$m] > $xsampl){
+		push(@xsample, $time[$m]);
+		push(@ysample, $bottom[$m]);
+		$s_cnt++;
 	}
 }
+#
+#--- fit a linear trend for future prediction
+#
+@xbin = @xsample;
+@ybin = @ysample;
+$total = $s_cnt;
+if($total > 20){
+	least_fit();
+	$yest = $s_int + $slope * $xmax;
+}else{
+	$pos1 = $tot -1;
+	$pos2 = $tot -2;
+	$xd = $time[$pos1] - $time[$pos2];
+	$yd = $bottom[$pos1] - $bottom[$pos2];
+	$yest = $bottom[$pos2] + ($yd/$xd) * ($xmax - $time[$pos1]);
+}
+#pgsci(5);
+#pgdraw($xmax, $yest);
+#pgsci(4);
 
-svdfit($npts, $nterms);
+#
+#---- top envelope
+#
+@xsample = ();
+@ysample = ();
+$s_cnt   = 0;
+pgmove($time[0], $top[0]);
+for($m = 1; $m < $tot; $m++){
+#
+#--- sampling data for future trend
+#
+	pgdraw($time[$m], $top[$m]);
+	if($time[$m] > $xsampl){
+		push(@xsample, $time[$m]);
+		push(@ysample, $top[$m]);
+		$s_cnt++;
+	}
+}
+#
+#--- fit a linear trend for future prediction
+#
+@xbin = @xsample;
+@ybin = @ysample;
+$total = $s_cnt;
+if($total > 20){
+	least_fit();
+	$yest = $s_int + $slope * $xmax;
+}else{
+	$pos1 = $tot -1;
+	$pos2 = $tot -2;
+	$xd = $time[$pos1] - $time[$pos2];
+	$yd = $top[$pos1] - $top[$pos2];
+	$yest = $top[$pos2] + ($yd/$xd) * ($xmax - $time[$pos1]);
+}
+#pgsci(5);
+#pgdraw($xmax, $yest);
 
-pgsci(3);
-$xnum  = int($xmax);
-
-$yest = pol_val($nterms,$pstart);
-pgmove($pstart, $yest);
+pgsci(1);
+#
+#-- plot moving average
+#
+pgmove($time[0], $mvavg[0]);
+for($m = 1; $m < $tot; $m++){
+	if($time[$m] > $stop_date){
+		last;
+	}
+	pgdraw($time[$m], $mvavg[$m]);
+}
+#
+#-- fitted line for moving average
+#
+pgsci(4);
+pgmove($time[0], $middle[0]);
 #
 #---- stop_date terminates moving average plots
 #
-for($m = $pstart; $m < $pend; $m++){
-	if($m> $stop_date){
+pgsci(2);
+@xsample = ();
+@ysample = ();
+$s_cnt   = 0;
+for($m = 1; $m < $tot; $m++){
+	if($time[$m]> $stop_date){
 		last;
 	}
-	$yest = pol_val($nterms, $m);
-	pgdraw($m, $yest);
+	pgdraw($time[$m], $middle[$m]);
+	if($time[$m] > $xsampl){
+		push(@xsample, $time[$m]);
+		push(@ysample, $middle[$m]);
+		$s_cnt++;
+	}
 }
+@xbin = @xsample;
+@ybin = @ysample;
+$total = $s_cnt;
+if($total > 20){
+	least_fit();
+	$yest = $s_int + $slope * $xmax;
+}else{
+	$pos1 = $tot -1;
+	$pos2 = $tot -2;
+	$xd = $time[$pos1] - $time[$pos2];
+	$yd = $middle[$pos1] - $middle[$pos2];
+	$yest = $middle[$pos2] + ($yd/$xd) * ($xmax - $time[$pos1]);
+}
+#pgsci(5);
+#pgdraw($xmax, $yest);
+
 pgsci(1);
 
 
@@ -320,29 +333,41 @@ pgenv($xmin, $xmax, 0, 0.5, 0, 0);
 
 pgmove($date[0], $sigma[0]);
 for($m = 1; $m< $tot; $m++){
-	pgdraw($date[$m], $sigma[$m]);
+	pgdraw($time[$m], $sigma[$m]);
 }
 #
-#---- 5th degree polynomial fitting: standard deviations
+#---- polynomial fit for std
 #
-$nterms = 5;
-$mode = 0;
-$npts = $tot;
-$pstart = 50;
-$pend   = $xmax;
-@x_in = @date;
-@y_in = @sigma;
-
-svdfit($npts, $nterms);
-
-$yest = pol_val($nterms,$pstart);
 pgsci(2);
-pgmove($pstart, $yest);
-for($m = 1; $m < $tot; $m++){
-	$yest = pol_val($nterms,$date[$m]);
-	pgdraw($date[$m], $yest);
+@xsample = ();
+@ysample = ();
+$s_cnt   = 0;
+pgmove($date[0], $std_fit[0]);
+for($m = 1; $m< $tot; $m++){
+	pgdraw($time[$m], $std_fit[$m]);
+
+        if($time[$m] > $xsampl){
+                push(@xsample, $time[$m]);
+                push(@ysample, $std_fit[$m]);
+                $s_cnt++;
+        }
 }
-pgsci(1);
+@xbin = @xsample;
+@ybin = @ysample;
+$total = $s_cnt;
+if($total > 20){
+	least_fit();
+	$yest = $s_int + $slope * $xmax;
+}else{
+	$pos1 = $tot -1;
+	$pos2 = $tot -2;
+	$xd = $time[$pos1] - $time[$pos2];
+	$yd = $std_fit[$pos1] - $std_fit[$pos2];
+	$yest = $std_fit[$pos2] + ($yd/$xd) * ($xmax - $time[$pos1]);
+}
+pgsci(5);
+#pgdraw($xmax, $yest);
+#pgsci(1);
 
 
 pglabel("Time (DOM)", "Sigma of Moving Average", "$title");
@@ -350,7 +375,7 @@ pglabel("Time (DOM)", "Sigma of Moving Average", "$title");
 pgclos();
 system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps|/data/mta/MTA/bin/pnmcrop| /data/mta/MTA/bin/pnmflip -r270 |/data/mta/MTA/bin/ppmtogif > $out_name");
 
-system("rm pgplot.ps");
+system("rm temp_data out_data  pgplot.ps");
 
 ########################################################################
 ###svdfit: polinomial line fit routine                               ###
@@ -820,4 +845,49 @@ sub pol_val{
         return $out;
 }
 
+
+##########################################################
+### least_fit: least sq. fitting  for a straight line ####
+##########################################################
+
+sub least_fit {
+
+###########################################################
+#  Input:       @xbin:       a list of independent variable
+#               @ybin:       a list of dependent variable
+#               $total:      # of data points
+#
+#  Output:      $s_int:      intercept of the line
+#               $slope:      slope of the line
+#               $sigm_slope: the error on the slope
+###########################################################
+
+        my($sum, $sumx, $sumy, $symxy, $sumx2, $sumy2, $tot1);
+
+        $sum   = 0;
+        $sumx  = 0;
+        $sumy  = 0;
+        $sumxy = 0;
+        $sumx2 = 0;
+        $sumy2 = 0;
+
+        for($fit_i = 0; $fit_i < $total; $fit_i++) {
+                $sum++;
+                $sumx  += $xbin[$fit_i];
+                $sumy  += $ybin[$fit_i];
+                $sumx2 += $xbin[$fit_i] * $xbin[$fit_i];
+                $sumy2 += $ybin[$fit_i] * $ybin[$fit_i];
+                $sumxy += $xbin[$fit_i] * $ybin[$fit_i];
+        }
+
+        $delta = $sum * $sumx2 - $sumx * $sumx;
+        $s_int = ($sumx2 * $sumy - $sumx * $sumxy)/$delta;
+        $slope = ($sumxy * $sum  - $sumx * $sumy) /$delta;
+
+        $tot1 = $total - 1;
+        $variance = ($sumy2 + $s_int * $s_int * $sum + $slope * $slope * $sumx2
+                        -2.0 *($s_int * $sumy + $slope * $sumxy
+                        - $s_int * $slope * $sumx))/$tot1;
+        $sigm_slope = sqrt($variance * $sum/$delta);
+}
 

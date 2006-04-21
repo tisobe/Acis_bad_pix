@@ -1,305 +1,371 @@
 #!/usr/bin/perl
-use PGPLOT;
-
 
 #########################################################################################
 #											#
-#	acis_bias_moving_avg_special.perl: fit a moving average, 5th degree polynomial, #
-#			 and envelope to bias-overclock data. this is for ccd0 node0	#
-#			and ccd1 node1							#
+#	find_moving_avg.perl: fit a moving average, a n-th degree polynomial,	 	#
+#				  and an envelope to a given data (x, y)		#
+#											#
+#	USAGE:										#
+#		perl find_moving_avg.perl <file name> <a period> <degree> <out file>	#
+#					<option: -nodrop/-nodrop2/-nodrop3>		#
+#											#
+#		example 1: perl find_moving_avg.perl input_data 10 4 out_data		#
+#				(if you want to drop outlayers)				#
+#		example 2: perl find_moving_avg.perl input_data 10 4 out_data -nodrop	#
+#				(if you want to use all the data to fit the line)	#
+#											#
+#	INPUT:										#
+#		file name:	input data file name in (indepedent depedent) format	#
+#				the x and y are separated by a space			#
+#		a period:	a period for a moving average				#
+#					take this so that each period has enough 	#
+#					data points. if you take the period wider	#
+#					the moving average get more smoother		#
+#		degree:		a degree of polynomial fitting (<= 5 are probably safe)	#
+#					if they are not enough data points, take lower	#
+#					degree. otherwise, it may not give a good fit	#
+#		out file	a name of output file name				#
+#											#
+#	OUTPUT:										#
+#		out file	date (or indep. val) a date of the middle of the period	#
+#				mvavg		     a moving average			#
+#				sigma		     a standard deviation of the mvavg	#
+#				bottom		     a polynomial fitted bottom envelop #
+#				middle		     a polynomial fitted middle envelop	#
+#				top		     a polynomial fitted top envelop	#
+#				std_fit		     a polynomial fit for std		#
+#				min_sv		     data used to compute bottom envlope#
+#				max_sv		     data used to compute top envlope	#
+#											#
+#	Sub:										#
+#		svdfit, svbksb, svdcmp, pythag, funcs, pol_val, robust_fit		#
+#											#
+#	Note:										#
+#		To drop outlyers, this script uses two methods to exclude outlyers	#
+#			* outside of 3 sigma from a straight fitted line to the data	#
+#			  are dropped							#
+#			* 0.5% of the lowest and 0.5% highest data are dropped		#
+#		If you do not want to drop the data, then use the option		#
+#			-nodrop:  both mechanisms are not used				#
+#			-nodrop1: only 3 sigma method is used				#
+#			-nodrop2: only 0.5% of both end will be dropped			#
+#		If there is no option, it will use both to exclude outlyers		# 
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: 03/14/2006								#
+#	last update: 04/21/2006								#
 #											#
 #########################################################################################
 
-$file = $ARGV[0];
+my ($file, $arange, $nterm, @input, $incnt, $i, $avg, $std, $max, $min, $tot);
+my ($dcnt, $npts, $nterms, $m, $yest, $xscale, $yscale, $dchk);
+my ($outfile, $nodrop, $xsum, $ysum, $xs, $ys);
+my (@input, @mvavg, @sigma, @max_sv, @min_sv, @time, @mdata, @x_pt, @y_pt);
+my (@x_in, @y_in, @sorted_input);
+
+$file   = $ARGV[0];		#---- input data file name
+$arange = $ARGV[1];		#---- moving average period
+$nterms = $ARGV[2];		#---- degree of polynomial fitting
+$outfile= $ARGV[3];		#---- output file name
+$nodrop = $ARGV[4];		#---- if this one is entired, all data will be used
+
 chomp $file;
-@list = ('/data/mta_www/mta_bias_bkg/Bias_save/CCD0/quad0',
-	 '/data/mta_www/mta_bias_bkg/Bias_save/CCD1/quad1');
-foreach $file (@list){
+chomp $arange;
+chomp $nterm;
+chomp $outfile;
+chomp $nodrop;
 #
-#--- start reading data
+#-- small help for someone does not know...
 #
-	@line = ();
-	@time = ();
-	@bias = ();
-	@err  = ();
-	@ovck = ();
-	@bmo  = ();
-	$cnt  = 0;
-	
-	open(FH, "$file");
-	while(<FH>){
-		chomp $_;
-		push(@line, $_);
-	}
-	close(FH);
-#
-#--- extract CCD name and Node #
-#
-	@atemp = split(/\//, $file);
-	$ncnt = 0;
-	foreach(@atemp){
-        	$ncnt++;
-	}
-#
-#--- a gif file name is here, something like: bias_plot_CCD3_quad0.gif
-#
-	$out_name = 'bias_plot_'."$atemp[$ncnt-2]".'_'."$atemp[$ncnt-1]".'_second.gif';
+if($file =~ /-h/i || $file eq ''){
+	print 'USAGE:',"\n";
+	print '        perl find_moving_avg.perl <file name> <a period> <degree> <out file> ',"\n";
+	print '                                <option: -nodrop/-nodrop2/-nodrop3> ',"\n";           
+	exit 1;
+}
 
+$dchk = 0;
+if($nodrop     =~ /nodrop1/i){
+	$dchk  = 1;
+}elsif($nodrop =~ /nodrop2/i){
+	$dchk  = 2;
+}elsif($nodrop =~ /nodrop/i) {
+	$dchk  = 3;
+}
 
 #
-#---- sort data with date, and then remove duplicated lines
+#--- read the data 
 #
-	@temp = sort{$a<=>$b} @line;
-	$first = shift(@temp);
-	@new = ($first);
-	OUTER:
-	foreach $ent (@temp){
-		foreach $comp (@new){
-			if($ent eq $comp){
-				next OUTER;
-			}
-		}
-		push(@new, $ent);
+open(FH, "$file");
+@input =();
+$incnt = 0;
+while(<FH>){
+	chomp $_;
+	push(@input, $_);
+	$incnt++;
+}
+close(FH);
+#
+#--- sort the data, the smallest to the largest on date
+#
+
+@sorted_input = sort{$a<=>$b} @input;
+
+@x_in = ();
+@y_in = ();
+$xsum = 0;
+$ysum = 0;
+foreach $line (@sorted_input){
+	if($line =~ /\:/){
+		@atemp = split(/\:/, $line);
+	}elsif($line =~ /\,/){
+		@atemp = split(/\,/, $line);
+	}elsif($line =~ /\;/){
+		@atemp = split(/\;/, $line);
+	}elsif($line =~ /\//){
+		@atemp = split(/\//, $line);
+	}elsif($line =~ /\t/){
+		@atemp = split(/\t+/, $line);
+	}else{
+		@atemp = split(/\s+/, $line);
 	}
-	
-	$chk = 0;
-	$sum = 0;
-	foreach $ent (@new){
-		@atemp = split(/\s+/, $ent);
+	push(@x_in, $atemp[0]);
+	push(@y_in, $atemp[1]);
+	$xsum += $atemp[0];
+	$ysum += $atemp[1];
+}
 #
-#---- dom is  day of mission
+#--- to get the best polynomial fit, scale the data close to "1"
 #
-		$dom   = $atemp[0]/86400 - 567;
+$xscale = abs($xsum/$incnt);
+$yscale = abs($ysum/$incnt);
+@x_tp   = ();
+@y_tp   = ();
+for($k = 0; $k < $incnt; $k++){
+	$xs = $x_in[$k]/$xscale;
+	push(@x_tp, $xs);
+	$ys = $y_in[$k]/$yscale;
+	push(@y_tp, $ys);
+}
 #
-#---- diff is difference between bias - overclock
+#--- a period also needs to be scaled.
 #
-		$diff = $atemp[1] - $atemp[3];
-	
-		if($dom >= 2220){
-			push(@time, $dom);
-			push(@bias, $atemp[1]);
-			push(@err,  $atemp[2]);
-			push(@ovck, $atemp[3]);
-			push(@bmo, $diff);
-			$sum += $diff;
-			$cnt++;
+$arange /= $xscale;
+
+#
+#--- a fit a straight line with robust method, then find how much deviations
+#--- around the line. this informaiton will be use to drop extreme outlyers (>3 sigma)
+#
+@xdata    = @x_tp;
+@ydata    = @y_tp;
+$data_cnt = $incnt;
+
+robust_fit();			#---  robust_fit method
+
+for($i = 0; $i < $incnt; $i++){
+	$diff = $y_tp[$i] -($int + $slope * $x_tp[$i]);
+	$sum  += $diff;
+	$sum2 += $diff * $diff;
+}
+$avg = $sum/$incnt;
+$std = sqrt($sum2/$incnt - $avg * $avg);
+
+#
+#--- set 3 sigma for the limit and drop outlyers
+#
+
+$olim  = 3.0 * $std;
+
+#
+#--- find out the top and bottom 0.5% values. this will be used to drop extreme outlayers
+#
+@ytemp  = sort{$a<=>$b} @y_tp;
+$nlim   = int (0.005 * $incnt);
+$ylower = $ytemp[$nlim];
+$yupper = $ytemp[$incnt - $nlim];
+
+@time  = ();
+@mdata = ();
+$dcnt  = ();
+OUTER:
+for($m = 0; $m < $incnt; $m++){
+
+#
+#---- check whether the data is in 3 sigma from a straight line fitted on the data
+#
+	if(($dchk == 0) || ($dchk == 1)){
+		$diff = $y_tp[$m] -($int + $slope * $x_tp[$m]);
+		if(abs($diff) > $olim){
+			next OUTER;
 		}
 	}
-	$tmp_avg = $sum/$cnt;
-	
-	@date  = ();
-	@mvavg = ();
-	@sigma = ();
-	@max_sv = ();
-	@min_sv = ();
-	$tot   = 0;
 #
-#---- now computing 30 day moving average
+#--- check whether the data point is in 0.5% of either lowest or highest data range
 #
-	$arange = 30;
-#
-#---- setting upper and lower rnage of moving arvarge computation
-#
-	$sp_bot = $tmp_avg -2;
-		$sp_top = $tmp_avg +3;
-	for($i = $arange; $i < $cnt; $i++){
-		$sum = 0;
-		$sum2 = 0;
-		$max = -1.e+5;
-		$min = 1.e+5;
-#
-#---- add the last 30 days of data
-#
-		for($j = 0; $j < $arange; $j++){
-			if($bmo[$i - $j] < $sp_bot || $bmo[$i - $j] > $sp_top){
-				next;
-			}
-			$sum += $bmo[$i - $j];
-			$sum2+= $bmo[$i - $j] * $bmo[$i - $j];
-			if($bmo[$i - $j] > $max){
-				$max = $bmo[$i - $j];
-			}
-			if($bmo[$i - $j] < $min){
-				$min = $bmo[$i - $j];
-			}
+	if(($dchk == 0) || ($dchk == 2)){
+		if($y_tp[$m] < $ylower || $y_tp[$m] > $yupper){
+			next OUTER;
 		}
-		$avg = $sum/$arange;
-		$std = sqrt($sum2/$arange - $avg * $avg);
-		push(@mvavg, $avg);
-		push(@sigma, $std);
+	}
+
+	push(@time,  $x_tp[$m]);
+	push(@mdata, $y_tp[$m]);
+	$dcnt++;
+}
+
+#
+#--- find moving average
+#
+
+@date   = ();
+@mvavg  = ();
+@sigma  = ();
+@max_sv = ();
+@min_sv = ();
+$tot    = 0;
+
+$start = $time[0];
+$end   = $start + $arange;
+$sum   = 0;
+$sum2  = 0;
+$max   = -1.e+5;
+$min   = 1.e+5;
+$mcnt  = 0;
+
+OUTER:
+for($i = 0; $i < $dcnt; $i++){
+	if($time[$i] >= $start && $time[$i] < $end){
+		$sum  += $mdata[$i];
+		$sum2 += $mdata[$i] * $mdata[$i];
+		if($mdata[$i] > $max){
+			$max = $mdata[$i];
+		}
+		if($mdata[$i] < $min){
+			$min = $mdata[$i];
+		}
+		$mcnt++;
+	}elsif($time[$i] <= $start){
+		next OUTER;
+	}elsif($time[$i] >=  $end){
+		if($mcnt <= 0){
+			$start = $end;
+			$end   = $start + $arange;
+			$sum  = 0;
+			$sum2 = 0;
+			$max  = -1.e+5;
+			$min  = 1.e+5;
+			$mcnt = 0;
+			next OUTER;
+		}
+		$avg = $sum/$mcnt;
+		$std = sqrt($sum2/$mcnt - $avg * $avg);
+		push(@mvavg,  $avg);
+		push(@sigma,  $std);
 		push(@max_sv, $max);
 		push(@min_sv, $min);
-		push(@date, $time[$i]);
+		$mtime = 0.5 * ($start + $end);
+		push(@date,   $mtime);
 		$tot++;
-	}
-#
-#---- here we try to find a average of central part of data for CCD7
-#
-	$sum = 0;
-	$scnt = 0;
-	$st = int(0.40 * $tot);
-	$ed = int(0.60 * $tot);
-	for($j = $st; $j < $ed; $j++){
-		$sum += $mvavg[$j];
-		$scnt++;
-	}
-	$all_avg = $sum/$scnt;
-	
-	@temp = sort{$a<=>$b}@time;
-	$xmin = $temp[0];
-	$xmax = $temp[$cnt-1];
-	
-	$int_avg = int($all_avg);
-	$idiff = $all_avg - $int_avg;
-	if($idiff > 0.875){
-		$int_avg++;
-	}elsif($idiff > 0.625){
-		$int_avg += 0.75;
-	}elsif($idiff > 0.375){
-		$int_avg += 0.5;
-	}elsif($idiff > 0.125){
-		$int_avg += 0.25;
-	}
-	$ymin = $int_avg - 0.5;
-	$ymax = $int_avg + 1.5;
-	
-	pgbegin(0, "/cps",1,1);
-	pgsubp(1,2);
-	pgsch(2);
-	pgslw(2);
-	pgenv($xmin, $xmax, $ymin, $ymax, 0, 0);
-#
-#---- data point plot
-#
-	for($m = 0; $m < $cnt; $m++){
-		pgpt(1,$time[$m], $bmo[$m], -1);
-	}
-	
-	pgsci(4);
-#
-#---- 5th degree polynomial fitting: bottom envelope
-#
-	$nterms = 5;
-	$mode = 0;
-	$npts = $tot;
-	@x_in = @date;
-	@y_in = @min_sv;
-	svdfit($npts, $nterms);
 
-	$yest = pol_val($nterms, $date[0]);
-	pgmove($date[0], $yest);
-	for($m = 1; $m < $tot; $m++){
-		$yest = pol_val($nterms, $date[$m]);
-		pgdraw($date[$m], $yest);
+		$start = $end;
+		$end   = $start + $arange;
+		$sum  = 0;
+		$sum2 = 0;
+		$max  = -1.e+5;
+		$min  = 1.e+5;
+		$mcnt = 0;
 	}
-#
-#---- 5th degree polynomial fitting: top envelope
-#
-	$nterms = 5;
-	$mode = 0;
-	$npts = $tot;
-	@x_in = @date;
-	@y_in = @max_sv;
-	svdfit($npts, $nterms);
-#
-#---- moving average line
-#
-	$yest = pol_val($nterms, $date[0]);
-	pgmove($date[0], $yest);
-	for($m = 1; $m < $tot; $m++){
-		$yest = pol_val($nterms, $date[$m]);
-		pgdraw($date[$m], $yest);
-	}
-	pgsci(1);
-	
-	pgsci(2);
-	pgmove($date[0], $mvavg[0]);
-	for($m = 1; $m < $tot; $m++){
-		pgdraw($date[$m], $mvavg[$m]);
-	}
-	pgsci(1);
-#
-#---- 5th degree polynomial fitting:  moving average
-#---- avoid earlier data, since the variations are too large to fit
-#---- a nice smooth line
-#
-	$nterms = 5;
-	$mode = 0;
-	$npts = 0;
-	$pstart = 50;
-	$pend   = $xmax;
-	@x_in = ();
-	@y_in = ();
-	
-	for($m = 0; $m < $cnt; $m++){
-		$x_in[$npts] = $date[$m];
-		$y_in[$npts] = $mvavg[$m];
-		$npts++;
-	}
-	
-	svdfit($npts, $nterms);
-	
-	pgsci(3);
-	$xnum  = int($xmax);
-	
-	$yest = pol_val($nterms,$pstart);
-	pgmove($pstart, $yest);
-#
-#---- stop_date terminates moving average plots
-#
-	for($m = $pstart; $m < $pend; $m++){
-		$yest = pol_val($nterms, $m);
-		pgdraw($m, $yest);
-	}
-	pgsci(1);
-	
-	
-	pglabel("Time (DOM)", "Bias - OverClock", "$title");
-
-#
-#---- plotting standard deviation of moving averages
-#
-
-	pgenv($xmin, $xmax, 0, 0.5, 0, 0);
-	
-	pgmove($date[0], $sigma[0]);
-	for($m = 1; $m< $tot; $m++){
-		pgdraw($date[$m], $sigma[$m]);
-	}
-#
-#---- 5th degree polynomial fitting: standard deviations
-#
-	$nterms = 5;
-	$mode = 0;
-	$npts = $tot;
-	$pstart = 50;
-	$pend   = $xmax;
-	@x_in = @date;
-	@y_in = @sigma;
-	
-	svdfit($npts, $nterms);
-	
-	$yest = pol_val($nterms,$pstart);
-	pgsci(2);
-	pgmove($pstart, $yest);
-	for($m = 1; $m < $tot; $m++){
-		$yest = pol_val($nterms,$date[$m]);
-		pgdraw($date[$m], $yest);
-	}
-	pgsci(1);
-	
-	
-	pglabel("Time (DOM)", "Sigma of Moving Average", "$title");
-	
-	pgclos();
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps|/data/mta/MTA/bin/pnmcrop| /data/mta/MTA/bin/pnmflip -r270 |/data/mta/MTA/bin/ppmtogif > $out_name");
-	
-	system("rm pgplot.ps");
 }
+
+#
+#--- set a couple of parameters
+#
+
+$mode   = 0;
+$npts   = $tot;
+@bottom = ();
+@middle = ();
+@top    = ();
+@std_fit= ();
+
+#
+#---- n-th degree polynomial fitting: bottom envelope
+#
+
+@x_in   = @date;
+@y_in   = @min_sv;
+svdfit($npts, $nterms);
+
+for($m = 0; $m < $tot; $m++){
+	$yest = pol_val($nterms, $date[$m]);
+	push(@bottom, $yest);
+}
+
+#
+#---- n-th degree polynomial fitting: top envelope
+#
+
+@x_in   = @date;
+@y_in   = @max_sv;
+svdfit($npts, $nterms);
+
+for($m = 0; $m < $tot; $m++){
+	$yest = pol_val($nterms, $date[$m]);
+	push(@top, $yest);
+}
+
+#
+#---- n-th degree polynomial fitting:  moving average
+#
+
+@x_in   = @date;
+@y_in   = @mvavg;
+svdfit($npts, $nterms);
+
+for($m = 0; $m < $tot; $m++){
+	$yest = pol_val($nterms, $date[$m]);
+	push(@middle, $yest);
+}
+#
+#---- n-th degree polynomila fitting: standard deviation
+#
+
+@x_in   = @date;
+@y_in   = @sigma;
+svdfit($npts, $nterms);
+
+for($m = 0; $m < $tot; $m++){
+	$yest = pol_val($nterms, $date[$m]);
+	push(@std_fit, $yest);
+}
+#--- print out the final data
+#
+open(OUT, ">$outfile");
+for($i = 0; $i < $tot; $i++){
+#
+#--- scale back all the data before printing them out
+#
+	$date[$i]    *= $xscale;
+	$mvavg[$i]   *= $yscale;
+	$sigma[$i]   *= $yscale;
+	$bottom[$i]  *= $yscale;
+	$middle[$i]  *= $yscale;
+	$top[$i]     *= $yscale;
+	$std_fit[$i] *= $yscale;
+	$min_sv[$i]  *= $yscale;
+	$max_sv[$i]  *= $yscale;
+
+	print OUT "$date[$i]\t";
+	print OUT "$mvavg[$i]\t";
+	print OUT "$sigma[$i]\t";
+	print OUT "$bottom[$i]\t";
+	print OUT "$middle[$i]\t";
+	print OUT "$top[$i]\t";
+	print OUT "$std_fit[$i]\t";
+	print OUT "$min_sv[$i]\t";
+	print OUT "$max_sv[$i]\n";
+}
+close(FH);
 
 ########################################################################
 ###svdfit: polinomial line fit routine                               ###
@@ -331,7 +397,8 @@ sub svdfit{
 
         $tol = 1.e-5;
 
-        my($ndata, $ma, @x, @y, @sig, @w, $i, $j, $tmp, $ma, $wmax, $sum,$diff);
+        my($ndata, $ma, @x, @y, @sig, @w, $i, $j, $tmp, $ma, $wmax, $sum, $diff);
+
         ($ndata, $ma) = @_;
         for($i = 0; $i < $ndata; $i++){
                 $j = $i + 1;
@@ -770,3 +837,186 @@ sub pol_val{
 }
 
 
+
+
+####################################################################
+### robust_fit: linear fit for data with medfit robust fit metho  ##
+####################################################################
+
+sub robust_fit{
+	$sumx = 0;
+	$symy = 0;
+	for($n = 0; $n < $data_cnt; $n++){
+		$sumx += $xdata[$n];
+		$symy += $ydata[$n];
+	}
+	$xavg = $sumx/$data_cnt;
+	$yavg = $sumy/$data_cnt;
+#
+#--- robust fit works better if the intercept is close to the
+#--- middle of the data cluster.
+#
+	@xldat = ();
+	@yldat = ();
+	for($n = 0; $n < $data_cnt; $n++){
+		$xldat[$n] = $xdata[$n] - $xavg;
+		$yldat[$n] = $ydata[$n] - $yavg;
+	}
+
+	$total = $data_cnt;
+	medfit();
+
+	$alpha += $beta * (-1.0 * $xavg) + $yavg;
+	
+	$int   = $alpha;
+	$slope = $beta;
+}
+
+
+####################################################################
+### medfit: robust filt routine                                  ###
+####################################################################
+
+sub medfit{
+
+#########################################################################
+#									#
+#	fit a straight line according to robust fit			#
+#	Numerical Recipes (FORTRAN version) p.544			#
+#									#
+#	Input:		@xldat	independent variable			#
+#			@yldat	dependent variable			#
+#			total	# of data points			#
+#									#
+#	Output:		alpha:	intercept				#
+#			beta:	slope					#
+#									#
+#	sub:		rofunc evaluate SUM( x * sgn(y- a - b * x)	#
+#			sign   FORTRAN/C sign function			#
+#									#
+#########################################################################
+
+	my $sx  = 0;
+	my $sy  = 0;
+	my $sxy = 0;
+	my $sxx = 0;
+
+	my (@xt, @yt, $del,$bb, $chisq, $b1, $b2, $f1, $f2, $sigb);
+#
+#---- first compute least sq solution
+#
+	for($j = 0; $j < $total; $j++){
+		$xt[$j] = $xldat[$j];
+		$yt[$j] = $yldat[$j];
+		$sx  += $xldat[$j];
+		$sy  += $yldat[$j];
+		$sxy += $xldat[$j] * $yldat[$j];
+		$sxx += $xldat[$j] * $xldat[$j];
+	}
+
+	$del = $total * $sxx - $sx * $sx;
+#
+#----- least sq. solutions
+#
+	$aa = ($sxx * $sy - $sx * $sxy)/$del;
+	$bb = ($total * $sxy - $sx * $sy)/$del;
+	$asave = $aa;
+	$bsave = $bb;
+
+	$chisq = 0.0;
+	for($j = 0; $j < $total; $j++){
+		$diff   = $yldat[$j] - ($aa + $bb * $xldat[$j]);
+		$chisq += $diff * $diff;
+	}
+	$sigb = sqrt($chisq/$del);
+	$b1   = $bb;
+	$f1   = rofunc($b1);
+	$b2   = $bb + sign(3.0 * $sigb, $f1);
+	$f2   = rofunc($b2);
+
+	$iter = 0;
+	OUTER:
+	while($f1 * $f2 > 0.0){
+		$bb = 2.0 * $b2 - $b1;
+		$b1 = $b2; 
+		$f1 = $f2;
+		$b2 = $bb;
+		$f2 = rofunc($b2);
+		$iter++;
+		if($iter > 100){
+			last OUTER;
+		}
+	}
+
+	$sigb *= 0.01;
+	$iter = 0;
+	OUTER1:
+	while(abs($b2 - $b1) > $sigb){
+		$bb = 0.5 * ($b1 + $b2);
+		if($bb == $b1 || $bb == $b2){
+			last OUTER1;
+		}
+		$f = rofunc($bb);
+		if($f * $f1 >= 0.0){
+			$f1 = $f;
+			$b1 = $bb;
+		}else{	
+			$f2 = $f;
+			$b2 = $bb;
+		}
+		$iter++;
+		if($iter > 100){
+			last OTUER1;
+		}
+	}
+	$alpha = $aa;
+	$beta  = $bb;
+	if($iter >= 100){
+		$alpha = $asave;
+		$beta  = $bsave;
+	}
+	$abdev = $abdev/$total;
+}
+
+##########################################################
+### rofunc: evaluatate 0 = SUM[ x *sign(y - a bx)]     ###
+##########################################################
+
+sub rofunc{
+	my ($b_in, @arr, $n1, $nml, $nmh, $sum);
+
+	($b_in) = @_;
+	$n1  = $total + 1;
+	$nml = 0.5 * $n1;
+	$nmh = $n1 - $nml;
+	@arr = ();
+	for($j = 0; $j < $total; $j++){
+		$arr[$j] = $yldat[$j] - $b_in * $xldat[$j];
+	}
+	@arr = sort{$a<=>$b} @arr;
+	$aa = 0.5 * ($arr[$nml] + $arr[$nmh]);
+	$sum = 0.0;
+	$abdev = 0.0;
+	for($j = 0; $j < $total; $j++){
+		$d = $yldat[$j] - ($b_in * $xldat[$j] + $aa);
+		$abdev += abs($d);
+		$sum += $xldat[$j] * sign(1.0, $d);
+	}
+	return($sum);
+}
+
+
+##########################################################
+### sign: sign function                                ###
+##########################################################
+
+sub sign{
+        my ($e1, $e2, $sign);
+        ($e1, $e2) = @_;
+        if($e2 >= 0){
+                $sign = 1;
+        }else{
+                $sign = -1;
+        }
+        return $sign * $e1;
+}
