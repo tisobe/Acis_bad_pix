@@ -365,7 +365,7 @@ if($total > 20){
 	$yd = $std_fit[$pos1] - $std_fit[$pos2];
 	$yest = $std_fit[$pos2] + ($yd/$xd) * ($xmax - $time[$pos1]);
 }
-pgsci(5);
+#pgsci(5);
 #pgdraw($xmax, $yest);
 #pgsci(1);
 
