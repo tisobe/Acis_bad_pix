@@ -41,7 +41,7 @@ $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 
 $file   = $ARGV[0];
 $pstart = $ARGV[1];
-$pend   = $ARTV[2];
+$pend   = $ARGV[2];
 chomp $file;
 chomp $pstart;
 chomp $pend;
