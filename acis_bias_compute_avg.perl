@@ -27,6 +27,8 @@ $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 #$web_dir       = '/data/mta/www/mta_bias_bkg_test/';
 #$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
 
+$web_dir = './Web_dir';
+
 #######################################
 
 
@@ -48,6 +50,7 @@ int_file_for_day();
 
 sub int_file_for_day{
 
+GETOUT:
 	foreach $file (@data_list){			
 		@atemp      = split(/acisf/,$file);
 		@btemp      = split(/N/,$atemp[1]);
@@ -94,6 +97,33 @@ sub int_file_for_day{
 				if($im != $ccd_id){
 					next OUTER;
 				}
+				@bad_col0 = ();
+				@bad_col1 = ();
+				@bad_col2 = ();
+				@bad_col3 = ();
+				open (IN, "$house_keeping/Defect/bad_col_list");
+				while(<IN>){
+					chomp $_;
+					@atemp = split(//, $_);	
+					if($atemp[0] =~ /\d/){
+						@atemp = split(/:/, $_);
+						if($atemp[0] == $ccd_id){
+							if($atemp[1] <= 256){
+								push(@bad_col0, $atemp[1]);
+							}elsif($atemp[1] <= 512){
+								$col_no = $atemp[1] - 256;
+								push(@bad_col1, $col_no);
+							}elsif($atemp[1] <= 768){
+								$col_no = $atemp[1] - 512;
+								push(@bad_col2, $col_no);
+							}elsif($atemp[1] <= 1024){
+								$col_no = $atemp[1] - 768;
+								push(@bad_col3, $col_no);
+							}
+						}
+					}
+				}
+				close(IN);
 
 				@atemp = split(/acisf/,$file);		
 				@btemp = split(/N/,$atemp[1]);
@@ -114,6 +144,7 @@ sub int_file_for_day{
 				$xlow  = 1;
 				$xhigh = 256;
 				$overclock = $overclock_a;
+				@bad_col = @bad_col0;
 				quad_sep();                                      # sub to extract pixels
 				system("rm out1.fits");                                 # outside of acceptance range
 
@@ -133,6 +164,7 @@ sub int_file_for_day{
 				$xlow  = 257;
 				$xhigh = 512;
 				$overclock = $overclock_b;
+				@bad_col = @bad_col1;
 				quad_sep();
 				system("rm out2.fits");
 
@@ -152,6 +184,7 @@ sub int_file_for_day{
 				$xlow  = 513;
 				$xhigh = 768;
 				$overclock = $overclock_c;
+				@bad_col = @bad_col2;
 				quad_sep();
 				system("rm out3.fits");
 
@@ -171,6 +204,7 @@ sub int_file_for_day{
 				$xlow  = 769;
 				$xhigh = 1024;
 				$overclock = $overclock_d;
+				@bad_col = @bad_col3;
 				quad_sep();
 				system("rm out4.fits");
 				if($htime > 0 && $bias_avg > 0){
@@ -179,9 +213,7 @@ sub int_file_for_day{
 					close(QIN);
 				}
 			}	
-
 		}
-
 	}
 }
 
@@ -236,9 +268,16 @@ sub find_mean{
         $asum  = 0;
         $asum2 = 0;
         $fcnt = 0;
+	OUTER:
         for($icol = 1; $icol <= 256; $icol++){			# make an average of averaged column value
                 if($cnt[$icol] > 0){				# average of column is caluculated in 
-                        $avg[$icol] = $sum[$icol]/$cnt[$icol];	# sub extract.
+								# sub extract
+			foreach $bcol (@bad_col){
+				if($icol == $bcol){
+					next OUTER;
+				}
+			}
+                        $avg[$icol] = $sum[$icol]/$cnt[$icol];	
                         $asum  += $avg[$icol];
                         $asum2 += $avg[$icol]*$avg[$icol];
                         $fcnt++;
