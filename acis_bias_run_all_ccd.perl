@@ -6,7 +6,7 @@
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: 04/20/2006								#
+#	last update: 05/15/2006								#
 #											#
 #########################################################################################
 
@@ -32,17 +32,17 @@ $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 #
 #---- plot special cases first
 #
-system("perl $bin_dir/acis_bias_moving_avg.perl /data/mta_www/mta_bias_bkg/Bias_save/CCD0/quad0 2220 1e5");
-system("mv bias_plot_CCD0_quad0.gif $web_dir/Plots/Sub2/bias_plot_CCD0_quad0_second.gif");
-
-system("perl $bin_dir/acis_bias_moving_avg.perl /data/mta_www/mta_bias_bkg/Bias_save/CCD0/quad0 0 1e5");
-system("mv bias_plot_CCD0_quad0.gif $web_dir/Plots/Sub2/bias_plot_CCD0_quad0_special.gif");
-
-system("perl $bin_dir/acis_bias_moving_avg.perl /data/mta_www/mta_bias_bkg/Bias_save/CCD1/quad1 2220 1e5");
-system("mv bias_plot_CCD1_quad1.gif $web_dir/Plots/Sub2/bias_plot_CCD1_quad1_second.gif");
-
-system("perl $bin_dir/acis_bias_moving_avg.perl /data/mta_www/mta_bias_bkg/Bias_save/CCD1/quad1 0 1e5");
-system("mv bias_plot_CCD1_quad1.gif $web_dir/Plots/Sub2/bias_plot_CCD1_quad1_special.gif");
+#system("perl $bin_dir/acis_bias_moving_avg.perl /data/mta_www/mta_bias_bkg/Bias_save/CCD0/quad0 2220 1e5");
+#system("mv bias_plot_CCD0_quad0.gif $web_dir/Plots/Sub2/bias_plot_CCD0_quad0_second.gif");
+#
+#system("perl $bin_dir/acis_bias_moving_avg.perl /data/mta_www/mta_bias_bkg/Bias_save/CCD0/quad0 0 1e5");
+#system("mv bias_plot_CCD0_quad0.gif $web_dir/Plots/Sub2/bias_plot_CCD0_quad0_special.gif");
+#
+#system("perl $bin_dir/acis_bias_moving_avg.perl /data/mta_www/mta_bias_bkg/Bias_save/CCD1/quad1 2220 1e5");
+#system("mv bias_plot_CCD1_quad1.gif $web_dir/Plots/Sub2/bias_plot_CCD1_quad1_second.gif");
+#
+#system("perl $bin_dir/acis_bias_moving_avg.perl /data/mta_www/mta_bias_bkg/Bias_save/CCD1/quad1 0 1e5");
+#system("mv bias_plot_CCD1_quad1.gif $web_dir/Plots/Sub2/bias_plot_CCD1_quad1_special.gif");
 
 
 #
