@@ -27,8 +27,6 @@ $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 #$web_dir       = '/data/mta/www/mta_bias_bkg_test/';
 #$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
 
-$web_dir = './Web_dir';
-
 #######################################
 
 
