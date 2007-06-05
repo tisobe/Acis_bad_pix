@@ -7,7 +7,7 @@ use PGPLOT;
 #				and warm columns and plots the results		#
 #										#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)			#
-#	last update:	Sep 19, 2005						#
+#	last update:	Jun 05, 2007						#
 #										#
 #	input:									#
 #		if $ARGV[0] = live: /dsops/ap/sdp/cache/*/acis/*bias0.fits	#
@@ -3455,7 +3455,7 @@ sub plot_hist{
 		$ymax = 20;
 	}
 
-	$ymax = 50;
+	$ymax = 70;
 	$title = 'Numbers of Warm Pixels Changes: Front CCDs';
 	plot_diff();
 	pgclos();
@@ -3527,7 +3527,7 @@ sub plot_hist{
 		$ymax = 20;
 	}
 
-	$ymax = 50;
+	$ymax = 70;
 	$title = 'Numbers of Warm Pixels Changes: CCD5';
 	plot_diff();
 	pgclos();
@@ -3599,7 +3599,7 @@ sub plot_hist{
 		$ymax = 20;
 	}
 
-	$ymax = 50;
+	$ymax = 70;
 	$title = 'Numbers of Warm Pixels Changes: CCD 7';
 	plot_diff();
 	pgclos();
