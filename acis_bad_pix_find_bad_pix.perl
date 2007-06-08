@@ -3455,7 +3455,7 @@ sub plot_hist{
 		$ymax = 20;
 	}
 
-	$ymax = 70;
+	$ymax = 100;
 	$title = 'Numbers of Warm Pixels Changes: Front CCDs';
 	plot_diff();
 	pgclos();
@@ -3474,7 +3474,7 @@ sub plot_hist{
 	}
 	$count = $icnt;
 	$ymin = -1;
-	$ymax = 20;
+	$ymax = 40;
 	
 	pgbegin(0, "/cps",1,1);                                  # here the plotting start
 	pgsubp(1,3);                                            # pg routine: panel
