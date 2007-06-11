@@ -3455,7 +3455,7 @@ sub plot_hist{
 		$ymax = 20;
 	}
 
-	$ymax = 100;
+	$ymax = 150;
 	$title = 'Numbers of Warm Pixels Changes: Front CCDs';
 	plot_diff();
 	pgclos();
@@ -3527,7 +3527,7 @@ sub plot_hist{
 		$ymax = 20;
 	}
 
-	$ymax = 70;
+	$ymax = 100;
 	$title = 'Numbers of Warm Pixels Changes: CCD5';
 	plot_diff();
 	pgclos();
