@@ -7,7 +7,7 @@ use PGPLOT;
 #				and warm columns and plots the results		#
 #										#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)			#
-#	last update:	Jun 05, 2007						#
+#	last update:	Jul 05, 2007						#
 #										#
 #	input:									#
 #		if $ARGV[0] = live: /dsops/ap/sdp/cache/*/acis/*bias0.fits	#
@@ -87,15 +87,12 @@ use PGPLOT;
 #	conv_time:	chnage time format from 1998.1.1 in sec to 		#
 #			yyyy:ddd:hh:mm:ss					#
 #	chk_old_data:	find data older than 30 days and move to save dir	#
-#	count_new_imp:	count number of newly appeared and improved bad pix	#
 #	cov_time_dom:	change time format from yyyy:ddd to dom			#
 #	timeconv1:	chnage sec time formant to yyyy:ddd:hh:mm:ss		#
 #	timeconv2:	change: yyyy:ddd form to sec time formart		#
-#	data_for_html:	create data for web page display			#
 #	today_dom:	find today dom						#
 #	print_html:	update a html page for bad piexls			#
 #	plot_hist:	plotting history of no. of bad pixel changes		#
-#	count_bad_pix:	count number of bad pixels				#
 #	plot_diff:	plotting routine					#
 #	linr_fit:	least sq linear fit 					#
 #	mv_old_data:	move old data from an active dir to a save dir		#
@@ -104,7 +101,6 @@ use PGPLOT;
 #	conv_date_form4:	change date format from yy:mm:dd to yy:ydyd	#
 #	rm_incomplete_data:	remove incomplete data so that we can fill	#
 #				it correctly					#
-#	adjust_hist_count:	couts # of bad pix from $web_dir/Disp_dir/hist*	#
 #	conv_time_dom:	change date from yyyy:ddd to dom			#
 #	find_more_bad_pix_info: find additional information about bad pix	#
 #	find_flickering:	find flickering pixels				#
@@ -125,6 +121,7 @@ use PGPLOT;
 #--- output directory
 
 $bin_dir       = '/data/mta/MTA/bin/';
+$bin_dir      = '//data/mta/Script/ACIS/Bad_pixels/Test/';
 $bdat_dir      = '/data/mta/MTA/data/';
 $web_dir       = '/data/mta/www/mta_bad_pixel/';
 $old_dir       = $web_dir;
@@ -210,22 +207,24 @@ if($dcnt > 0){						# yes we have new data, so let compute
 		chk_bad_col();				# find and print bad columns
 	
 		print_bad_col();			# pint bad columns
-	
-		count_new_imp();			# count numbers of new and improved bad pixels
 
+		system("perl $bin_dir/mk_front_ccd_tot.perl");
+		system("perl $bin_dir/mk_front_ccd_tot.perl hot");
+		system("perl $bin_dir/mk_front_col_tot.perl");
+	
 		if($input_type eq 'live'){
 			chk_old_data();			# find data older than 30 days (7 days) and move to Save
 		}
 
-		data_for_html();			# create data for web page display
 	}
 
-	flickering_check();				# check which pixels are flickering in the past 90 days
+	flickering_check('warm');			# check which pixels are flickering in the past 90 days
+	flickering_check('hot');			# check which pixels are flickering in the past 90 days
+	flickering_col();         			# check which cols are flickering in the past 90 days
 	find_more_bad_pix_info();			# find additional information about bad pixels
 
 	plot_hist();					# plotting history of bad pixel increase
 	print_html();					# print up-dated html page for bad pixel
-	adjust_hist_count();				# ounts # of bad pixels from Disp_dir/hist_ccd# files
 }
 
 mv_old_data();						# move old data from an active dir to a save dir
@@ -246,18 +245,18 @@ sub get_dir {
 		push(@past_list, $_);
 		@atemp = split(/\//, $_);
 		@btemp = split(/_/, $atemp[5]);
-		$year = $btemp[0];
+		$year  = $btemp[0];
 		$month = $btemp[1];
-		$day  = $btemp[2];
+		$day   = $btemp[2];
 		conv_date_form4();
 		push(@past_date_list, $date);
 	}
 	close(FH);
 
 	system("ls /dsops/ap/sdp/cache/*/acis/*bias0.fits > ./Working_dir/zinput");
-	@input_list = ();
-	@new_list = ();					# find a new data candidates
-	@new_date_list = ();
+	@input_list     = ();
+	@new_list       = ();				# find a new data candidates
+	@new_date_list  = ();
 	@new_date_list2 = ();
 	open(FH,'./Working_dir/zinput');
 	while(<FH>){
@@ -450,11 +449,11 @@ sub regroup_data{
 
 sub find_ydate {
         ($input) = @_;
-        @atemp = split(/acisf/, $input);
-        @btemp = split(/N/, $atemp[1]);
-	$n_time = `/home/ascds/DS.release/bin/axTime3 $btemp[0] u s t d`;
-        @atemp = split(/:/, $n_time);
-        $yday = $atemp[1];
+        @atemp   = split(/acisf/, $input);
+        @btemp   = split(/N/, $atemp[1]);
+	$n_time  = `/home/ascds/DS.release/bin/axTime3 $btemp[0] u s t d`;
+        @atemp   = split(/:/, $n_time);
+        $yday    = $atemp[1];
 }
 
 
@@ -845,16 +844,16 @@ sub local_chk {
 
 sub read_bad_pix_list{
 	for($i = 0; $i < 10; $i++) {
-		$name = 'col_ccd'."$i";	 	# column #      for bad columns
+		$name  = 'col_ccd'."$i";	# column #      for bad columns
 		$name2 = 'col_ccd_rs'."$i";     # starting row #
 		$name3 = 'col_ccd_rf'."$i";     # ending row #
-		@{$name} = ();		  	# easy way to change array names
+		@{$name}  = ();		  	# easy way to change array names
 		@{$name2} = ();
 		@{$name3} = ();
 
-		$name = 'pix_ccd_x'."$i";       # column #      for bad pixels
+		$name  = 'pix_ccd_x'."$i";      # column #      for bad pixels
 		$name2 = 'pix_ccd_x'."$i";      # row #
-		@{$name} = ();
+		@{$name}  = ();
 		@{$name2} = ();
 	}
 
@@ -864,10 +863,10 @@ sub read_bad_pix_list{
 		@atemp = split(//,$_);
 		if($atemp[0] =~ /\d/) {
 			@atemp = split(/:/,$_);
-			$name = 'col_ccd'."$atemp[0]";
+			$name  = 'col_ccd'."$atemp[0]";
 			$name2 = 'col_ccd_rs'."$atemp[0]";
 			$name3 = 'col_ccd_rf'."$atemp[0]";
-			push(@{$name},$atemp[1]);
+			push(@{$name}, $atemp[1]);
 			push(@{$name2},$atemp[2]);
 			push(@{$name3},$atemp[3]);
 		}
@@ -880,9 +879,9 @@ sub read_bad_pix_list{
 		@atemp = split(//,$_);
 		if($atemp[0] =~ /\d/) {
 			@atemp = split(/:/,$_);
-			$name = 'pix_ccd_x'."$atemp[0]";
+			$name  = 'pix_ccd_x'."$atemp[0]";
 			$name2 = 'pix_ccd_y'."$atemp[0]";
-			push(@{$name},$atemp[2]);
+			push(@{$name}, $atemp[2]);
 			push(@{$name2},$atemp[3]);
 		}
 	}
@@ -1325,45 +1324,47 @@ sub add_to_list {
 #
 #--- find out which data are currently in the output directory
 #
-	$temp_wdir = `ls $web_dir/Disp_dir`;
+	$temp_wdir = `ls $web_dir/Disp_dir/ccd*`;
 	@temp_wdir_list = split(/\s+/, $temp_wdir);
 	@dir_ccd  = ();
-	@dir_hccd = ();
-	@dir_col  = ();
-	@dir_hcol = ();
 	foreach $ent (@temp_wdir_list){
-#
-#--- warm ccd lists
-#
-		@atemp = split(//, $ent);
-
-		if($atemp[0] eq 'c' && $atemp[1] eq 'c'){
+		if($ent !~ /cnt/){
 			push(@dir_ccd, $ent);
-		}elsif($atemp[0] eq 'c' && $atemp[1] eq 'o'){
+		}
+	}
+	$temp_wdir = `ls $web_dir/Disp_dir/hccd*`;
+	@temp_wdir_list = split(/\s+/, $temp_wdir);
+	@dir_hccd  = ();
+	foreach $ent (@temp_wdir_list){
+		if($ent !~ /cnt/){
+			push(@dir_hccd, $ent);
+		}
+	}
+	$temp_wdir = `ls $web_dir/Disp_dir/col*`;
+	@temp_wdir_list = split(/\s+/, $temp_wdir);
+	@dir_col  = ();
+	foreach $ent (@temp_wdir_list){
+		if($ent !~ /cnt/){
 			push(@dir_col, $ent);
-		}elsif($atemp[0] eq 'h' && $atemp[2] eq 'c'){
-			push(@dir_hccd, $ent);	# hot ccd list
-		}elsif($atemo[0] eq 'h' && $atemp[2] eq 'o'){
+		}
+	}
+	$temp_wdir = `ls $web_dir/Disp_dir/hcol*`;
+	@temp_wdir_list = split(/\s+/, $temp_wdir);
+	@dir_hcol  = ();
+	foreach $ent (@temp_wdir_list){
+		if($ent !~ /cnt/){
 			push(@dir_hcol, $ent);
 		}
+	}
 #
 #--- if today* lists are there,
 #
-		@btemp = split(/_/, $ent);
-		if($btemp[0] eq 'today'){
-			@ctemp = split(//, $btemp[2]);
-#
-#--- make sure that it is a correct one
-#
-			if($ctemp[0] eq 'c' && $ctemp[1] eq 'c'){
-				@dtemp = split(/ccd/,$btemp[2]);
-#
-#--- only when there is today's data exist.
-#
-				if(${tdycnt.$dtemp[1]} > 0){
-					system("rm $web_dir/Disp_dir/$ent");
-				}
-			}
+	$temp_wdir = `ls $web_dir/Disp_dir/today*ccd*`;
+	@temp_wdir_list = split(/\s+/, $temp_wdir);
+
+	foreach $ent (@temp_wdir_list){
+		if(${tdycnt.$dtemp[1]} > 0){
+			system("rm $web_dir/Disp_dir/$ent");
 		}
 	}
 #
@@ -1430,336 +1431,337 @@ sub add_to_list {
 ##############################################################
 
 sub print_bad_pix_data{
+#
+#--- set today's date again and find dom
+#
+	($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst)= localtime(time);
+	$today_year = $uyear + 1900;
+	$uyday++;
+	$date_obs2  = "$today_year:$uyday";
+	$dom        = ch_ydate_to_dom($date_obs2);
+	
 	OUTER:
 	for($ip = 0; $ip < 10; $ip++){
+		system("rm $web_dir/Disp_dir/ccd$ip");
 		if(${tdycnt.$ip} == 0){
 			next OUTER;				# if there is no data for this date
 		}						# skip this ccd
-
-		if($switch eq 'warm'){
-			$count = ${winuse.$ip};
-		}elsif($switch eq 'hot'){
-			$count = ${hinuse.$ip};
-		}
 #
-#--- read current warm/hot pix list
+#--- warm pixel case
 #
 		if($switch eq 'warm'){
-			open(FH, "$web_dir/Disp_dir/ccd$ip");	
+#
+#--- read the previous bad pix history list
+#
+			$name = "ccd$ip";	
+			open(IN, "$web_dir/Disp_dir/hist_ccd$ip");
+			@past_data = ();
+			$ptot      = 0;
+			while(<IN>){
+				chomp $_;
+				push(@past_data, $_);
+				$ptot++;
+			}
+			close(IN);
+#
+#--- print out today's bad pix, and prepare to add that to the history list
+#
+			open(OUT2, ">$web_dir/Disp_dir/ccd$ip");
+
+			$pline =  "$dom<>$date_obs2<>";
+
+			foreach $ent (@{temp_ccd.$ip}){
+				@pos   = split(/\./, $ent);
+				$pline = "$pline".":($pos[0],$pos[1])";
+				print OUT2 "$pos[0]\t$pos[1]\n";	
+			}
+			close(OUT2);
+			$chk = 0;
+			OUTER2:
+			for($i = 0; $i < $ptot; $i++){
+				@atemp = split(/<>/, $past_data[$i]);
+				if($dom == $atemp[0]){
+					$chk++;
+					last OUTER2;
+				}
+			}
+			if($chk == 0){
+				$max = $dom + 100;
+				for($k = 0; $k < $max; $k++){
+					@bdate[$k]   = 'na';
+					@bpix_cnt[$k] = 0;
+					@npix_cnt[$k] = 0;
+					@ipix_cnt[$k] = 0;
+				}
+				push(@past_data, $pline);
+				@temp = sort{$a<=>$b} @past_data;
+				open(TEMP, ">$web_dir/Disp_dir/hist_ccd$ip");
+				$k1 = 0;
+				foreach $ent (@temp){
+					print TEMP "$ent\n";
+					@gtemp = split(/<>/, $ent);
+					@htemp = split(/:/,   $gtemp[2]);
+					$tcnt = 0;
+					foreach $ent (@htemp){
+						if($ent ne ''){
+							$tcnt++;
+						}
+					}
+					$bdate[$k1]    = "$gtemp[0]<>$gtemp[1]";;
+					$bpix_cnt[$k1] = $tcnt;
+					$k1++;
+				}
+				close(TEMP);
+
+				open(OUT3, ">$web_dir/Disp_dir/imp_ccd$ip");
+				open(OUT4, ">$web_dir/Disp_dir/new_ccd$ip");
+				open(OUT5, ">$web_dir/Disp_dir/change_ccd$ip");
+				for($i = 1; $i <= $ptot; $i++){
+					$j = $i - 1;
+					@atemp = split(/<>/, $temp[$j]);
+					@btemp = split(/:/,   $atemp[2]);
+	
+					@ctemp = split(/<>/, $temp[$i]);
+					@dtemp = split(/:/,   $ctemp[2]);
+	
+#
+#--- create improved pixel list
+#
+					@imp_save = ();
+					OUTER3:
+					foreach $ent (@btemp){
+						if($ent eq ''){
+							next OUTER3;
+						}
+						foreach $comp (@dtemp){
+							if(($comp ne '') && ($ent eq $comp)){
+								next OUTER3;
+							}
+						}
+						push(@imp_save, $ent);
+					}
+					print OUT3 "$atemp[0]<>$atemp[1]<>";
+					$k2 = 0;
+					foreach $ent (@imp_save){
+						print OUT3 ":$ent";
+						$k2++;
+					}
+					print OUT3 "\n";
+					$ipix_cnt[$i] = $k2;
+#
+#--- create new bad pixel list
+#
+					@new_save = ();
+					OUTER4:
+					foreach $ent (@dtemp){
+						if($ent eq ''){
+							next OUTER4;
+						}
+						foreach $comp (@btemp){
+							if(($comp ne '') && ($ent eq $comp)){
+								next OUTER4;
+							}
+						}
+						push(@new_save, $ent);
+					}
+					print OUT4 "$atemp[0]<>$atemp[1]<>";
+					$k3 = 0;
+					foreach $ent (@new_save){
+						print OUT4 ":$ent";
+						$k3++;
+					}
+					print OUT4 "\n";
+					$npix_cnt[$i] = $k3++;
+#
+#--- make a file for display
+#
+					print OUT5 "$atemp[0]<>$atemp[1]\n";
+					print OUT5 "\tNew: ";
+					foreach $ent (@new_save){
+						print OUT5 "$ent ";
+					}
+					print OUT5 "\n";
+					print OUT5 "\tImp: ";
+					foreach $ent (@imp_save){
+						print OUT5 "$ent ";
+					}
+					print OUT5 "\n";
+				}
+				close(OUT3);
+				close(OUT4);
+				close(OUT5);
+#
+#--- print out counts of total bad pix, new bad pix, and disappeared bad pix
+#
+				$name = 'ccd'."$ip".'_cnt';
+				open(OUT6, ">$web_dir/Disp_dir/$name");
+				for($k = 0; $k < $ptot; $k++){
+					print OUT6 "$bdate[$k]<>";
+					print OUT6 "$bpix_cnt[$k]:";
+					print OUT6 "$npix_cnt[$k]:";
+					print OUT6 "$ipix_cnt[$k]\n";
+				}
+				close(OUT6);
+
+
+			}
+#
+#---- hot pixel case
+#
 		}elsif($switch eq 'hot'){
-			open(FH, "$web_dir/Disp_dir/hccd$ip");
-		}
+			$name = "hccd$ip";
 
-		$cnt = 0; 
-		@x_save = ();
-		@y_save = ();
-		while(<FH>){
-			chomp $_;
-			@atemp = split(/\s+/, $_);
-			@btemp = split(//, $_);
-			if($btemp[0] ne '#'){
-				push(@x_save, $atemp[0]);
-				push(@y_save, $atemp[1]);
-				$cnt++;
+			$date_obs2 = $date_obs;
+			$date_obs2 =~ s/#Date://;
+			$date_obs2 =~ s/\s+//;
+			$dom       = ch_ydate_to_dom($date_obs2);
+
+			$name = "ccd$ip";	
+			open(IN, "$web_dir/Disp_dir/hist_hccd$ip");
+			@past_data = ();
+			$ptot      = 0;
+			while(<IN>){
+				chomp $_;
+				push(@past_data, $_);
+				$ptot++;
+			}
+			close(IN);
+			open(OUT2, ">$web_dir/Disp_dir/hccd$ip");
+
+			$pline =  "$dom<>$date_obs2<>";
+
+			foreach $ent (@{temp_ccd.$ip}){
+				@pos = split(/\./,$ent);
+				$pline = "$pline".":($pos[0],$pos[1])";
+				print OUT2 "$pos[0]\t$pos[1]\n";	
+			}
+
+			close(OUT2);
+			$chk = 0;
+			OTUER2:
+			for($i = 0; $i < $ptot; $i++){
+				@atemp = split(/<>/, $past_data[$i]);
+				if($dom == $atemp[0]){
+					$chk++;
+					last OUTER2;
+				}
+			}
+			if($chk == 0){
+				$max = $dom + 100;
+				for($k = 0; $k < $max; $k++){
+					@bdate[$k]   = 'na';
+					@bpix_cnt[$k] = 0;
+					@npix_cnt[$k] = 0;
+					@ipix_cnt[$k] = 0;
+				}
+				push(@past_data, $pline);
+				@temp = sort{$a<=>$b} @past_data;
+				open(TEMP, ">$web_dir/Disp_dir/hist_hccd$ip");
+				$k1 = 0;
+				foreach $ent (@temp){
+					print TEMP "$ent\n";
+					@gtemp = split(/<>/, $ent);
+					@htemp = split(/:/,   $gtemp[2]);
+					$tcnt = 0;
+					foreach (@htemp){
+						$tcnt++;
+					}
+					$bdate[$k1]    = "$gtemp[0]<>$gtemp[1]";
+					$bpix_cnt[$k1] = $tcnt;
+					$k1++;
+				}
+				close(TEMP);
+
+				open(OUT3, ">$web_dir/Disp_dir/imp_hccd$ip");
+				open(OUT4, ">$web_dir/Disp_dir/new_hccd$ip");
+				open(OUT5, ">$web_dir/Disp_dir/change_hccd$ip");
+				for($i = 1; $i <= $ptot; $i++){
+					$j = $i - 1;
+					@atemp = split(/<>/, $temp[$j]);
+					@btemp = split(/:/,   $atemp[2]);
+	
+					@ctemp = split(/<>/, $temp[$i]);
+					@dtemp = split(/:/,   $ctemp[2]);
+	
+#
+#--- create improved pixel list
+#
+					@imp_save = ();
+					OTUER3:
+					foreach $ent (@btemp){
+						if($ent eq ''){
+							next OUTER3;
+						}
+						foreach $comp (@dtemp){
+							if($ent eq $comp){
+								next OUTER3;
+							}
+						}
+						push(@imp_save, $ent);
+					}
+					print OUT3 "$atemp[0]<>$atemp[1]";
+					$k2 = 0;
+					foreach $ent (@imp_save){
+						print OUT3 ":$ent";
+						$k2++;
+					}
+					print OUT3 "\n";
+					$ipix_cnt[$i] = $k2;
+#
+#--- create new bad pixel list
+#
+					@new_save = ();
+					OTUER4:
+					foreach $ent (@dtemp){
+						if($ent eq ''){
+							next OUTER4;
+						}
+						foreach $comp (@btemp){
+							if($ent eq $comp){
+								next OUTER4;
+							}
+						}
+						push(@new_save, $ent);
+					}
+					print OUT4 "$atemp[0]<>$atemp[1]<>";
+					$k3 = 0;
+					foreach $ent (@new_save){
+						print OUT4 ":$ent";
+						$k3++;
+					}
+					print OUT4 "\n";
+					$npix_cnt[$i] = $k3++;
+#
+#--- make a file for display
+#
+					print OUT5 "$atemp[0]<>$atemp[1]\n";
+					print OUT5 "\tNew: ";
+					foreach $ent (@new_save){
+						print OUT5 "$ent ";
+					}
+					print OUT5 "\n";
+					print OUT5 "\tImp: ";
+					foreach $ent (@imp_save){
+						print OUT5 "$ent ";
+					}
+				}
+				close(OUT3);
+				close(OUT4);
+				close(OUT5);
+#
+#--- print out counts of total bad pix, new bad pix, and disappeared bad pix
+#
+				$name = 'hccd'."$ip".'_cnt';
+				open(OUT6, ">$web_dir/Disp_dir/$name");
+				for($k = 0; $k < $ptot; $k++){
+					print OUT6 "$bdate[$k]<>";
+					print OUT6 "$b_pix_cnt[$k]:";
+					print OUT6 "$n_pix_cnt[$k]:";
+					print OUT6 "$i_pix_cnt[$k]\n";
+				}
+				close(OUT6);
 			}
 		}
-		close(FH);
-
-		if($switch eq 'warm'){
-#
-#--- if new data is coming remove  old ones
-#
-			OUTER:
-			foreach $ent (@dir_ccd){	
-				$name = "ccd$ip";	
-				if($name eq $ent){
-					open(TEMP, ">>$web_dir/Disp_dir/hist_ccd$ip");
-					@ctemp = split(/:/, $date_obs);
-					$ctemp[1]--;
-					$yestdate = "$ctemp[0]:$ctemp[1]";
-					print TEMP "#$yestdate\n";
-					close(TEMP);
-					system("cat $web_dir/Disp_dir/ccd$ip >> $web_dir/Disp_dir/hist_ccd$ip");
-					system("rm $web_dir/Disp_dir/ccd$ip");
-					last OUTER;
-				}
-			}
-		}elsif($switch eq 'hot'){
-			OUTER:
-			foreach $ent (@dir_hccd){
-				$name = "hccd$ip";
-				if($name eq $ent){
-					open(TEMP2, ">>$web_dir/Disp_dir/hist_hccd$ip");
-					@ctemp = split(/:/, $date_obs);
-					$ctemp[1]--;
-					$yestdate = "$ctemp[0]:$ctemp[1]";
-					print TEMP2 "#$yestdate\n";
-					close(TEMP2);
-					system("cat $web_dir/Disp_dir/hccd$ip >> $web_dir/Disp_dir/hist_hccd$ip");
-					system("rm $web_dir/Disp_dir/hccd$ip");
-					last OUTER;
-				}
-			}
-		}
-#
-#--- if there are bad pixels in today's list, check whether bad pixels in yesterday's list
-#
-		if($count > 0){						
-			if($cnt > 0){				
-				@x_hold = ();
-				@y_hold = ();
-				@x_new  = ();
-				@y_new  = ();
-				@x_imp  = ();
-				@y_imp  = ();
-				$hcnt = 0;
-				$ncnt = 0;
-				$icnt = 0;
-#
-#---  compare new data and old ones
-#				
-				OUTER:
-				foreach $ent (@{temp_ccd.$ip}){			
-					@pos = split(/\./,$ent);
-					for($j = 0; $j < $cnt; $j++){
-						if($pos[0] == $x_save[$j] 
-				    		&& $pos[1] == $y_save[$j]){
-#
-#--- if new data exist in old one keep them
-#
-							push(@x_hold, $pos[0]);	
-							push(@y_hold, $pos[1]);
-							$hcnt++;
-							next OUTER;
-						}
-					}
-#
-#--- if the new data are actually new bad pix, put them in here
-#
-					push(@x_new, $pos[0]);
-					push(@y_new, $pos[1]);
-					$ncnt++;
-				}	
-				OUTER:
-				for($j = 0; $j < $cnt; $j++){
-#
-#--- check whether bad pix disappeared or not. if it does, put it in
-#
-					foreach $ent (@{temp_ccd.$ip}){		
-						@pos = split(/\./,$ent);	
-						if($pos[0] == $x_save[$j] 
-			    			&& $pos[1] == $y_save[$j]){
-							next OUTER;
-						}
-					}
-					if($x_save[$j] =~ /\d/ && $y_save[$j] =~/\d/){
-						push(@x_imp, $x_save[$j]);
-						push(@y_imp, $y_save[$j]);
-						$icnt++;
-					}
-				}	
-
-				if($ncnt > 0){
-#
-#--- print out data; warm case
-#
-					if($switch eq 'warm'){		
-						open(OUT,">$web_dir/Disp_dir/today_new_ccd$ip");
-						if($ip == 5){
-							$today_new_bad_pix5 += $ncnt;	# count # of new bad pix
-						}elsif($ip == 7){
-							$today_new_bad_pix7 += $ncnt;
-						}else{
-							$today_new_bad_pix  += $ncnt;
-						}
-#
-#--- print out data; hot case
-#
-					}elsif($switch eq 'hot'){
-						open(OUT,">$web_dir/Disp_dir/today_new_hccd$ip");
-						if($ip == 5){
-							$today_new_hot_pix5 += $ncnt;
-						}elsif($ip == 7){
-							$today_new_hot_pix7 += $ncnt;
-						}else{
-							$today_new_hot_pix  += $ncnt;
-						}
-					}
-					print OUT "#Date: $dtime\n";
-					for($k = 0; $k< $ncnt; $k++){
-						print OUT "$x_new[$k]\t$y_new[$k]\n";
-					}
-					close(OUT);
-					if($switch eq 'warm'){
-						system("cat $web_dir/Disp_dir/today_new_ccd$ip >> $web_dir/Disp_dir/new_ccd$ip");
-					}elsif($switch eq 'hot'){
-						system("cat $web_dir/Disp_dir/today_new_hccd$ip>> $web_dir/Disp_dir/new_hccd$ip");
-					}
-
-					if($hcnt == 0){
-						if($switch eq 'warm'){
-							open(OUT2,">$web_dir/Disp_dir/ccd$ip");
-						}elsif($switch eq 'hot'){
-							open(OUT2,">$web_dir/Disp_dir/hccd$ip");
-						}
-						print OUT2 "#Date: $dtime\n";
-						for($k = 0; $k< $ncnt; $k++){
-							print OUT2 "$x_new[$k]\t$y_new[$k]\n";
-						}
-						close(OUT2);
-					}
-				}
-
-				if($hcnt > 0){
-#
-#--- count # of existing bad pix
-#
-					if($switch eq 'warm'){
-						open(OUT,">$web_dir/Disp_dir/ccd$ip");
-					}elsif($switch eq 'hot'){
-						open(OUT,">$web_dir/Disp_dir/hccd$ip");
-					}
-					for($k = 0; $k< $hcnt; $k++){
-						print OUT "$x_hold[$k]\t$y_hold[$k]\n";
-					}
-					close(OUT);
-
-					if($ncnt > 0){
-						if($switch eq 'warm'){
-							open(OUT2,">>$web_dir/Disp_dir/ccd$ip");
-						}elsif($switch eq 'hot'){
-							open(OUT2,">>$web_dir/Disp_dir/hccd$ip");
-						}
-						for($k = 0; $k< $ncnt; $k++){
-							print OUT2 "$x_new[$k]\t$y_new[$k]\n";
-						}
-						close(OUT2);
-					}
-				}
-
-				if($icnt > 0){	
-#
-#--- count # of improved bad pix
-#
-					if($switch eq 'warm'){
-						open(OUT,">$web_dir/Disp_dir/today_imp_ccd$ip");
-						if($ip == 5){
-							$today_imp_bad_pix5 += $icnt;
-						}elsif($ip == 7){
-							$today_imp_bad_pix7 += $icnt;
-						}else{
-							$today_imp_bad_pix  += $icnt;
-						}
-					}elsif($switch eq 'hot'){
-						open(OUT,">$web_dir/Disp_dir/today_imp_hccd$ip");
-						if($ip == 5){
-							$today_imp_hot_pix5 += $icnt;
-						}elsif($ip == 7){
-							$today_imp_hot_pix7 += $icnt;
-						}else{
-							$today_imp_hot_pix  += $icnt;
-						}
-					}
-					print OUT "#Date: $dtime\n";
-					for($k = 0; $k< $icnt; $k++){
-						print OUT "$x_imp[$k]\t$y_imp[$k]\n";
-					}
-					close(OUT);
-
-					if($switch eq 'warm'){
-						system("cat $web_dir/Disp_dir/today_imp_ccd$ip >> $web_dir/Disp_dir/imp_ccd$ip");
- 					}elsif($switch eq 'hot'){
-						system("cat $web_dir/Disp_dir/today_imp_hccd$ip >> $web_dir/Disp_dir/imp_hccd$ip");
-					}
-				}
-			}else{
-#
-#--- for the case creating new bad pix list
-#
-				$tcnt = 0;
-				foreach (@{temp_ccd.$ip}){
-					$tcnt++;
-				}
-				if($tcnt > 0){
-					if($switch eq 'warm'){
-						open(OUT,">$web_dir/Disp_dir/today_new_ccd$ip");
-					}elsif($switch eq 'hot'){
-						open(OUT,">$web_dir/Disp_dir/today_new_hccd$ip");
-					}
-					print OUT "#Date: $dtime\n";
-					foreach $ent (@{temp_ccd.$ip}){
-						@pos = split(/\./,$ent);
-						print OUT  "$pos[0]\t$pos[1]\n";	
-					}
-					close(OUT);
-					if($switch eq 'warm'){
-						system("cat $web_dir/Disp_dir/today_new_ccd$ip >> $web_dir/Disp_dir/new_ccd$ip");
-					}elsif($switch eq 'hot'){
-						system("cat $web_dir/Disp_dir/today_new_hccd$ip >> $web_dir/Disp_dir/new_hccd$ip");
-					}
-
-					if($switch eq 'warm'){
-						open(OUT2,">$web_dir/Disp_dir/ccd$ip");
-						if($ip == 5){
-							$today_new_bad_pix5 += $tcnt;
-						}elsif($ip == 7){
-							$today_new_bad_pix7 += $tcnt;
-						}else{
-							$today_new_bad_pix  += $tcnt;
-						}
-					}elsif($switch eq 'hot'){
-						open(OUT2,">$web_dir/Disp_dir/hccd$ip");
-						if($ip == 5){
-							$today_new_hot_pix5 += $tcnt;
-						}elsif($ip == 7){
-							$today_new_hot_pix7 += $tcnt;
-						}else{
-							$today_new_hot_pix  += $tcnt;
-						}
-					}
-					foreach $ent (@{temp_ccd.$ip}){
-						@pos = split(/\./,$ent);
-						print OUT2 "$pos[0]\t$pos[1]\n";	
-					}
-					close(OUT2);
-				}
-			}
-		}else{						
-#
-#--- this is a case, no new data, but prev bad pix exists
-#
-			if($cnt > 0){
-				if($switch eq 'warm'){
-		     			open(OUT,">$web_dir/Disp_dir/today_imp_ccd$ip");
-		     			if($ip == 5){
-			      			$today_imp_bad_pix5 += $cnt;
-		     			}elsif($ip == 7){
-			      			$today_imp_bad_pix7 += $cnt;
-		     			}else{
-			      			$today_imp_bad_pix  += $cnt;
-		    			}
-		     		}elsif($switch eq 'hot'){
-			     		open(OUT,">$web_dir/Disp_dir/today_imp_hccd$ip");
-		     			if($ip == 5){
-			      			$today_imp_hot_pix5 += $cnt;
-		     			}elsif($ip == 7){
-			      			$today_imp_hot_pix7 += $cnt;
-		     			}else{
-			      			$today_imp_hot_pix  += $cnt;
-		    			}
-		     		}
-		     		print OUT "#Date: $dtime\n";
-		     		for($k = 0; $k< $cnt; $k++){
-			      		print OUT "$x_save[$k]\t$y_save[$k]\n";
-		     		}
-		     		close(OUT);
-				if($switch eq 'warm'){
-					system("cat $web_dir/Disp_dir/today_imp_ccd$ip >> $web_dir/Disp_dir/imp_ccd$ip");
-				}elsif($switch eq 'hot'){
-					system("cat $web_dir/Disp_dir/today_imp_hccd$ip >> $web_dir/Disp_dir/imp_hccd$ip");
-				}
-			}
- 		}
 	}
 }
 
@@ -1770,7 +1772,7 @@ sub print_bad_pix_data{
 sub find_bad_col{
         $asum  = 0;
         $asum2 = 0;
-        $fcnt = 0;
+        $fcnt  = 0;
 #
 #--- make an average of averaged column value average of column is caluculated in sub extract.
 #
@@ -2053,10 +2055,19 @@ sub chk_bad_col {
 }
 
 ########################################################################################
-########################################################################################
+### print_bad_col: print out bad column list                                         ###
 ########################################################################################
 
 sub print_bad_col{
+
+#
+#--- find dom
+#
+	$date_obs2 = $date_obs;
+	$date_obs2 =~ s/#Date://;
+	$date_obs2 =~ s/\s+//;
+	$dom       = ch_ydate_to_dom($date_obs2);
+
 	OUTER:
 	for($k = 0; $k < 10; $k++){
 
@@ -2073,7 +2084,7 @@ sub print_bad_col{
 			if(${col_cnt.$k} > 0){
 				@bad_col_new = ();
 				@bad_col_imp = ();
-				@col_hold = ();
+				@col_hold    = ();
 				$chk_col_new = 0;
 				$chk_col_imp = 0;
 				$chk_col_hld = 0;
@@ -2109,118 +2120,137 @@ sub print_bad_col{
 					push(@bad_col_imp, $ent);
 					$chk_col_imp++;
 				}
+#
+#---history file for col
+#
+				open(IN, "$web_dir/Disp_dir/hist_col$k");
+				@tline = ();
+				$tcnt  = 0;
+				while(<IN>){
+					chomp $_;
+					push(@tline, $_);
+					$tcnt++;
+				}
+				close(IN);
+				$nline = "$dom<>$date_obs2<>";
+				foreach $ent (@{bad_col_list.$k}){
+					$nline = "$nline:"."$ent";
+				}
+				push(@tline, $nline);
+				@sorted_tline = sort{$a<=>$b} @tline;
+				@cleaned = ("$sorted_tline[0]");
+				OUTER:
+				for($i = 1; $i <= $tcnt; $i++){
+					if($sorted_tline[$i] eq $sorted_tline[$i-1]){
+						next OUTER;
+					}
+					push(@cleaned, $sorted_tline[$i]);
+				}
+				$name = "hist_col$k";
+				open(OUT, ">$web_dir/Disp_dir/$name");
+				$current_col_no = 0;
+				foreach $ent (@cleaned){
+					print OUT "$ent\n";
+					$current_col_no++;
+				}
+				close(OUT);
 
-			
-				if($chk_col_new > 0){
 #
-#--- count # of new col for plots
+#---history file for new bad col
 #
-					if($k == 5){		
-						$today_new_bad_col5 += $chk_col_new;
-					}elsif($k == 7){
-						$today_new_bad_col7 += $chk_col_new;
-					}else{
-						$today_new_bad_col += $chk_col_new;
-					}
-	
-					open(OUT, ">$web_dir/Disp_dir/today_new_col$k");
-					print OUT "#Date: $dtime\n";
-					foreach $ent (@bad_col_new){
-						print OUT "$ent\n";
-					}
-					close(OUT);
-					if($chk_col_hld == 0){
-						open(OUT2,">$web_dir/Disp_dir/col$k");
-						print OUT2 "#Date: $dtime\n";
-						foreach $ent (@bad_col_new){
-							print OUT2 "$ent\n";
-						}
-						close(OUT2);
-					}
+				$name = "new_col$k";
+				open(IN, "$web_dir/Disp_dir/$name");
+				@tline = ();
+				$tcnt  = 0;
+				while(<IN>){
+					chomp $_;
+					push(@tline, $_);
+					$tcnt++;
 				}
-	
-				if($chk_col_hld > 0){
-					open(OUT,">$web_dir/Disp_dir/col$k");
-					foreach $ent (@col_hold){
-						print OUT "$ent\n";
-					}
-					close(OUT);
-		
-					if($chk_col_new > 0){
-						open(OUT2, ">>$web_dir/Disp_dir/col$k");
-						foreach $ent (@bad_col_new){
-							print OUT2 "$ent\n";
-						}
-						close(OUT2);
-					}
+				close(IN);
+				$nline = "$dom<>$date_obs2<>";
+				foreach $ent (@{bad_col_new}){
+					$nline = "$nline:"."$ent";
 				}
-	
-				if($chk_col_imp > 0){
-#
-#--- count # of imp col for plots
-#
-					if($k == 5){		
-						$today_imp_bad_col5 += $chk_col_imp;
-					}elsif($k == 7){
-						$today_imp_bad_col7 += $chk_col_imp;
-					}else{
-						$today_imp_bad_col += $chk_col_imp;
+				push(@tline, $nline);
+				@sorted_tline = sort{$a<=>$b} @tline;
+				@cleaned = ("$sorted_tline[0]");
+				OUTER:
+				for($i = 1; $i <= $tcnt; $i++){
+					if($sorted_tline[$i] eq $sorted_tline[$i-1]){
+						next OUTER;
 					}
-	
-					open(OUT, ">$web_dir/Disp_dir/today_imp_col$k");
-					print OUT "#Date: $dtime\n";
-					foreach $ent (@bad_col_imp){
-						print OUT "$ent\n";
-					}
-					close(OUT);
+					push(@cleaned, $sorted_tline[$i]);
 				}
-			}else{
-				if(${bcnt.$k} > 0){
-		    			open(OUT, ">$web_dir/Disp_dir/today_new_col$k");
-					print OUT "#Date: $dtime\n";
-					foreach $ent (@{bad_col_list.$k}){
-						print OUT "$ent\n";	
-					}
-					close(OUT);
-
-		    			open(OUT2, ">$web_dir/Disp_dir/col$k");
-					print OUT2 "#Date: $dtime\n";
-					foreach $ent (@{bad_col_list.$k}){
-						print OUT2 "$ent\n";	
-					}
-					close(OUT2);
-#
-#--- count # of new col for plots
-#
-					if($k == 5){
-						$today_new_bad_col5 += ${bcnt.$k};
-					}elsif($k == 7){
-						$today_new_bad_col7 += ${bcnt.$k};
-					}else{
-						$today_new_bad_col  += ${bcnt.$k};
-					}
-				}
-			}
-		}else{
-			if(${col_cnt.$k} > 0){
-				open(OUT,">$web_dir/Disp_dir/today_imp_col$k");
-				print OUT "#Date: $dtime\n";
-				foreach $ent (@{col_data.$k}){
+				$name = "new_col$k";
+				open(OUT, ">$web_dir/Disp_dir/$name");
+				foreach $ent (@cleaned){
 					print OUT "$ent\n";
 				}
 				close(OUT);
 
-				system("rm $web_dir/Disp_dir/col$k");
+
 #
-#--- count # of imp col for plots
+#---history file for disappeared  bad col
 #
-				if($k == 5){		
-					$today_imp_bad_col5 += ${col_cnt.$k};
-				}elsif($k == 7){
-					$today_imp_bad_col7 += ${col_cnt.$k};
-				}else{
-					$today_imp_bad_col  += ${col_cnt.$k};
+				$name = "imp_col$k";
+				open(IN, "$web_dir/Disp_dir/$name");
+				@tline = ();
+				$tcnt  = 0;
+				while(<IN>){
+					chomp $_;
+					push(@tline, $_);
+					$tcnt++;
 				}
+				close(IN);
+				$nline = "$dom<>$date_obs2<>";
+				foreach $ent (@{bad_col_imp}){
+					$nline = "$nline:"."$ent";
+				}
+				push(@tline, $nline);
+				@sorted_tline = sort{$a<=>$b} @tline;
+				@cleaned = ("$sorted_tline[0]");
+				OUTER:
+				for($i = 1; $i <= $tcnt; $i++){
+					if($sorted_tline[$i] eq $sorted_tline[$i-1]){
+						next OUTER;
+					}
+					push(@cleaned, $sorted_tline[$i]);
+				}
+				open(OUT, ">$web_dir/Disp_dir/imp_col$k");
+				foreach $ent (@cleaned){
+					print OUT "$ent\n";
+				}
+				close(OUT);
+#
+#---- bad col count history
+#
+				$name = "col$k".'_cnt';
+				open(IN, "$web_dir/Disp_dir/$name");
+				@tline = ();
+				$tcnt  = 0;
+				while(<IN>){
+					chomp $_;
+					push(@tline, $_);
+					$tcnt++;
+				}
+				close(IN);
+				$nline = "$dom<>$date_obs2<>$current_col_no",":$chk_col_new:$chk_col_imp";
+				push(@tline, $nline);
+				@sorted_tline = sort{$a<=>$b} @tline;
+				@cleaned = ("$sorted_tline[0]");
+				OUTER:
+				for($i = 1; $i <= $tcnt; $i++){
+					if($sorted_tline[$i] eq $sorted_tline[$i-1]){
+							next OUTER;
+					}
+					push(@cleaned, $sorted_tline[$i]);
+				}
+				open(OUT, ">$web_dir/Disp_dir/$name");
+				foreach $ent (@cleaned){
+					print OUT "$ent\n";
+				}
+				close(OUT);
 			}
 		}
 	}
@@ -2245,6 +2275,7 @@ sub chk_old_data{
 
 	($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst)= localtime(time);
 	$year = $uyear + 1900;
+	$uyday++;
 	$today = "$year:$uyday:$uhour:$umin:$usec";
 	$today_chk = `/home/ascds/DS.release/bin/axTime3 $today t d u s`;
 	
@@ -2265,280 +2296,6 @@ sub chk_old_data{
 		}
 	}
 }
-
-##############################################################################
-### count_new_imp: count numbers of new and improved bad pixels           ####
-##############################################################################
-
-sub count_new_imp {
-
-	conv_time_dom($dtime);		# change time to dom format
-
-	$bad_pix_cnt  = 0;
-	$bad_pix_cnt5 = 0;
-	$bad_pix_cnt7 = 0;
-#
-#--- bad pixel case
-#
-	open(IN, "$web_dir/Disp_dir/bad_pix_cnt");	
-#
-#--- get the previous total bad pix counts for front side CCD
-#
-	while(<IN>){				
-		chomp $_;
-		@atemp = split(/:/, $_);
-		$bad_pix_cnt = $atemp[3];
-	}
-	close(IN);
-
-	$bad_pix_cnt += $today_new_bad_pix;			
-	$bad_pix_cnt -= $today_imp_bad_pix;			# new total bad pix counts
-
-	open(IN, "$web_dir/Disp_dir/bad_pix_cnt5");		# same as above, but for ccd 5
-	while(<IN>){
-		chomp $_;
-		@atemp = split(/:/, $_);
-		$bad_pix_cnt5 = $atemp[3];
-	}
-	close(IN);
-
-	$bad_pix_cnt5 += $today_new_bad_pix5;
-	$bad_pix_cnt5 -= $today_imp_bad_pix5;
-
-	open(IN, "$web_dir/Disp_dir/bad_pix_cnt7");		# smae as above, but for ccd 7
-	while(<IN>){
-		chomp $_;
-		@atemp = split(/:/, $_);
-		$bad_pix_cnt7 = $atemp[3];
-	}
-	close(IN);
-
-	$bad_pix_cnt7 += $today_new_bad_pix7;
-	$bad_pix_cnt7 -= $today_imp_bad_pix7;
-#
-#--- new pix
-#
-	open(OUT,">>$web_dir/Disp_dir/new_bad_pix_save");	# newly appeared bad pix: imaging ccds
-	print OUT "$dtime:$today_dom:$today_new_bad_pix\n";
-	close(OUT);
-
-	open(OUT,">>$web_dir/Disp_dir/new_bad_pix_save5");	# newly appeared bad pix: ccd 5
-	print OUT "$dtime:$today_dom:$today_new_bad_pix5\n";
-	close(OUT);
-
-	open(OUT,">>$web_dir/Disp_dir/new_bad_pix_save7");	# newly appeared bad pix: ccd 7
-	print OUT "$dtime:$today_dom:$today_new_bad_pix7\n";
-	close(OUT);
-#
-#--- improved pix
-#
-	open(OUT,">>$web_dir/Disp_dir/imp_bad_pix_save");	# improved bad pix: imaging ccds
-	print OUT "$dtime:$today_dom:$today_imp_bad_pix\n";
-	close(OUT);
-
-	open(OUT,">>$web_dir/Disp_dir/imp_bad_pix_save5");	# improved bad pix: ccd 5
-	print OUT "$dtime:$today_dom:$today_imp_bad_pix5\n";
-	close(OUT);
-
-	open(OUT,">>$web_dir/Disp_dir/imp_bad_pix_save7");	# improved bad pix: ccd 7
-	print OUT "$dtime:$today_dom:$today_imp_bad_pix7\n";
-	close(OUT);
-#
-#--- total bad pix
-#
-	open(OUT,">>$web_dir/Disp_dir/bad_pix_cnt");		# total bad pix: imaging ccds
-	print OUT "$dtime:$today_dom:$bad_pix_cnt\n";
-	close(OUT);
-
-	open(OUT,">>$web_dir/Disp_dir/bad_pix_cnt5");		# total bad pix: ccd 5
-	print OUT "$dtime:$today_dom:$bad_pix_cnt5\n";
-	close(OUT);
-
-	open(OUT,">>$web_dir/Disp_dir/bad_pix_cnt7");		# total bad pix: ccd 7
-	print OUT "$dtime:$today_dom:$bad_pix_cnt7\n";
-	close(OUT);
-
-#
-#--- hot pixel case
-#
-
-	$hot_pix_cnt  = 0;
-	$hot_pix_cnt5 = 0;
-	$hot_pix_cnt7 = 0;
-#
-#--- get the previous total hot pix counts for front side CCD
-#
-	open(IN, "$web_dir/Disp_dir/hot_pix_cnt");	
-	while(<IN>){					
-		chomp $_;
-		@atemp = split(/:/, $_);
-		$hot_pix_cnt = $atemp[3];
-	}
-	close(IN);
-
-	$hot_pix_cnt += $today_new_hot_pix;
-	$hot_pix_cnt -= $today_imp_hot_pix;			# new total hot pix counts
-
-	open(IN, "$web_dir/Disp_dir/hot_pix_cnt5");		# same as above, but for ccd 5
-	while(<IN>){
-		chomp $_;
-		@atemp = split(/:/, $_);
-		$hot_pix_cnt5 = $atemp[3];
-	}
-	close(IN);
-
-	$hot_pix_cnt5 += $today_new_hot_pix5;
-	$hot_pix_cnt5 -= $today_imp_hot_pix5;
-
-	open(IN, "$web_dir/Disp_dir/hot_pix_cnt7");		# smae as above, but for ccd 7
-	while(<IN>){
-		chomp $_;
-		@atemp = split(/:/, $_);
-		$hot_pix_cnt7 = $atemp[3];
-	}
-	close(IN);
-
-	$hot_pix_cnt7 += $today_new_hot_pix7;
-	$hot_pix_cnt7 -= $today_imp_hot_pix7;
-#
-#--- new pix
-#
-	open(OUT,">>$web_dir/Disp_dir/new_hot_pix_save");	# newly appeared hot pix: imaging ccds
-	print OUT "$dtime:$today_dom:$today_new_hot_pix\n";
-	close(OUT);
-
-	open(OUT,">>$web_dir/Disp_dir/new_hot_pix_save5");	# newly appeared hot pix: ccd 5
-	print OUT "$dtime:$today_dom:$today_new_hot_pix5\n";
-	close(OUT);
-
-	open(OUT,">>$web_dir/Disp_dir/new_hot_pix_save7");	# newly appeared hot pix: ccd 7
-	print OUT "$dtime:$today_dom:$today_new_hot_pix7\n";
-	close(OUT);
-#
-#--- improved pix
-#
-	open(OUT,">>$web_dir/Disp_dir/imp_hot_pix_save");	# improved hot pix: imaging ccds
-	print OUT "$dtime:$today_dom:$today_imp_hot_pix\n";
-	close(OUT);
-
-	open(OUT,">>$web_dir/Disp_dir/imp_hot_pix_save5");	# improved hot pix: ccd 5
-	print OUT "$dtime:$today_dom:$today_imp_hot_pix5\n";
-	close(OUT);
-
-	open(OUT,">>$web_dir/Disp_dir/imp_hot_pix_save7");	# improved hot pix: ccd 7
-	print OUT "$dtime:$today_dom:$today_imp_hot_pix7\n";
-	close(OUT);
-#
-#--- total hot pix
-#
-	open(OUT,">>$web_dir/Disp_dir/hot_pix_cnt");		# total hot pix: imaging ccds
-	print OUT "$dtime:$today_dom:$hot_pix_cnt\n";
-	close(OUT);
-
-	clearnup_duplicate("$web_dir/Disp_dir/hot_pix_cnt");
-
-	open(OUT,">>$web_dir/Disp_dir/hot_pix_cnt5");		# total hot pix: ccd 5
-	print OUT "$dtime:$today_dom:$hot_pix_cnt5\n";
-	close(OUT);
-
-	clearnup_duplicate("$web_dir/Disp_dir/hot_pix_cnt5");
-
-	open(OUT,">>$web_dir/Disp_dir/hot_pix_cnt7");		# total hot pix: ccd 7
-	print OUT "$dtime:$today_dom:$hot_pix_cnt7\n";
-	close(OUT);
-
-	clearnup_duplicate("$web_dir/Disp_dir/hot_pix_cnt7");
-
-#
-#--- col list count starts here
-#
-	
-	$bad_col_cnt  = 0;
-	$bad_col_cnt5 = 0;
-	$bad_col_cnt7 = 0;
-
-	open(IN, "$web_dir/Disp_dir/bad_col_cnt");		# get the previous total bad col counts
-	while(<IN>){						# for front side CCD
-		chomp $_;
-		@atemp = split(/:/, $_);
-		$bad_col_cnt = $atemp[3];
-	}
-	close(IN);
-
-	$bad_col_cnt += $today_new_bad_col;
-	$bad_col_cnt -= $today_imp_bad_col;			# new total bad col counts
-
-	open(IN, "$web_dir/Disp_dir/bad_col_cnt5");		# same as above, but for ccd 5
-	while(<IN>){
-		chomp $_;
-		@atemp = split(/:/, $_);
-		$bad_col_cnt5 = $atemp[3];
-	}
-	close(IN);
-
-	$bad_col_cnt5 += $today_new_bad_col5;
-	$bad_col_cnt5 -= $today_imp_bad_col5;
-
-	open(IN, "$web_dir/Disp_dir/bad_col_cnt7");		# smae as above, but for ccd 7
-	while(<IN>){
-		chomp $_;
-		@atemp = split(/:/, $_);
-		$bad_col_cnt7 = $atemp[3];
-	}
-	close(IN);
-
-	$bad_col_cnt7 += $today_new_bad_col7;
-	$bad_col_cnt7 -= $today_imp_bad_col7;
-#
-#--- new bad col
-#
-	open(OUT,">>$web_dir/Disp_dir/new_bad_col_save");	# newly appeared bad col: imaging ccds
-	print OUT "$dtime:$today_dom:$today_new_bad_col\n";
-	close(OUT);
-
-	open(OUT,">>$web_dir/Disp_dir/new_bad_col_save5");	# newly appeared bad col: ccd 5
-	print OUT "$dtime:$today_dom:$today_new_bad_col5\n";
-	close(OUT);
-
-	open(OUT,">>$web_dir/Disp_dir/new_bad_col_save7");	# newly appeared bad col: ccd 7
-	print OUT "$dtime:$today_dom:$today_new_bad_col7\n";
-	close(OUT);
-#
-#--- improved col
-#
-	open(OUT,">>$web_dir/Disp_dir/imp_bad_col_save");	# improved bad col: imaging ccds
-	print OUT "$dtime:$today_dom:$today_imp_bad_col\n";
-	close(OUT);
-
-	open(OUT,">>$web_dir/Disp_dir/imp_bad_col_save5");	# improved bad col: ccd 5
-	print OUT "$dtime:$today_dom:$today_imp_bad_col5\n";
-	close(OUT);
-
-	open(OUT,">>$web_dir/Disp_dir/imp_bad_col_save7");	# improved bad col: ccd 7
-	print OUT "$dtime:$today_dom:$today_imp_bad_col7\n";
-	close(OUT);
-#
-#--- total bad col
-#
-	open(OUT,">>$web_dir/Disp_dir/bad_col_cnt");		# total bad col: imaging ccds
-	print OUT "$dtime:$today_dom:$bad_col_cnt\n";
-	close(OUT);
-
-	clearnup_duplicate("$web_dir/Disp_dir/bad_col_cnt");
-
-	open(OUT,">>$web_dir/Disp_dir/bad_col_cnt5");		# total bad col: ccd 5
-	print OUT "$dtime:$today_dom:$bad_col_cnt5\n";
-	close(OUT);
-
-	clearnup_duplicate("$web_dir/Disp_dir/bad_col_cnt5");
-
-	open(OUT,">>$web_dir/Disp_dir/bad_col_cnt7");		# total bad col: ccd 7
-	print OUT "$dtime:$today_dom:$bad_col_cnt7\n";
-	close(OUT);
-
-	clearnup_duplicate("$web_dir/Disp_dir/bad_col_cnt7");
-}
-
 
 ################################################################
 ### cov_time_dom: change date (yyyy:ddd) to dom             ####
@@ -2585,496 +2342,6 @@ sub timeconv2 {
 	$sec_form_time = `/home/ascds/DS.release/bin/axTime3 $time t d u s`;
 }
 
-
-################################################################
-### data_for_html: create data for web page display	   #####
-################################################################
-
-sub data_for_html{
-
-	$temp_wdir      = `ls $web_dir/Disp_dir/`;	# find out what are in Disp_dir
-	@temp_wdir_list = split(/\s+/, $temp_wdir);
-
-	@ccd_list       = ();
-	@col_list       = ();
-	@today_new_ccd  = ();
-	@today_imp_ccd  = ();
-	@today_new_col  = ();
-	@today_imp_col  = ();
-	@hccd_list      = ();
-	@hcol_list      = ();
-	@today_new_hccd = ();
-	@today_imp_hccd = ();
-	@today_new_hcol = ();
-	@today_imp_hcol = ();
-
-	$ccd_cnt        = 0;
-	$col_cnt        = 0;
-	$tdy_imp        = 0;
-	$tdy_new        = 0;
-	$tdy_imp_col    = 0;
-	$tdy_new_col    = 0;
-	$hccd_cnt       = 0;
-	$hcol_cnt       = 0;
-	$htdy_imp       = 0;
-	$htdy_new       = 0;
-	$htdy_imp_col   = 0;
-	$htdy_new_col   = 0;
-#
-#--- check which data are in the Disp_dir
-#
-	foreach $ent (@temp_wdir_list){	
-		@atemp = split(/\d/, $ent);
-#
-#--- wam pix case
-#
-		if($atemp[0] eq 'ccd'){			# bad pix data
-			push(@ccd_list, $ent);
-			$ccd_cnt++;
-		}elsif($atemp[0] eq 'col'){		# bad col data
-			push(@col_list, $ent);
-			$col_cnt++;
-		}elsif($atemp[0] eq 'today_new_ccd'){	# new bad pix data
-			push(@today_new_ccd, $ent);
-			$tdy_new++;
-		}elsif($atemp[0] eq 'today_imp_ccd'){	# imp pix data
-			push(@today_imp_ccd, $ent);
-			$tdy_imp++;
-		}elsif($atemp[0] eq 'today_new_col'){	# new bad col data
-			push(@today_new_col,$ent);
-			$tdy_new_col++;
-		}elsif($atemp[0] eq 'today_imp_col'){	#imp col data
-			push(@today_imp_col,$ent);
-			$tdy_imp_col++;
-#
-#--- hot case
-#
-		}elsif($atemp[0] eq 'hccd'){		# bad pix data
-			push(@hccd_list, $ent);
-			$hccd_cnt++;
-		}elsif($atemp[0] eq 'hcol'){		# bad col data
-			push(@hcol_list, $ent);
-			$hcol_cnt++;
-		}elsif($atemp[0] eq 'today_new_hccd'){	# new bad pix data
-			push(@today_new_hccd, $ent);
-			$htdy_new++;
-		}elsif($atemp[0] eq 'today_imp_hccd'){	# imp pix data
-			push(@today_imp_hccd, $ent);
-			$htdy_imp++;
-		}elsif($atemp[0] eq 'today_new_hcol'){	# new bad col data
-			push(@today_new_hcol,$ent);
-			$htdy_new_col++;
-		}elsif($atemp[0] eq 'today_imp_hcol'){	#imp col data
-			push(@today_imp_hcol,$ent);
-			$htdy_imp_col++;
-		}
-	}
-
-	OUTER:
-	for($is = 0; $is < 10; $is++){			# loop around ccds
-
-		if(${tdycnt.$is} == 0){			# only when we have today's ccd data
-			next OUTER;
-		}
-#
-#--- ccd data check
-#
-		${ccd_ind.$is} = 0;			# indicater for whether ccd*$is has
-		OUTER:					# bad pix data in
-		foreach $ent (@ccd_list){
-			$cname = "ccd$is";
-			if($ent eq $cname){
-				${ccd_ind.$is}++;
-				last OUTER;
-			}
-		}
-
-		@imp_data = ();
-		@new_data = ();
-		$i_ind = 0;
-		$n_ind = 0;
-		$i_name = "today_imp_ccd$is";
-		$n_name = "today_new_ccd$is";
-#
-#--- read in today's new bad pix position
-#
-		OUTER:
-		foreach $ent (@today_new_ccd){		
-			if($ent eq $n_name){
-				@new_data = ();
-
-				open(IN, "$web_dir/Disp_dir/today_new_ccd$is");
-
-				while(<IN>){
-					chomp $_;
-					@atemp = split(/:/, $_);
-					if($atemp[0] eq '#Date'){
-						$ntdy_date = $_;
-						@ttemp     = split(/:/, $_);
-						$ntime_ind = "$ttemp[1]$ttemp[2]";
-					}else{
-						push(@new_data, $_);
-						$n_ind++;
-					}
-				}
-				close(IN);
-				last OUTER;
-			}
-		}
-
-		OUTER:
-		foreach $ent (@today_imp_ccd){
-			if($ent eq $i_name){
-				@imp_data = ();
-
-				open(IN, "$web_dir/Disp_dir/today_imp_ccd$is");
-
-				while(<IN>){
-					chomp $_;
-					@atemp = split(/:/, $_);
-					if($atemp[0] eq '#Date'){
-						$itdy_date = $_;
-						@ttemp     = split(/:/, $_);
-						$itime_ind = "$ttemp[1]$ttemp[2]";
-					}else{
-						push(@imp_data, $_);
-						$i_ind++;
-					}
-				}
-				close(IN);
-				last OUTER;
-			}
-		}
-
-		if($n_ind > 0 || $i_ind > 0){
-
-			open(OUT, ">>$web_dir/Disp_dir/change_ccd$is");
-
-			if($ntime_ind == $itime_ind){
-				$diff = $n_ind - $i_ind;
-				print OUT "\n$ntdy_date\n";
-				if($diff ==  0){
-					for($it = 0; $it < $n_ind; $it++){
-						@data_new = split(/\t+/, $new_data[$it]);
-						@data_imp = split(/\t+/, $imp_data[$it]);
-						print OUT "New=($data_new[0], $data_new[1])\t";
-						print OUT "Imp=($data_imp[0], $data_imp[1])\n";
-					}
-				}elsif($diff > 0){
-					for($it = 0; $it < $i_ind; $it++){
-						@data_new = split(/\t+/, $new_data[$it]);
-						@data_imp = split(/\t+/, $imp_data[$it]);
-						print OUT "New=($data_new[0], $data_new[1])\t";
-						print OUT "Imp=($data_imp[0], $data_imp[1])\n";
-					}
-					for($it = $i_ind; $it < $n_ind; $it++){
-						@data_new = split(/\t+/, $new_data[$it]);
-						print OUT "New=($data_new[0], $data_new[1])\n";
-					}
-				}elsif($diff < 0){
-					for($it = 0; $it < $n_ind; $it++){
-						@data_new = split(/\t+/, $new_data[$it]);
-						@data_imp = split(/\t+/, $imp_data[$it]);
-						print OUT "New=($data_new[0], $data_new[1])\t";
-						print OUT "Imp=($data_imp[0], $data_imp[1])\n";
-					}
-					for($it = $n_ind; $it < $i_ind; $it++){
-						@data_imp = split(/\t+/, $imp_data[$it]);
-						print OUT "	      \t";
-						print OUT "Imp=($data_imp[0], $data_imp[1])\n";
-					}
-				}
-			}elsif($ntime_ind < $itime_ind){
-				print OUT "\n$itdy_date\n";
-
-				for($it = 0 ; $it < $n_ind; $it++){
-					@data_new = split(/\t+/, $new_data[$it]);
-					print OUT "New=($data_new[0], $data_new[1])\n";
-				}
-				for($it = 0; $it < $i_ind; $it++){
-					@data_imp = split(/\t+/, $imp_data[$it]);
-					print OUT "	      \t";
-					print OUT "Imp=($data_imp[0], $data_imp[1])\n";
-				}
-
-			}elsif($itime_ind < $ntime_ind){
-				print OUT "\n$ntdy_date\n";
-
-				for($it = 0; $it < $i_ind; $it++){
-					@data_imp = split(/\t+/, $imp_data[$it]);
-					print OUT "	      \t";
-					print OUT "Imp=($data_imp[0], $data_imp[1])\n";
-				}
-
-				for($it = 0 ; $it < $n_ind; $it++){
-					@data_new = split(/\t+/, $new_data[$it]);
-					print OUT "New=($data_new[0], $data_new[1])\n";
-				}
-			}
-			close(OUT)
-		}
-	
-#
-#--- hccd data check
-#
-		${hccd_ind.$is} = 0;			# indicater for whether ccd*$is has
-		OUTER:					# bad pix data in
-		foreach $ent (@hccd_list){
-			$cname = "hccd$is";
-			if($ent eq $cname){
-				${hccd_ind.$is}++;
-				last OUTER;
-			}
-		}
-
-		@imp_data = ();
-		@new_data = ();
-		$i_ind    = 0;
-		$n_ind    = 0;
-		$i_name   = "today_imp_hccd$is";
-		$n_name   = "today_new_hccd$is";
-#
-#--- read in today's new bad pix position
-#
-		OUTER:
-		foreach $ent (@today_new_hccd){
-			if($ent eq $n_name){
-				@new_data = ();
-
-				open(IN, "$web_dir/Disp_dir/today_new_hccd$is");
-
-				while(<IN>){
-					chomp $_;
-					@atemp = split(/:/, $_);
-					if($atemp[0] eq '#Date'){
-						$ntdy_date = $_;
-						@ttemp     = split(/:/, $_);
-						$ntime_ind = "$ttemp[1]$ttemp[2]";
-					}else{
-						push(@new_data, $_);
-						$n_ind++;
-					}
-				}
-				close(IN);
-				last OUTER;
-			}
-		}
-
-		OUTER:
-		foreach $ent (@today_imp_hccd){
-			if($ent eq $i_name){
-				@imp_data = ();
-
-				open(IN, "$web_dir/Disp_dir/today_imp_hccd$is");
-
-				while(<IN>){
-					chomp $_;
-					@atemp = split(/:/, $_);
-					if($atemp[0] eq '#Date'){
-						$itdy_date = $_;
-						@ttemp     = split(/:/, $_);
-						$itime_ind = "$ttemp[1]$ttemp[2]";
-					}else{
-						push(@imp_data, $_);
-						$i_ind++;
-					}
-				}
-				close(IN);
-				last OUTER;
-			}
-		}
-
-		if($n_ind > 0 || $i_ind > 0){
-
-			open(OUT, ">>$web_dir/Disp_dir/change_hccd$is");
-
-			if($ntime_ind == $itime_ind){
-				$diff = $n_ind - $i_ind;
-				print OUT "\n$ntdy_date\n";
-				if($diff ==  0){
-					for($it = 0; $it < $n_ind; $it++){
-						@data_new = split(/\t+/, $new_data[$it]);
-						@data_imp = split(/\t+/, $imp_data[$it]);
-						print OUT "New=($data_new[0], $data_new[1])\t";
-						print OUT "Imp=($data_imp[0], $data_imp[1])\n";
-					}
-				}elsif($diff > 0){
-					for($it = 0; $it < $i_ind; $it++){
-						@data_new = split(/\t+/, $new_data[$it]);
-						@data_imp = split(/\t+/, $imp_data[$it]);
-						print OUT "New=($data_new[0], $data_new[1])\t";
-						print OUT "Imp=($data_imp[0], $data_imp[1])\n";
-					}
-					for($it = $i_ind; $it < $n_ind; $it++){
-						@data_new = split(/\t+/, $new_data[$it]);
-						print OUT "New=($data_new[0], $data_new[1])\n";
-					}
-				}elsif($diff < 0){
-					for($it = 0; $it < $n_ind; $it++){
-						@data_new = split(/\t+/, $new_data[$it]);
-						@data_imp = split(/\t+/, $imp_data[$it]);
-						print OUT "New=($data_new[0], $data_new[1])\t";
-						print OUT "Imp=($data_imp[0], $data_imp[1])\n";
-					}
-					for($it = $n_ind; $it < $i_ind; $it++){
-						@data_imp = split(/\t+/, $imp_data[$it]);
-						print OUT "	      \t";
-						print OUT "Imp=($data_imp[0], $data_imp[1])\n";
-					}
-				}
-			}elsif($ntime_ind < $itime_ind){
-				print OUT "\n$itdy_date\n";
-
-				for($it = 0 ; $it < $n_ind; $it++){
-					@data_new = split(/\t+/, $new_data[$it]);
-					print OUT "New=($data_new[0], $data_new[1])\n";
-				}
-				for($it = 0; $it < $i_ind; $it++){
-					@data_imp = split(/\t+/, $imp_data[$it]);
-					print OUT "	      \t";
-					print OUT "Imp=($data_imp[0], $data_imp[1])\n";
-				}
-
-			}elsif($itime_ind < $ntime_ind){
-				print OUT "\n$ntdy_date\n";
-
-				for($it = 0; $it < $i_ind; $it++){
-					@data_imp = split(/\t+/, $imp_data[$it]);
-					print OUT "	      \t";
-					print OUT "Imp=($data_imp[0], $data_imp[1])\n";
-				}
-
-				for($it = 0 ; $it < $n_ind; $it++){
-					@data_new = split(/\t+/, $new_data[$it]);
-					print OUT "New=($data_new[0], $data_new[1])\n";
-				}
-			}
-			close(OUT)
-		}
-#
-#--- col
-#
-		${col_ind.$is} = 0;
-		OUTER:
-		foreach $ent (@col_list){
-			$cname="col$is";
-			if($ent eq $cname){
-				${col_ind.$is}++;
-				last OUTER;
-			}
-		}
-
-		@imp_data = ();
-		@new_data = ();
-		$i_ind = 0;
-		$n_ind = 0;
-		$i_name = "today_imp_col$is";
-		$n_name = "today_new_col$is";
-
-		OUTER:
-		foreach $ent (@today_new_col){
-			if($ent eq $n_name){
-
-				open(IN, "$web_dir/Disp_dir/today_new_col$is");
-
-				while(<IN>){
-					chomp $_;
-					@atemp = split(/:/, $_);
-					if($atemp[0] eq '#Date'){
-						$ntdy_date = $_;
-						@ttemp = split(/:/, $_);
-						$ntime_ind = "$ttemp[1]$ttemp[2]";
-					}else{
-						push(@new_data, $_);
-						$n_ind++;
-					}
-				}
-				close(IN);
-				last OUTER;
-			}
-		}
-
-		OUTER:
-		foreach $ent (@today_imp_col){
-			if($ent eq $i_name){
-
-				open(IN, "$web_dir/Disp_dir/today_imp_col$is");
-
-				while(<IN>){
-					chomp $_;
-					@atemp = split(/:/, $_);
-					if($atemp[0] eq '#Date'){
-						$itdy_date = $_;
-						@ttemp = split(/:/, $_);
-						$itime_ind = "$ttemp[1]$ttemp[2]";
-					}else{
-						push(@imp_data, $_);
-						$i_ind++;
-					}
-				}
-				close(IN);
-				last OUTER;
-			}
-		}
-
-		if($n_ind > 0 || $i_ind > 0){
-
-			open(OUT, ">>$web_dir/Disp_dir/change_col$is");
-
-			if($ntime_ind == $itime_ind){
-				$diff = $n_ind - $i_ind;
-				print OUT "\n$ntdy_date\n";
-				if($diff ==  0){
-					for($it = 0; $it < $n_ind; $it++){
-						print OUT "New=$new_data[$it]\t";
-						print OUT "Imp=$imp_data[$it]\n";
-					}
-				}elsif($diff > 0){
-					for($it = 0; $it < $i_ind; $it++){
-						print OUT "New=$new_data[$it]\t";
-						print OUT "Imp=$imp_data[$it]\n";
-					}
-					for($it = $i_ind; $it < $n_ind; $it++){
-						print OUT "New=$new_data[$it]\n";
-					}
-				}elsif($diff < 0){
-					for($it = 0; $it < $n_ind; $it++){
-						print OUT "New=$new_data[$it]\t";
-						print OUT "Imp=$imp_data[$it]\n";
-					}
-					for($it = $n_ind; $it < $i_ind; $it++){
-						print OUT "	      \t";
-						print OUT "Imp=$imp_data[$it]\n";
-					}
-				}
-			}elsif($ntime_ind < $itime_ind){
-				print OUT "\n$itdy_date\n";
-
-				for($it = 0 ; $it < $n_ind; $it++){
-					print OUT "New=$new_data[$it]\n";
-				}
-				for($it = 0; $it < $i_ind; $it++){
-					print OUT "	      \t";
-					print OUT "Imp=$imp_data[$it]\n";
-				}
-
-			}elsif($itime_ind < $ntime_ind){
-				print OUT "\n$ntdy_date\n";
-
-				for($it = 0; $it < $i_ind; $it++){
-					print OUT "	      \t";
-					print OUT "Imp=$imp_data[$it]\n";
-				}
-
-				for($it = 0 ; $it < $n_ind; $it++){
-					print OUT "New=$new_data[$it]\n";
-				}
-			}
-			close(OUT)
-		}
-	}
-}
-
 ################################################################
 ### today_dom: find today dom				    ####
 ################################################################
@@ -3090,7 +2357,7 @@ sub find_today_dom{
 	#$hyday++;
 
 	if ($hyear == 1999) {
-		$dom = $hyday - 202 + 1;
+		$dom = $hyday - 202 + 1;		#  hyday adjustment---keep this way
 	}elsif($hyear >= 2000){
 		$dom = $hyday + 163 + 1 + 365 * ($hyear - 2000);
 		if($hyear > 2000) {
@@ -3269,7 +2536,7 @@ sub print_html{
 #----- warm pix history
 
 		if($test =~ /change_ccd$i/){
-			print OUT '<TD><a href=./Disp_dir/',"change_ccd$i",'>Change</a></TD>',"\n";
+			print OUT '<TD><a href=./Disp_dir/',"hist_ccd$i",'>Change</a></TD>',"\n";
 		}else{
 			print OUT '<TD>No History</TD>',"\n";
 		}
@@ -3277,7 +2544,7 @@ sub print_html{
 #----- hot pix history
 
 		if($test =~ /change_hccd$i/){
-			print OUT '<TD><a href=./Disp_dir/',"change_hccd$i",'>Change</a></TD>',"\n";
+			print OUT '<TD><a href=./Disp_dir/',"hist_hccd$i",'>Change</a></TD>',"\n";
 		}else{
 			print OUT '<TD>No History</TD>',"\n";
 		}
@@ -3285,7 +2552,7 @@ sub print_html{
 #----- bad column history
 #
 		if($test =~ /change_col$i/){
-			print OUT '<TD><a href=./Disp_dir/',"change_col$i",'>Change</a></TD>',"\n";
+			print OUT '<TD><a href=./Disp_dir/',"hist_col$i",'>Change</a></TD>',"\n";
 		}else{
 			print OUT '<TD>No History</TD>',"\n";
 		}
@@ -3373,14 +2640,6 @@ sub plot_hist{
 	@{bad_col.$ccd} = (4,509,510,511,512,513,514,515,516);
 ########################################################################
 
-	count_bad_pix();	# find how many new and improved warm pixels were occured
-		
-	$icnt = 0;
-	foreach $ent (@day_list){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	
 #
 #--- prepareing plottings
 #
@@ -3389,16 +2648,26 @@ sub plot_hist{
 #---	Imaging CCDs
 #
 		
-	$icnt = 0;
-	foreach $ent (@imp_day_list){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
+	open(FH, "$web_dir/Disp_dir/front_ccd_cnt");
+	@new_list  = ();
+	@imp_list  = ();
+	@diff_list = ();
+	@day_list  = ();
+	$count     = 0;
+	while(<FH>){
+		chomp $_;
+		@btemp = split(/<>/, $_);
+		push(@day_list, $btemp[0]);
+		@ctemp = split(/:/, $btemp[2]);
+		push(@diff_list,    $ctemp[0]);
+		push(@new_list,     $ctemp[1]);
+		push(@imp_list,     $ctemp[2]);
+		$count++;
 	}
+	close(FH);
 	
-	$count = $icnt;
-	$xmin = $new_day_list[1] - 3;
-	find_today_dom();
-	$xmax = $dom + 3;
+	$xmin = $day_list[1] - 3;
+	$xmax = $day_list[$count-1] + 3;
 
 	$ymin = -1;
 	$ymax = 20;						# setting y plotting range
@@ -3409,30 +2678,547 @@ sub plot_hist{
 	pgslw(4);          
 	
 	$no_write = 0 ;						# new warm pixels
-	@x = @new_day_list;
+	@x = @day_list;
 	@y = @new_list;
 	$title = 'Numbers of New Warm Pixels: Front Side CCDs';
 	plot_diff();						# ploting routine
 	
-	$icnt = 0;
-	foreach $ent (@new_day_list){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @imp_day_list;
+	@x = @day_list;
 	@y = @imp_list;						#improved warm pixels
 	$title = 'Numbers of Disappeared Warm Pixels: Front Side CCDs';
 	plot_diff();
 	
-	$icnt = 0;
-	foreach $ent (@diff_day_list){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
 	$no_write = 1;						# relative # of warm pixels
-	@x = @diff_day_list;
+	@x = @day_list;
+	@y = @diff_list;
+	$tot = $count -2;
+	linr_fit();
+	$xb = $x[2];
+	$xe = $x[$tot];
+	$yb = $int + $slope*$xb;
+	$ye = $int + $slope*$xe;
+	
+	@atemp = split(/\./, $slope);
+	@btemp = split(//,   $atemp[1]);
+	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
+
+
+	$ymin = -1;
+	@atemp = sort{$a<=>$b} @diff_list;
+	$i = $icnt - 1;
+	$ymax = $atemp[$i] + 3;
+
+	if($ymax < 20){
+		$ymax = 20;
+	}
+	$ymax = 30;
+
+	$title = 'Numbers of Warm Pixels Changes: Front CCDs';
+	plot_diff();
+	pgclos();
+
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 | ppmtogif > $web_dir/Plots/hist_ccd.gif");
+	system("rm pgplot.ps");
+
+#
+#---	 CCD 5
+#
+		
+	open(FH, "$web_dir/Disp_dir/ccd5_cnt");
+	@new_list  = ();
+	@imp_list  = ();
+	@diff_list = ();
+	@day_list  = ();
+	$count     = 0;
+	while(<FH>){
+		chomp $_;
+		@btemp = split(/<>/, $_);
+		push(@day_list, $btemp[0]);
+		@ctemp = split(/:/, $btemp[2]);
+		push(@diff_list,    $ctemp[0]);
+		push(@new_list,     $ctemp[1]);
+		push(@imp_list,     $ctemp[2]);
+		$count++;
+	}
+	close(FH);
+	
+	$xmin = $day_list[1] - 3;
+	$xmax = $day_list[$count-1] + 3;
+		
+	$ymin = -1;
+	$ymax = 20;
+	
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
+	pgsubp(1,3);                                            # pg routine: panel
+	pgsch(2);                                               # pg routine: charactor size
+	pgslw(4);          
+	
+	$no_write = 0 ;						# new warm pixels
+	@x = @day_list;
+	@y = @new_list;
+	$title = 'Numbers of New Warm Pixels: CCD 5';
+	plot_diff();						# ploting routine
+		
+	@x = @day_list;						#improved warm pixels
+	@y = @imp_list;						#improved warm pixels
+	$title = 'Numbers of Disappeared Warm Pixels: CCD 5';
+	plot_diff();
+	
+	$no_write = 1;						# relative # of warm pixels
+	@x = @day_list;
+	@y = @diff_list;
+	$tot = $count -2;
+	linr_fit();
+	$xb = $x[2];
+	$xe = $x[$tot];
+	$yb = $int + $slope*$xb;
+	$ye = $int + $slope*$xe;
+	
+	@atemp = split(/\./,$slope);
+	@btemp = split(//,$atemp[1]);
+	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
+	
+	
+	$ymin = -1;
+	@atemp = sort{$a<=>$b} @diff_list;
+	$i = $icnt - 1;
+	$ymax = $atemp[$i] + 3;
+	if($ymax < 20){
+		$ymax = 20;
+	}
+	$ymax = 20;
+
+	$title = 'Numbers of Warm Pixels Changes: CCD5';
+	plot_diff();
+	pgclos();
+
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_ccd5.gif");
+	system("rm pgplot.ps");
+
+#
+#--- CCD7
+#
+		
+	open(FH, "$web_dir/Disp_dir/ccd7_cnt");
+	@new_list  = ();
+	@imp_list  = ();
+	@diff_list = ();
+	@day_list  = ();
+	$count     = 0;
+	while(<FH>){
+		chomp $_;
+		@btemp = split(/<>/, $_);
+		push(@day_list, $btemp[0]);
+		@ctemp = split(/:/, $btemp[2]);
+		push(@diff_list,    $ctemp[0]);
+		push(@new_list,     $ctemp[1]);
+		push(@imp_list,     $ctemp[2]);
+		$count++;
+	}
+	close(FH);
+	
+	$xmin = $day_list[1] - 3;
+	$xmax = $day_list[$count-1] + 3;
+		
+	$ymin = -1;
+	$ymax = 20;
+	
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
+	pgsubp(1,3);                                            # pg routine: panel
+	pgsch(2);                                               # pg routine: charactor size
+	pgslw(4);          
+	
+	$no_write = 0 ;						# new warm pixels
+	@x = @day_list;
+	@y = @new_list;
+	$title = 'Numbers of New Warm Pixels: CCD 7';
+	plot_diff();						# ploting routine
+	
+	@x = @day_list;						#improved warm pixels
+	@y = @imp_list;						#improved warm pixels
+	$title = 'Numbers of Disappeared Warm Pixels: CCD 7';
+	plot_diff();
+	
+	$no_write = 1;						# relative # of warm pixels
+	@x = @day_list;
+	@y = @diff_list;
+	$tot = $count -2;
+	linr_fit();
+	$xb = $x[2];
+	$xe = $x[$tot];
+	$yb = $int + $slope*$xb;
+	$ye = $int + $slope*$xe;
+	
+	@atemp = split(/\./,$slope);
+	@btemp = split(//,$atemp[1]);
+	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
+	
+	
+	$ymin = -1;
+	@atemp = sort{$a<=>$b} @diff_list;
+	$i = $icnt - 1;
+	$ymax = $atemp[$i] + 3;
+
+	if($ymax < 20){
+		$ymax = 20;
+	}
+	$ymax = 20;
+
+	$title = 'Numbers of Warm Pixels Changes: CCD 7';
+	plot_diff();
+	pgclos();
+
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_ccd7.gif");
+	system("rm pgplot.ps");
+
+#
+#---     Hot:
+#
+
+#
+#--- 	Imaging CCDs
+#
+
+		
+	open(FH, "$web_dir/Disp_dir/front_hccd_cnt");
+	@new_list  = ();
+	@imp_list  = ();
+	@diff_list = ();
+	@day_list  = ();
+	$count     = 0;
+	while(<FH>){
+		chomp $_;
+		@btemp = split(/<>/, $_);
+		push(@day_list, $btemp[0]);
+		@ctemp = split(/:/, $btemp[2]);
+		push(@diff_list,    $ctemp[0]);
+		push(@new_list,     $ctemp[1]);
+		push(@imp_list,     $ctemp[2]);
+		$count++;
+	}
+	close(FH);
+	
+	$xmin = $day_list[1] - 3;
+	$xmax = $day_list[$count-1] + 3;
+	$ymin = -1;
+	$ymax = 20;						# setting y plotting range
+
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
+	pgsubp(1,3);                                            # pg routine: panel
+	pgsch(2);                                               # pg routine: charactor size
+	pgslw(4);          
+	
+	$no_write = 0 ;						# new warm pixels
+
+	@x = @day_list;
+	@y = @new_list;
+	$title = 'Numbers of New Hot Pixels: Front Side CCDs';
+	plot_diff();						# ploting routine
+	
+	@x = @day_list;						#improved warm pixels
+	@y = @imp_list;						#improved warm pixels
+	$title = 'Numbers of Disappeared Hot Pixels: Front Side CCDs';
+	plot_diff();
+	
+	$no_write = 1;						# relative # of warm pixels
+
+	@x = @day_list;
+	@y = @diff_list;
+	$tot = $count -2;
+	linr_fit();
+	$xb = $x[2];
+	$xe = $x[$tot];
+	$yb = $int + $slope*$xb;
+	$ye = $int + $slope*$xe;
+	
+	@atemp = split(/\./,$slope);
+	@btemp = split(//,$atemp[1]);
+	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
+
+
+	$ymin = -1;
+	@atemp = sort{$a<=>$b} @diff_list;
+	$i = $icnt - 1;
+	$ymax = $atemp[$i] + 3;
+	if($ymax < 20){
+		$ymax = 20;
+	}
+	$ymax = 20;
+
+	$title = 'Numbers of Hot Pixels Changes: Front CCDs';
+	plot_diff();
+	pgclos();
+
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_hccd.gif");
+	system("rm pgplot.ps");
+
+#
+#----	 CCD 5
+#
+		
+	open(FH, "$web_dir/Disp_dir/hccd5_cnt");
+	@new_list  = ();
+	@imp_list  = ();
+	@diff_list = ();
+	@day_list  = ();
+	$count     = 0;
+	while(<FH>){
+		chomp $_;
+		@btemp = split(/<>/, $_);
+		push(@day_list, $btemp[0]);
+		@ctemp = split(/:/, $btemp[2]);
+		push(@diff_list,    $ctemp[0]);
+		push(@new_list,     $ctemp[1]);
+		push(@imp_list,     $ctemp[2]);
+		$count++;
+	}
+	close(FH);
+	
+	$xmin = $day_list[1] - 3;
+	$xmax = $day_list[$count-1] + 3;
+	$ymin = -1;
+	$ymax = 20;						# setting y plotting range
+	
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
+	pgsubp(1,3);                                            # pg routine: panel
+	pgsch(2);                                               # pg routine: charactor size
+	pgslw(4);          
+	
+	$no_write = 0 ;						# new warm pixels
+	@x = @day_list;
+	@y = @new_list;
+	$title = 'Numbers of New Hot Pixels: CCD 5';
+	plot_diff();						# ploting routine
+	
+	@x = @day_list;						#improved warm pixels
+	@y = @imp_list;						#improved warm pixels
+	$title = 'Numbers of Disappeared Hot Pixels: CCD 5';
+	plot_diff();
+	
+	$no_write = 1;						# relative # of warm pixels
+	@x = @day_list;
+	@y = @diff_list;
+	$tot = $count -2;
+	linr_fit();
+	$xb = $x[2];
+	$xe = $x[$tot];
+	$yb = $int + $slope*$xb;
+	$ye = $int + $slope*$xe;
+	
+	@atemp = split(/\./,$slope);
+	@btemp = split(//,$atemp[1]);
+	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
+	
+	$ymin = -1;
+	@atemp = sort{$a<=>$b} @diff_list;
+	$i = $icnt - 1;
+	$ymax = $atemp[$i] + 3;
+	if($ymax < 20){
+		$ymax = 20;
+	}
+	$ymax = 20;
+	$title = 'Numbers of Hot Pixels Changes: CCD5';
+
+	plot_diff();
+	pgclos();
+
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_hccd5.gif");
+	system("rm pgplot.ps");
+
+#
+#---	 CCD7
+#
+		
+	open(FH, "$web_dir/Disp_dir/hccd7_cnt");
+	@new_list  = ();
+	@imp_list  = ();
+	@diff_list = ();
+	@day_list  = ();
+	$count     = 0;
+	while(<FH>){
+		chomp $_;
+		@btemp = split(/<>/, $_);
+		push(@day_list, $btemp[0]);
+		@ctemp = split(/:/, $btemp[2]);
+		push(@diff_list,    $ctemp[0]);
+		push(@new_list,     $ctemp[1]);
+		push(@imp_list,     $ctemp[2]);
+		$count++;
+	}
+	close(FH);
+	
+	$xmin = $day_list[1] - 3;
+	$xmax = $day_list[$count-1] + 3;
+	$ymin = -1;
+	$ymax = 20;
+	
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
+	pgsubp(1,3);                                            # pg routine: panel
+	pgsch(2);                                               # pg routine: charactor size
+	pgslw(4);          
+	
+	$no_write = 0 ;						# new warm pixels
+	@x = @day_list;
+	@y = @new_list;
+	$title = 'Numbers of New Hot Pixels: CCD 7';
+	plot_diff();						# ploting routine
+	
+	@x = @day_list;						#improved warm pixels
+	@y = @imp_list;						#improved warm pixels
+	$title = 'Numbers of Disappeared Hot Pixels: CCD 7';
+	plot_diff();
+	
+	$no_write = 1;						# relative # of warm pixels
+	@x = @day_list;
+	@y = @diff_list;
+	$tot = $count -2;
+	linr_fit();
+	$xb = $x[2];
+	$xe = $x[$tot];
+	$yb = $int + $slope*$xb;
+	$ye = $int + $slope*$xe;
+	
+	@atemp = split(/\./,$slope);
+	@btemp = split(//,$atemp[1]);
+	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
+	
+	$ymin = -1;
+	@atemp = sort{$a<=>$b} @diff_list;
+	$i = $icnt - 1;
+	$ymax = $atemp[$i] + 3;
+	if($ymax < 20){
+		$ymax = 20;
+	}
+	$ymax = 20;
+
+	$title = 'Numbers of Hot Pixels Changes: CCD 7';
+
+	plot_diff();
+	pgclos();
+
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_hccd7.gif");
+	system("rm pgplot.ps");
+
+#
+#---	 Col: Front Side CCDs
+#
+		
+	open(FH, "$web_dir/Disp_dir/front_col_cnt");
+	@new_list  = ();
+	@imp_list  = ();
+	@diff_list = ();
+	@day_list  = ();
+	$count     = 0;
+	while(<FH>){
+		chomp $_;
+		@btemp = split(/<>/, $_);
+		push(@day_list, $btemp[0]);
+		@ctemp = split(/:/, $btemp[2]);
+		push(@diff_list,    $ctemp[0]);
+		push(@new_list,     $ctemp[1]);
+		push(@imp_list,     $ctemp[2]);
+		$count++;
+	}
+	close(FH);
+	
+	$xmin = $day_list[1] - 3;
+	$xmax = $day_list[$count-1] + 3;
+	$ymin = -1;
+	$ymax = 20;
+	
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
+	pgsubp(1,3);                                            # pg routine: panel
+	pgsch(2);                                               # pg routine: charactor size
+	pgslw(4);          
+	
+	$no_write = 0 ;						# new warm pixels
+	@x = @day_list;
+	@y = @new_list;
+	$title = 'Numbers of New Warm Columns: Front Side CCDs';
+	plot_diff();						# ploting routine
+	
+	@x = @day_list;						#improved warm pixels
+	@y = @imp_list;						#improved warm pixels
+	$title = 'Numbers of Disappeared Warm Columns: Front Side CCDs';
+	plot_diff();
+	
+	$no_write = 1;						# relative # of warm pixels
+	@x = @day_list;
+	@y = @diff_list;
+	$tot = $count -2;
+	linr_fit();
+	$xb = $x[2];
+	$xe = $x[$tot];
+	$yb = $int + $slope*$xb;
+	$ye = $int + $slope*$xe;
+	
+	@atemp = split(/\./,$slope);
+	@btemp = split(//,$atemp[1]);
+	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
+	
+	
+	$ymin = -1;
+	@atemp = sort{$a<=>$b} @diff_list;
+	$i = $icnt - 1;
+	$ymax = $atemp[$i] + 3;
+	if($ymax < 20){
+		$ymax = 20;
+	}
+	$ymax = 20;
+	
+	$title = 'Numbers of Warm Column Changes: Front Side CCDs';
+
+	plot_diff();
+	pgclos();
+
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_col.gif");
+	system("rm pgplot.ps");
+
+#
+#---	 Col: CCD 5
+#
+		
+	open(FH, "$web_dir/Disp_dir/col5_cnt");
+	@new_list  = ();
+	@imp_list  = ();
+	@diff_list = ();
+	@day_list  = ();
+	$count     = 0;
+	while(<FH>){
+		chomp $_;
+		@btemp = split(/<>/, $_);
+		push(@day_list, $btemp[0]);
+		@ctemp = split(/:/, $btemp[2]);
+		push(@diff_list,    $ctemp[0]);
+		push(@new_list,     $ctemp[1]);
+		push(@imp_list,     $ctemp[2]);
+		$count++;
+	}
+	close(FH);
+	
+	$xmin = $day_list[1] - 3;
+	$xmax = $day_list[$count-1] + 3;
+	$ymin = -1;
+	$ymax = 20;
+	
+	pgbegin(0, "/cps",1,1);                                  # here the plotting start
+	pgsubp(1,3);                                            # pg routine: panel
+	pgsch(2);                                               # pg routine: charactor size
+	pgslw(4);          
+	
+	$no_write = 0 ;						# new warm pixels
+	@x = @day_list;
+	@y = @new_list;
+	$title = 'Numbers of New Warm Columns: CCD 5';
+	plot_diff();						# ploting routine
+	
+	@x = @day_list;						#improved warm pixels
+	@y = @imp_list;						#improved warm pixels
+	$title = 'Numbers of Disappeared Warm Columns: CCD 5';
+	plot_diff();
+	
+	$no_write = 1;						# relative # of warm pixels
+	@x = @day_list;
 	@y = @diff_list;
 	$tot = $icnt -2;
 	linr_fit();
@@ -3444,441 +3230,6 @@ sub plot_hist{
 	@atemp = split(/\./,$slope);
 	@btemp = split(//,$atemp[1]);
 	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
-
-
-	$ymin = -1;
-	@atemp = sort{$a<=>$b} @diff_list;
-	$i = $icnt - 1;
-	$ymax = $atemp[$i] + 3;
-
-	if($ymax < 20){
-		$ymax = 20;
-	}
-
-	$ymax = 150;
-	$title = 'Numbers of Warm Pixels Changes: Front CCDs';
-	plot_diff();
-	pgclos();
-
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $web_dir/Plots/hist_ccd.gif");
-	system("rm pgplot.ps");
-
-#
-#---	 CCD 5
-#
-		
-	$icnt = 0;
-	foreach $ent (@new_day_list5){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	$ymin = -1;
-	$ymax = 40;
-	
-	pgbegin(0, "/cps",1,1);                                  # here the plotting start
-	pgsubp(1,3);                                            # pg routine: panel
-	pgsch(2);                                               # pg routine: charactor size
-	pgslw(4);          
-	
-	$no_write = 0 ;						# new warm pixels
-	@x = @new_day_list5;
-	@y = @new_list5;
-	$title = 'Numbers of New Warm Pixels: CCD 5';
-	plot_diff();						# ploting routine
-		
-	$icnt = 0;
-	foreach $ent (@imp_day_list5){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @imp_day_list5;						#improved warm pixels
-	@y = @imp_list5;						#improved warm pixels
-	$title = 'Numbers of Disappeared Warm Pixels: CCD 5';
-	plot_diff();
-	
-	$no_write = 1;						# relative # of warm pixels
-	$icnt = 0;
-	foreach $ent (@diff_day_list5){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @diff_day_list5;
-	@y = @diff_list5;
-	$tot = $icnt -2;
-	linr_fit();
-	$xb = $x[2];
-	$xe = $x[$tot];
-	$yb = $int + $slope*$xb;
-	$ye = $int + $slope*$xe;
-	
-	@atemp = split(/\./,$slope);
-	@btemp = split(//,$atemp[1]);
-	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
-	
-	
-	$ymin = -1;
-	@atemp = sort{$a<=>$b} @diff_list5;
-	$i = $icnt - 1;
-	$ymax = $atemp[$i] + 3;
-	if($ymax < 20){
-		$ymax = 20;
-	}
-
-	$ymax = 100;
-	$title = 'Numbers of Warm Pixels Changes: CCD5';
-	plot_diff();
-	pgclos();
-
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 |$bin_dir/ppmtogif > $web_dir/Plots/hist_ccd5.gif");
-	system("rm pgplot.ps");
-
-#
-#--- CCD7
-#
-	$icnt = 0;
-	foreach $ent (@new_day_list7){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	$ymin = -1;
-	$ymax = 20;
-	
-	pgbegin(0, "/cps",1,1);                                  # here the plotting start
-	pgsubp(1,3);                                            # pg routine: panel
-	pgsch(2);                                               # pg routine: charactor size
-	pgslw(4);          
-	
-	$no_write = 0 ;						# new warm pixels
-	$icnt = 0;
-	foreach $ent (@imp_day_list7){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @new_day_list7;
-	@y = @new_list7;
-	$title = 'Numbers of New Warm Pixels: CCD 7';
-	plot_diff();						# ploting routine
-	
-	@x = @imp_day_list7;						#improved warm pixels
-	@y = @imp_list7;						#improved warm pixels
-	$title = 'Numbers of Disappeared Warm Pixels: CCD 7';
-	plot_diff();
-	
-	$no_write = 1;						# relative # of warm pixels
-	$icnt = 0;
-	foreach $ent (@diff_day_list7){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @diff_day_list7;
-	@y = @diff_list7;
-	$tot = $icnt -2;
-	linr_fit();
-	$xb = $x[2];
-	$xe = $x[$tot];
-	$yb = $int + $slope*$xb;
-	$ye = $int + $slope*$xe;
-	
-	@atemp = split(/\./,$slope);
-	@btemp = split(//,$atemp[1]);
-	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
-	
-	
-	$ymin = -1;
-	@atemp = sort{$a<=>$b} @diff_list;
-	$i = $icnt - 1;
-	$ymax = $atemp[$i] + 3;
-
-	if($ymax < 20){
-		$ymax = 20;
-	}
-
-	$ymax = 70;
-	$title = 'Numbers of Warm Pixels Changes: CCD 7';
-	plot_diff();
-	pgclos();
-
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 |$bin_dir/ppmtogif > $web_dir/Plots/hist_ccd7.gif");
-	system("rm pgplot.ps");
-
-#
-#---     Hot:
-#
-
-#
-#--- 	Imaging CCDs
-#
-
-	$icnt = 0;
-	foreach $ent (@new_day_hlist){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	$ymin = -1;
-	$ymax = 20;						# setting y plotting range
-
-	pgbegin(0, "/cps",1,1);                                  # here the plotting start
-	pgsubp(1,3);                                            # pg routine: panel
-	pgsch(2);                                               # pg routine: charactor size
-	pgslw(4);          
-	
-	$no_write = 0 ;						# new warm pixels
-
-	$icnt = 0;
-	foreach $ent (@imp_day_hlist){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @new_day_hlist;
-	@y = @new_hlist;
-	$title = 'Numbers of New Hot Pixels: Front Side CCDs';
-	plot_diff();						# ploting routine
-	
-	@x = @imp_day_hlist;						#improved warm pixels
-	@y = @imp_hlist;						#improved warm pixels
-	$title = 'Numbers of Disappeared Hot Pixels: Front Side CCDs';
-	plot_diff();
-	
-	$no_write = 1;						# relative # of warm pixels
-
-	$icnt = 0;
-	foreach $ent (@diff_day_hlist){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @diff_day_hlist;
-	@y = @diff_hlist;
-	$tot = $icnt -2;
-	linr_fit();
-	$xb = $x[2];
-	$xe = $x[$tot];
-	$yb = $int + $slope*$xb;
-	$ye = $int + $slope*$xe;
-	
-	@atemp = split(/\./,$slope);
-	@btemp = split(//,$atemp[1]);
-	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
-
-
-	$ymin = -1;
-	@atemp = sort{$a<=>$b} @diff_hlist;
-	$i = $icnt - 1;
-	$ymax = $atemp[$i] + 3;
-	if($ymax < 20){
-		$ymax = 20;
-	}
-
-	$ymax = 50;
-	$title = 'Numbers of Hot Pixels Changes: Front CCDs';
-	plot_diff();
-	pgclos();
-
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 |$bin_dir/ppmtogif > $web_dir/Plots/hist_hccd.gif");
-	system("rm pgplot.ps");
-
-#
-#----	 CCD 5
-#
-	$icnt = 0;
-	foreach $ent (@new_day_hlist5){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	$ymin = -1;
-	$ymax = 20;
-	
-	pgbegin(0, "/cps",1,1);                                  # here the plotting start
-	pgsubp(1,3);                                            # pg routine: panel
-	pgsch(2);                                               # pg routine: charactor size
-	pgslw(4);          
-	
-	$no_write = 0 ;						# new warm pixels
-	$icnt = 0;
-	@x = @new_day_hlist5;
-	@y = @new_hlist5;
-	$title = 'Numbers of New Hot Pixels: CCD 5';
-	plot_diff();						# ploting routine
-	
-	$icnt = 0;
-	foreach $ent (@imp_day_hlist5){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @imp_day_hlist5;						#improved warm pixels
-	@y = @imp_hlist5;						#improved warm pixels
-	$title = 'Numbers of Disappeared Hot Pixels: CCD 5';
-	plot_diff();
-	
-	$no_write = 1;						# relative # of warm pixels
-	$icnt = 0;
-	foreach $ent (@diff_day_hlist5){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @diff_day_hlist5;
-	@y = @diff_hlist5;
-	$tot = $icnt -2;
-	linr_fit();
-	$xb = $x[2];
-	$xe = $x[$tot];
-	$yb = $int + $slope*$xb;
-	$ye = $int + $slope*$xe;
-	
-	@atemp = split(/\./,$slope);
-	@btemp = split(//,$atemp[1]);
-	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
-	
-	$ymin = -1;
-	@atemp = sort{$a<=>$b} @diff_hlist5;
-	$i = $icnt - 1;
-	$ymax = $atemp[$i] + 3;
-	if($ymax < 20){
-		$ymax = 20;
-	}
-	$title = 'Numbers of Hot Pixels Changes: CCD5';
-
-	plot_diff();
-	pgclos();
-
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 |$bin_dir/ppmtogif > $web_dir/Plots/hist_hccd5.gif");
-	system("rm pgplot.ps");
-
-#
-#---	 CCD7
-#
-	$icnt = 0;
-	foreach $ent (@new_day_hlist7){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	$ymin = -1;
-	$ymax = 20;
-	
-	pgbegin(0, "/cps",1,1);                                  # here the plotting start
-	pgsubp(1,3);                                            # pg routine: panel
-	pgsch(2);                                               # pg routine: charactor size
-	pgslw(4);          
-	
-	$no_write = 0 ;						# new warm pixels
-	@x = @new_day_hlist7;
-	@y = @new_hlist7;
-	$title = 'Numbers of New Hot Pixels: CCD 7';
-	plot_diff();						# ploting routine
-	
-	$icnt = 0;
-	foreach $ent (@imp_day_hlist7){				# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @imp_day_hlist7;						#improved warm pixels
-	@y = @imp_hlist7;						#improved warm pixels
-	$title = 'Numbers of Disappeared Hot Pixels: CCD 7';
-	plot_diff();
-	
-	$no_write = 1;						# relative # of warm pixels
-	$icnt = 0;
-	foreach $ent (@diff_day_hlist7){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @diff_day_hlist7;
-	@y = @diff_hlist7;
-	$tot = $icnt -2;
-	linr_fit();
-	$xb = $x[2];
-	$xe = $x[$tot];
-	$yb = $int + $slope*$xb;
-	$ye = $int + $slope*$xe;
-	
-	@atemp = split(/\./,$slope);
-	@btemp = split(//,$atemp[1]);
-	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
-	
-	$ymin = -1;
-	@atemp = sort{$a<=>$b} @diff_hlist;
-	$i = $icnt - 1;
-	$ymax = $atemp[$i] + 3;
-	if($ymax < 20){
-		$ymax = 20;
-	}
-
-	$ymax = 50;
-	$title = 'Numbers of Hot Pixels Changes: CCD 7';
-
-	plot_diff();
-	pgclos();
-
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 |$bin_dir/ppmtogif > $web_dir/Plots/hist_hccd7.gif");
-	system("rm pgplot.ps");
-
-#
-#---	 Col: Front Side CCDs
-#
-	$icnt = 0;
-	foreach $ent (@new_day_col_list){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	$ymin = -1;
-	$ymax = 20;
-	
-	pgbegin(0, "/cps",1,1);                                  # here the plotting start
-	pgsubp(1,3);                                            # pg routine: panel
-	pgsch(2);                                               # pg routine: charactor size
-	pgslw(4);          
-	
-	$no_write = 0 ;						# new warm pixels
-	@x = @new_day_col_list;
-	@y = @new_col_list;
-	$title = 'Numbers of New Warm Columns: Front Side CCDs';
-	plot_diff();						# ploting routine
-	
-	$icnt = 0;
-	foreach $ent (@imp_day_col_list){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @imp_day_col_list;						#improved warm pixels
-	@y = @imp_col_list;						#improved warm pixels
-	$title = 'Numbers of Disappeared Warm Columns: Front Side CCDs';
-	plot_diff();
-	
-	$no_write = 1;						# relative # of warm pixels
-	$icnt = 0;
-	foreach $ent (@diff_day_col_list){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @diff_day_col_list;
-	@y = @diff_col_list;
-	$tot = $icnt -2;
-	linr_fit();
-	$xb = $x[2];
-	$xe = $x[$tot];
-	$yb = $int + $slope*$xb;
-	$ye = $int + $slope*$xe;
-	
-	@atemp = split(/\./,$slope);
-	@btemp = split(//,$atemp[1]);
-	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
 	
 	
 	$ymin = -1;
@@ -3888,108 +3239,40 @@ sub plot_hist{
 	if($ymax < 20){
 		$ymax = 20;
 	}
-
-	$ymax = 50;
-	$title = 'Numbers of Warm Column Changes: Front Side CCDs';
-
-	plot_diff();
-	pgclos();
-
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 |$bin_dir/ppmtogif > $web_dir/Plots/hist_col.gif");
-	system("rm pgplot.ps");
-
-#
-#---	 Col: CCD 5
-#
-	$icnt = 0;
-	foreach $ent (@new_day_col_list5){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	$ymin = -1;
 	$ymax = 20;
-	
-	$ymax_temp = $ymax_new;
-	if($ymax_imp > $ymax_temp){
-		$ymax_temp = $ymax_imp;
-	}
-	if($ymax_diff > $ymax_temp){
-		$ymax_temp = $ymax_diff;
-	}
-	if($ymax_temp > $ymax){
-		$ymax = $ymax_temp;
-	}
-	
-	pgbegin(0, "/cps",1,1);                                  # here the plotting start
-	pgsubp(1,3);                                            # pg routine: panel
-	pgsch(2);                                               # pg routine: charactor size
-	pgslw(4);          
-	
-	$no_write = 0 ;						# new warm pixels
-	@x = @new_day_col_list5;
-	@y = @new_col_list5;
-	$title = 'Numbers of New Warm Columns: CCD 5';
-	plot_diff();						# ploting routine
-	
-	$icnt = 0;
-	foreach $ent (@imp_day_col_list5){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @imp_day_col_list5;						#improved warm pixels
-	@y = @imp_col_list5;						#improved warm pixels
-	$title = 'Numbers of Disappeared Warm Columns: CCD 5';
-	plot_diff();
-	
-	$no_write = 1;						# relative # of warm pixels
-	$icnt = 0;
-	foreach $ent (@diff_day_col_list5){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @diff_day_col_list5;
-	@y = @diff_col_list5;
-	$tot = $icnt -2;
-	linr_fit();
-	$xb = $x[2];
-	$xe = $x[$tot];
-	$yb = $int + $slope*$xb;
-	$ye = $int + $slope*$xe;
-	
-	@atemp = split(/\./,$slope);
-	@btemp = split(//,$atemp[1]);
-	$slope = "$atemp[0]".'.'."$btemp[0]$btemp[1]$btemp[2]$btemp[3]";
-	
-	
-	$ymin = -1;
-	@atemp = sort{$a<=>$b} @diff_list;
-	$i = $icnt - 1;
-	$ymax = $atemp[$i] + 3;
-	if($ymax < 20){
-		$ymax = 20;
-	}
 
-	$ymax = 50;
 	$title = 'Numbers of Warm Columns: CCD 5';
 
 	plot_diff();
 	pgclos();
 
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 |$bin_dir/ppmtogif > $web_dir/Plots/hist_col5.gif");
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_col5.gif");
 	system("rm pgplot.ps");
 
 #
 #---	 Col: CCD 7
 #
-	$icnt = 0;
-	foreach $ent (@new_day_col_list7){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
+		
+	open(FH, "$web_dir/Disp_dir/col5_cnt");
+	@new_list  = ();
+	@imp_list  = ();
+	@diff_list = ();
+	@day_list  = ();
+	$count     = 0;
+	while(<FH>){
+		chomp $_;
+		@btemp = split(/<>/, $_);
+		push(@day_list, $btemp[0]);
+		@ctemp = split(/:/, $btemp[2]);
+		push(@diff_list,    $ctemp[0]);
+		push(@new_list,     $ctemp[1]);
+		push(@imp_list,     $ctemp[2]);
+		$count++;
 	}
-	$count = $icnt;
+	close(FH);
+	
+	$xmin = $day_list[1] - 3;
+	$xmax = $day_list[$count-1] + 3;
 	$ymin = -1;
 	$ymax = 20;
 	
@@ -3999,32 +3282,20 @@ sub plot_hist{
 	pgslw(4);          
 	
 	$no_write = 0 ;						# new warm pixels
-	@x = @new_day_col_list7;
-	@y = @new_col_list7;
+	@x = @day_list;
+	@y = @new_list;
 	$title = 'Numbers of New Warm Columns: CCD 7';
 	plot_diff();						# ploting routine
 	
-	$icnt = 0;
-	foreach $ent (@imp_day_col_list7){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @imp_day_col_list7;					#improved warm pixels
-	@y = @imp_col_list7;						#improved warm pixels
+	@x = @day_list;					#improved warm pixels
+	@y = @imp_list;						#improved warm pixels
 	$title = 'Numbers of Disappeared Warm Columns: CCD 7';
 	plot_diff();
 
 	$no_write = 1;						# relative # of warm pixels
-	$icnt = 0;
-	foreach $ent (@diff_day_col_list7){	# just counting input
-		$tot[$icnt] = 0;
-		$icnt++;
-	}
-	$count = $icnt;
-	@x = @diff_day_col_list7;
-	@y = @diff_col_list7;
-	$tot = $icnt -2;
+	@x = @day_list;
+	@y = @diff_list;
+	$tot = $count -2;
 		linr_fit();
 	$xb = $x[2];
 	$xe = $x[$tot];
@@ -4042,604 +3313,16 @@ sub plot_hist{
 	if($ymax < 20){
 		$ymax = 20;
 	}
+	$ymax = 20;
 
-	$ymax = 50;
 	$title = 'Numbers of Warm Columns: CCD 7';
 
 	plot_diff();
 	pgclos();
 
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 |$bin_dir/ppmtogif > $web_dir/Plots/hist_col7.gif");
+	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_col7.gif");
 	system("rm pgplot.ps");
 
-}
-
-##################################################################################
-### count_bad_pix: count number of bad pixels                                  ###
-##################################################################################
-
-
-sub count_bad_pix {
-#	@day_list       = ();
-
-	@diff_day_list      = ();
-	@diff_day_list5     = ();
-	@diff_day_list7     = ();
-	@diff_day_hlist     = ();
-	@diff_day_hlist5    = ();
-	@diff_day_hlist7    = ();
-	@diff_day_col_list  = ();
-	@diff_day_col_list5 = ();
-	@diff_day_col_list7 = ();
-	@new_day_list       = ();
-	@new_day_list5      = ();
-	@new_day_list7      = ();
-	@new_day_hlist      = ();
-	@new_day_hlist5     = ();
-	@new_day_hlist7     = ();
-	@new_day_col_list   = ();
-	@new_day_col_list5  = ();
-	@new_day_col_list7  = ();
-	@imp_day_list       = ();
-	@imp_day_list5      = ();
-	@imp_day_list7      = ();
-	@imp_day_hlist      = ();
-	@imp_day_hlist5     = ();
-	@imp_day_hlist7     = ();
-	@imp_day_col_list   = ();
-	@imp_day_col_list5  = ();
-	@imp_day_col_list7  = ();
-
-	@diff_list          = ();
-	@diff_list5         = ();
-	@diff_list7         = ();
-	@diff_hlist         = ();
-	@diff_hlist5        = ();
-	@diff_hlist7        = ();
-	@diff_col_list      = ();
-	@diff_col_list5     = ();
-	@diff_col_list7     = ();
-	@new_list           = ();
-	@new_list5          = ();
-	@new_list7          = ();
-	@new_hlist          = ();
-	@new_hlist5         = ();
-	@new_hlist7         = ();
-	@new_col_list       = ();
-	@new_col_list5      = ();
-	@new_col_list7      = ();
-	@imp_list           = ();
-	@imp_list5          = ();
-	@imp_list7          = ();
-	@imp_hlist          = ();
-	@imp_hlist5         = ();
-	@imp_hlist7         = ();
-	@imp_col_list       = ();
-	@imp_col_list5      = ();
-	@imp_col_list7      = ();
-
-#
-#---- bad pixels
-#
-	open(FH, "$web_dir/Disp_dir/bad_pix_cnt");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@diff_day_list, $btemp[0]);
-		push(@diff_list, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/bad_pix_cnt5");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@diff_day_list5, $btemp[0]);
-		push(@diff_list5, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/bad_pix_cnt7");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@diff_day_list7, $btemp[0]);
-		push(@diff_list7, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/hot_pix_cnt");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@diff_day_hlist, $btemp[0]);
-		push(@diff_hlist, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/hot_pix_cnt5");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@diff_day_hlist5, $btemp[0]);
-		push(@diff_hlist5, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/hot_pix_cnt7");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@diff_day_hlist7, $btemp[0]);
-		push(@diff_hlist7, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/bad_col_cnt");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@diff_day_col_list, $btemp[0]);
-		push(@diff_col_list, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/bad_col_cnt5");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@diff_day_col_list5, $btemp[0]);
-		push(@diff_col_list5, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/bad_col_cnt7");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@diff_day_col_list7, $btemp[0]);
-		push(@diff_col_list7, $btemp[1]);
-	}
-#
-#---	New
-#
-	open(FH, "$web_dir/Disp_dir/new_bad_pix_save");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@new_day_list, $btemp[0]);
-		push(@new_list, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/new_bad_pix_save5");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@new_day_list5, $btemp[0]);
-		push(@new_list5, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/new_bad_pix_save7");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@new_day_list7, $btemp[0]);
-		push(@new_list7, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/new_hot_pix_save");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@new_day_hlist, $btemp[0]);
-		push(@new_hlist, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/new_hot_pix_save5");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@new_day_hlist5, $btemp[0]);
-		push(@new_hlist5, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/new_hot_pix_save7");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@new_day_hlist7, $btemp[0]);
-		push(@new_hlist7, $btemp[1]);
-	}
-
-
-	open(FH, "$web_dir/Disp_dir/new_bad_col_save");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@new_day_col_list, $btemp[0]);
-		push(@new_col_list, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/new_bad_col_save5");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@new_day_col_list5, $btemp[0]);
-		push(@new_col_list5, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/new_bad_col_save7");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@new_day_col_list7, $btemp[0]);
-		push(@new_col_list7, $btemp[1]);
-	}
-#
-#--- Improved
-#
-	open(FH, "$web_dir/Disp_dir/imp_bad_pix_save");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@imp_day_list, $btemp[0]);
-		push(@imp_list, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/imp_bad_pix_save5");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@imp_day_list5, $btemp[0]);
-		push(@imp_list5, $btemp[1]);
-	}
-
-
-	open(FH, "$web_dir/Disp_dir/imp_bad_pix_save7");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@imp_day_list7, $btemp[0]);
-		push(@imp_list7, $btemp[1]);
-	}
-
-
-	open(FH, "$web_dir/Disp_dir/imp_hot_pix_save");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@imp_day_hlist, $btemp[0]);
-		push(@imp_hlist, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/imp_hot_pix_save5");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@imp_day_hlist5, $btemp[0]);
-		push(@imp_hlist5, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/imp_hot_pix_save7");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@imp_day_hlist7, $btemp[0]);
-		push(@imp_hlist7, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/imp_bad_col_save");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@imp_day_col_list, $btemp[0]);
-		push(@imp_col_list, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/imp_bad_col_save5");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@imp_day_col_list5, $btemp[0]);
-		push(@imp_col_list5, $btemp[1]);
-	}
-
-	open(FH, "$web_dir/Disp_dir/imp_bad_col_save7");
-	@temp_in = ();
-	while(<FH>){
-		chomp $_;
-		@atemp = split(/:/,$_);
-		$line = "$atemp[2]:$atemp[3]";
-		push(@temp_in, $line);
-	}
-	close(FH);
-	@temp = sort{$a<=>$b} @temp_in;
-	foreach $ent (@temp){
-		@btemp = split(/:/, $ent);
-		if($btemp[0] !~ /\d/ || $btemp[1] < 0){
-			next;
-		}
-		push(@imp_day_col_list7, $btemp[0]);
-		push(@imp_col_list7, $btemp[1]);
-	}
 }
 
 #####################################################################
@@ -4746,6 +3429,14 @@ sub mv_old_data{
 
 
 sub flickering_check{
+	($ind) = @_;
+	chomp $ind;
+	if($ind =~ /warm/){
+		$chk = 'new_ccd';
+	}else{
+		$chk = 'new_hccd';
+	}
+
 	($hsec, $hmin, $hhour, $hmday, $hmon, $hyear, $hwday, $hyday, $hisdst)= localtime(time);
 #
 #--- find date for 90 days ago
@@ -4757,13 +3448,9 @@ sub flickering_check{
 		$pdate += 365;
 		$tyear--;
 	}
-	if($pdate < 10){
-		$pdate = '00'."$pdate";
-	}elsif($pdate < 100){
-		$pdate = '0'."$pdate";
-	}
+	$chkdate = "$tyear:$pdate";
 
-	$chkdate = "$tyear$pdate";
+	$dom90m = ch_ydate_to_dom($chkdate);
 
 	for($iccd = 0; $iccd < 10; $iccd++){
 
@@ -4772,16 +3459,27 @@ sub flickering_check{
 #
 #--- read data and find which pixels appeared in the past.
 #
-		open(IN, "$web_dir/Disp_dir/new_ccd$iccd");	
+		$name = "$chk$iccd";
+		open(IN, "$web_dir/Disp_dir/$name");	
+		OUTER:
 		while(<IN>){			
 			chomp $_;
+			@etemp = split(/<>/, $_);
+			if($etemp[0] < $dom90m){
+				next OUTER;
+			}
 			push(@data, $_);
-			if($_ =~ /^\#Date/){
-			}else{
-				@btemp = split(/\s+/,$_);	# some intializations
-				$pos   = "$btemp[0].$btemp[1]";
-				${cnt.$btemp[0].$btemp[1]} = 0;
-				push(@coord,$pos );
+			@btemp = split(/:/,$etemp[2]);	# some intializations
+			foreach $ent (@btemp){
+				if($ent ne ''){
+					$ent =~ s/\(//g;
+					$ent =~ s/\)//g;
+					$ent =~ s/\s+//g;
+					@ctemp = split(/\,/, $ent);
+					$pos   = "$ctemp[0].$ctemp[1]";
+					${cnt.$ctemp[0].$ctemp[1]} = 0;
+					push(@coord, $pos);
+				}
 			}
 		}
 		close(IN);
@@ -4806,29 +3504,130 @@ sub flickering_check{
 #	
 		$rd_ind = 0;
 		foreach $ent (@data){		
-			if($ent  =~ /^\#Date/){	
-				@atemp = split(/:/, $ent);
-				$cdate = "$atemp[1]$atemp[2]";
-				if($cdate > $chkdate){
-					$rd_ind++;
+			@etemp = split(/<>/, $ent);
+			if($etemp[0] > $dom90m){
+				@btemp = split(/:/,$etemp[2]);
+				foreach $ent (@btemp){
+					if($ent ne ''){
+						$ent =~ s/\(//g;
+						$ent =~ s/\)//g;
+						$ent =~ s/\s+//g;
+						@ctemp = split(/\,/, $ent);
+						${cnt.$ctemp[0].$ctemp[1]}++;
+					}
 				}
-			}elsif($rd_ind > 0){
-				@btemp = split(/\s+/,$ent);
-				${cnt.$btemp[0].$btemp[1]}++;
 			}
 		}
 		
 		${fck_cnt.$iccd} = 0;
 
-		open(OUT, "> $web_dir/Disp_dir/flickering$iccd");
+		if($ind =~ /warm/i){
+			open(OUT, "> $web_dir/Disp_dir/flickering$iccd");
+		}else{
+			open(OUT, "> $web_dir/Disp_dir/hflickering$iccd");
+		}
 #
-#--- if pixels went on and off more than 4 times record they are flickering pixels
+#--- if pixels went on and off more than 3 times record they are flickering pixels
 #
 		foreach $ent (@new){		
 			@ct = split(/\./, $ent);
-			if(${cnt.$ct[0].$ct[1]} > 4){
+			if(${cnt.$ct[0].$ct[1]} > 3){
 				print OUT "($ct[0], $ct[1])\n";
 				${fck_cnt.$iccd}++;
+			}
+		}
+		close(OUT);
+	}
+}
+
+#################################################################################
+### flickering_col  : check which columns are flickering in the past 90 days  ###
+#################################################################################
+
+
+sub flickering_col{
+	($hsec, $hmin, $hhour, $hmday, $hmon, $hyear, $hwday, $hyday, $hisdst)= localtime(time);
+#
+#--- find date for 90 days ago
+#
+	$tyear = 1900 + $hyear;
+	$pdate = $hyday - 90;
+
+	if ($pdate < 1){
+		$pdate += 365;
+		$tyear--;
+	}
+	$chkdate = "$tyear:$pdate";
+
+	$dom90m = ch_ydate_to_dom($chkdate);
+
+	for($iccd = 0; $iccd < 10; $iccd++){
+
+		@data = ();
+		@coord = ();
+#
+#--- read data and find which columns appeared in the past.
+#
+		open(IN, "$web_dir/Disp_dir/new_col$iccd");	
+		OUTER:
+		while(<IN>){			
+			chomp $_;
+			@etemp = split(/<>/, $_);
+			if($etemp[0] < $dom90m){
+				next OUTER;
+			}
+			push(@data, $_);
+			@btemp = split(/:/,$etemp[2]);	# some intializations
+			foreach $ent (@btemp){
+				if($ent ne ''){
+					${cnt.$ent} = 0;
+					push(@coord, $ent);
+				}
+			}
+		}
+		close(IN);
+#
+#--- possible candidates for flckering columns
+#
+		@coord = sort {$a<=>$b} @coord;
+		$first = shift(@coord);
+		@new = ("$first");
+		OUTER:
+		foreach $ent (@coord){
+			foreach $comp (@new){
+				if($ent eq $comp){
+					next OUTER;
+				}
+			}
+			push(@new, $ent);
+		}
+	
+#
+#--- check the last 90 days and count how many times it went on and off
+#	
+		$rd_ind = 0;
+		foreach $ent (@data){		
+			@etemp = split(/<>/, $ent);
+			if($etemp[0] > $dom90m){
+				@btemp = split(/:/,$etemp[2]);
+				foreach $ent (@btemp){
+					if($ent ne ''){
+						${cnt.$ent}++;
+					}
+				}
+			}
+		}
+		
+		${fck_col_cnt.$iccd} = 0;
+
+		open(OUT, "> $web_dir/Disp_dir/flickering_col$iccd");
+#
+#--- if columns went on and off more than 3 times record they are flickering columns
+#
+		foreach $ent (@new){		
+			if(${cnt.$ent} > 3){
+				print OUT "$ent\n";
+				${fck_col_cnt.$iccd}++;
 			}
 		}
 		close(OUT);
@@ -4997,97 +3796,6 @@ sub rm_incomplete_data{
 }
 
 
-######################################################################################
-# this script counts # of bad pixels from Disp_dir/hist_ccd# files.
-######################################################################################
-
-sub adjust_hist_count{
-
-	for($iccd = 0; $iccd < 10; $iccd++){
-		$file = "$web_dir/Disp_dir/hist_ccd"."$iccd";
-		$out  = "$web_dir/Disp_dir/bad_pix_cnt"."$iccd";
-		open(FH, "$file");
-		open(OUT, ">$out");
-		$cnt  = 0;
-		$year = 1900;
-		$date = 365;
-		
-		while(<FH>){
-			chomp $_;
-			@etemp = split(//, $_);
-			@ftemp = split(/:/, $_);
-			if($ftemp[0] eq '#Date'){
-			}elsif($etemp[0] eq '#'){
-				if($year ne 1900){
-					print OUT  "$year:$date:$today_dom:$cnt\n";
-					if($iccd != 5 && $iccd != 7){
-						$ind = "$year.$date";
-						$add = ${data.$ind}{cnt}[0] + $cnt;
-						%{data.$ind} =( year => ["$year"],
-						  		date => ["$date"],
-						  		dom  => ["$today_dom"],
-						  		cnt  => ["$add"]
-								);
-						push(@date_list, $ind);
-					}
-				}
-				@atemp = split(/:/, $_);
-				@btemp = split(/\#/, $atemp[0]);
-				$year  = $btemp[1];
-				$date  = $atemp[1];
-
-				conv_time_to_dom();
-
-				if($date < 10){
-					$date = '00'."$date";
-				}elsif($date < 100){
-					$date = '0'."$date";
-				}
-				$cnt = 0;
-			}else{
-				$cnt++;
-			}
-		}
-		close(FH);
-		close(OUT);
-
-		clearnup_duplicate($out);
-
-		if($iccd != 5 && $iccd != 7){
-			$ind = "$year.$date";
-			$add = ${data.$ind}{cnt}[0] + $cnt;
-			%{data.$ind} =( year => ["$year"],
-			  		date => ["$date"],
-			  		dom  => ["$today_dom"],
-			  		cnt  => ["$add"]
-					);
-			push(@date_list, $ind);
-		}
-	
-		$first = shift(@date_list);
-		@new_list = ($first);
-
-		OUTER:
-		foreach $ent (@date_list){
-			foreach $comp (@new_list){
-				if($ent == $comp){
-					next OUTER;
-				}
-			}
-			push(@new_list, $ent);
-		}
-
-		@new_list = sort{$a <=> $b} @new_list;
-		open(OUT, ">$web_dir/Disp_dir/bad_pix_cnt");
-
-		foreach $ent (@new_list){
-			print OUT "${data.$ent}{year}[0]:${data.$ent}{date}[0]:";
-			print OUT "${data.$ent}{dom}[0]:${data.$ent}{cnt}[0]\n";
-		}
-		close(OUT);
-	}
-}
-
 ################################################################
 ### sub clearnup_duplicate: remove duplicated lines          ###
 ################################################################
@@ -5161,42 +3869,28 @@ sub find_more_bad_pix_info{
 #
 #---  warm pixels    
 #	
-		$file = "$web_dir/Disp_dir/change_ccd$iccd";
+		$file = "$web_dir/Disp_dir/hist_ccd$iccd";
 	
 		$out  = "$web_dir/Disp_dir/all_past_bad_pix$iccd";
 		find_all_past_bad_pix();
 		${past_cnt.$iccd} = $tot;
-	
-		system("mv $web_dir/Disp_dir/flickering$iccd $web_dir/Disp_dir/flickering_save$iccd");
-		$out  = "$web_dir/Disp_dir/flickering$iccd";
-		find_flickering(); 
-		${fck_cnt.$iccd} = $tot;
 #
 #---  hot pixels    
 #	
-		$file = "$web_dir/Disp_dir/change_hccd$iccd";
+		$file = "$web_dir/Disp_dir/hist_hccd$iccd";
 	
 		$out  = "$web_dir/Disp_dir/all_past_hot_pix$iccd";
 		find_all_past_bad_pix();
 		${past_hot_cnt.$iccd} = $tot;
 	
-		system("mv $web_dir/Disp_dir/hflickering$iccd $web_dir/Disp_dir/hflickering_save$iccd");
-		$out  = "$web_dir/Disp_dir/hflickering$iccd";
-		find_flickering(); 
-		${fck_cnt_h.$iccd} = $tot;
 #
 #--- bad columns
 #	
-		$file = "$web_dir/Disp_dir/change_col$iccd";
+		$file = "$web_dir/Disp_dir/hist_col$iccd";
 	
 		$out  = "$web_dir/Disp_dir/all_past_bad_col$iccd";
 		find_all_past_bad_col();
 		${past_col_cnt.$iccd} = $tot;
-	
-		system("mv $web_dir/Disp_dir/flickering_col$iccd $web_dir/Disp_dir/flickering_col_save$iccd");
-		$out  = "$web_dir/Disp_dir/flickering_col$iccd";
-		find_flickering_col(); 
-		${fck_cnt_col.$iccd} = $tot;
 	}
 	
 #
@@ -5206,233 +3900,6 @@ sub find_more_bad_pix_info{
 	find_totally_new();
 	find_totally_new_col();
 }
-
-####################################################################################
-### find_flickering: finding flickering pixels                                   ###
-####################################################################################
-
-sub find_flickering{
-#
-#-----find today's date
-#
-	($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst) = localtime(time);
-#
-#---- flickering pixels are any pixels which were on and off 3 or more times in the last 90 days
-#
-	$tyear = $uyear +1900;
-	$check_date = $uyday - 90;
-	
-	if ($check_date < 0){
-		$tyear--;
-		$check_date += 365;
-	}
-	
-	@hold = ();
-	$echk = 0;
-#
-#--- open up the past change file, and check which pixels are in the list
-#
-	open(FH, "$file");
-	while(<FH>){
-		chomp $_;
-		@atemp = split(//,$_);
-#
-#---- finding the date of the pixels listed
-#
-		if($atemp[0] eq '#'){
-			@btemp = split(/#Date:/, $_);
-			@ctemp = split(/:/, $btemp[1]);
-			$eyear = $ctemp[0];
-			$eyear =~ s/\s+//g;
-			$edate = $ctemp[1];
-
-			if($eyear > $tyear){
-				$echk++;
-			}elsif($eyear == $tyear && $edate >= $check_date){
-				$echk++;
-			}
-#
-#---- if the date is 90 days or less, save the pixel info
-#
-		}else{
-			if($echk > 0){
-				@atest = split(/=/, $_);
-				if($atest[0] eq 'New'){
-					@btest = split(/\(/,$atest[1]);
-					@ctest = split(/\,/, $btest[1]);
-					$x = $ctest[0];
-					@dtest = split(/\)/, $ctest[1]);
-					$y = $dtest[0];
-					$y =~ s/\s+//;
-					if($y < 10){
-						$y = '000'."$y";
-					}elsif($y < 100){
-						$y = '00'."$y";
-					}elsif($y < 1000){
-						$y = '0'."$y";
-					}
-					push(@hold, "$x.$y");
-				}
-			}
-		}
-	}
-	close(FH);
-
-#
-#---- count how many times a specific pixel went on and off 
-#
-	@sorted_hold = sort {$a<=>$b}@hold;
-	$first = shift(@sorted_hold);
-
-	@new = ($first);
-	${cnt.$first} = 1;
-
-	OUTER:
-	foreach $ent (@sorted_hold){
-		foreach $comp (@new){
-			if($ent == $comp){
-				${cnt.$comp}++;
-				next OUTER;
-			}
-		}
-		push(@new, $ent);
-		${cnt.$ent} = 1;
-	}
-	
-	$tot = 0;
-	open(OUT, ">$out");
-	foreach $ent (@new){
-#
-#---- if the pixel went on and off 3 times or more print it out
-#
-		if(${cnt.$ent} > 2){
-			@atemp = split(/\./, $ent);
-	
-			$x = $atemp[0];
-	
-			@btemp = split(//, $atemp[1]);
-			if($btemp[0] == 0 && $btemp[1] == 0 && $btemp[2] == 0){
-				$y = "   $btemp[3]";
-			}elsif($btemp[0] == 0 && $btemp[1] == 0){
-				$y = "  $btemp[2]$btemp[3]";
-			}elsif($btemp[0] == 0){
-				$y = " $btemp[1]$btemp[2]$btemp[3]";
-			}else{
-				$y = $atemp[1];
-			}
-			push(@hold, "$x,$y");
-
-			if($x < 10){
-				print OUT  "(   $x,$y)\n";
-			}elsif($x < 100){
-				print OUT  "(  $x,$y)\n";
-			}elsif($x < 1000){
-				print OUT  "( $x,$y)\n";
-			}else {
-				print OUT  "($x,$y)\n";
-			}
-			$tot++;
-		}
-	}
-	close(OUT);
-}
-
-####################################################################################
-### find_flickering_col: finding flickering cols                                 ###
-####################################################################################
-
-sub find_flickering_col{
-#
-#-----find today's date
-#
-	($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst) = localtime(time);
-#
-#---- flickering pixels are any cols  which were on and off 3 or more times in the last 90 days
-#
-	$tyear = $uyear +1900;
-	$check_date = $uyday - 90;
-	
-	if ($check_date < 0){
-		$tyear--;
-		$check_date += 365;
-	}
-	
-	@hold = ();
-	$echk = 0;
-#
-#--- open up the past change file, and check which pixels are in the list
-#
-	open(FH, "$file");
-	while(<FH>){
-		chomp $_;
-		@atemp = split(//,$_);
-#
-#---- finding the date of the pixels listed
-#
-		if($atemp[0] eq '#'){
-			@btemp = split(/#Date:/, $_);
-			@ctemp = split(/:/, $btemp[1]);
-			$eyear = $ctemp[0];
-			$eyear =~ s/\s+//g;
-			$edate = $ctemp[1];
-
-			if($eyear > $tyear){
-				$echk++;
-			}elsif($eyear == $tyear && $edate >= $check_date){
-				$echk++;
-			}
-#
-#---- if the date is 90 days or less, save the pixel info
-#
-		}else{
-			if($echk > 0){
-				@atest = split(/=/, $_);
-
-				if($atest[0] eq 'New'){
-					unless($atest[2] =~ /\d/){
-						$atest[1] =~ s/\s+//;
-						push(@hold, $atest[1]);
-					}
-				}
-			}
-		}
-	}
-	close(FH);
-
-#
-#---- count how many times a specific pixel went on and off 
-#
-	@sorted_hold = sort {$a<=>$b}@hold;
-	$first = shift(@sorted_hold);
-
-	@new = ($first);
-	${cnt.$first} = 1;
-	OUTER:
-	foreach $ent (@sorted_hold){
-		foreach $comp (@new){
-			if($ent == $comp){
-				${cnt.$comp}++;
-				next OUTER;
-			}
-		}
-		push(@new, $ent);
-		${cnt.$ent} = 1;
-	}
-	
-	$tot = 0;
-	open(OUT, ">$out");
-#
-#---- if the pixel went on and off 3 times or more print it out
-#
-	foreach $ent (@new){
-		if(${cnt.$ent} > 2){
-			print OUT  "$ent\n";
-			$tot++;
-		}
-	}
-	close(OUT);
-}	
-
 
 #################################################################################
 ### find_all_past_bad_pix: make a list of all bad pixels in the past         ####
@@ -5447,22 +3914,15 @@ sub find_all_past_bad_pix {
 	open(FH, "$file");
 	while(<FH>){
 		chomp $_;
-		@atemp = split(/=/, $_);
-		if($atemp[0] eq 'New'){
-			@btemp = split(/\(/,$atemp[1]);
-			@ctemp = split(/\,/, $btemp[1]);
-			$x = $ctemp[0];
-			@dtemp = split(/\)/, $ctemp[1]);
-			$y = $dtemp[0];
-			$y =~ s/\s+//;
-			if($y < 10){
-				$y = '000'."$y";
-			}elsif($y < 100){
-				$y = '00'."$y";
-			}elsif($y < 1000){
-				$y = '0'."$y";
-			}
-			push(@hold, "$x.$y");
+		@ftemp = split(/<>/, $_);
+		@gtemp = split(/:/, $ftemp[2]);
+		foreach $ent (@gtemp){
+			$tent = $ent;
+			$tent =~ s/\(//g;
+			$tent =~ s/\)//g;
+			$tent =~ s/\,/\./g;
+			push(@hold, $tent);
+			%{dpix.$tent}=(pix =>["$ent"]);
 		}
 	}
 	close(FH);
@@ -5474,50 +3934,23 @@ sub find_all_past_bad_pix {
 	$first = shift(@sorted_hold);
 
 	@new = ($first);
+	$chk = $first;
+	$test_cnt = 0;
 	OUTER:
 	foreach $ent (@sorted_hold){
-		foreach $comp (@new){
-			if($ent eq $comp){
-				next OUTER;
-			}
+		if($ent eq $chk){
+			next OUTER;
 		}
 		push(@new, $ent);
-	}	
-	$test_cnt = 0;
-	foreach $ent  (@new){
-		if($ent =~ /\d/){
-			$test_cnt++;
-		}
+		$chk = $ent;
+		$test_cnt++;
 	}
 	
 	$tot = 0;
 	open(OUT, "> $out");
 	if($test_cnt > 0){
 		foreach $ent (@new){
-			@atemp = split(/\./, $ent);
-		
-			$x = $atemp[0];
-			
-			@btemp = split(//, $atemp[1]);
-			if($btemp[0] == 0 && $btemp[1] == 0 && $btemp[2] == 0){
-				$y = "   $btemp[3]";
-			}elsif($btemp[0] == 0 && $btemp[1] == 0){
-				$y = "  $btemp[2]$btemp[3]";
-			}elsif($btemp[0] == 0){
-				$y = " $btemp[1]$btemp[2]$btemp[3]";
-			}else{
-				$y = $atemp[1];
-			}
-			push(@hold, "$x,$y");
-			if($x < 10){
-				print OUT "(   $x,$y)\n";
-			}elsif($x < 100){
-				print OUT "(  $x,$y)\n";
-			}elsif($x < 1000){
-				print OUT "( $x,$y)\n";
-			}else {
-				print OUT "($x,$y)\n";
-			}
+			print OUT "${dpix.$ent}{pix}[0]\n";
 			$tot++;
 		}
 	}
@@ -5530,17 +3963,19 @@ sub find_all_past_bad_pix {
 
 sub find_all_past_bad_col {
 
+
 	@hold = ();
 #
-#----- open pxiel change history file, and find all bad pixels in the past
+#----- open pxiel change history file, and find all bad cols in the past
 #
 	open(FH, "$file");
 	while(<FH>){
 		chomp $_;
-		@atemp = split(/=/, $_);
-		if($atemp[0] eq 'New'){
-			unless($atemp[2] =~ /\d/){
-				push(@hold, $atemp[1]);
+		@ftemp = split(/<>/, $_);
+		@gtemp = split(/:/, $ftemp[2]);
+		foreach $ent (@gtemp){
+			if($ent ne ''){
+				push(@hold, $ent);
 			}
 		}
 	}
@@ -5553,22 +3988,18 @@ sub find_all_past_bad_col {
 	$first = shift(@sorted_hold);
 
 	@new = ($first);
+	$chk = $first;
+	$test_cnt = 0;
 	OUTER:
 	foreach $ent (@sorted_hold){
-		foreach $comp (@new){
-			if($ent eq $comp){
-				next OUTER;
-			}
+		if($ent eq $chk){
+			next OUTER;
 		}
 		push(@new, $ent);
-	}	
-	
-	$test_cnt = 0;
-	foreach $ent  (@new){
-		if($ent =~ /\d/){
-			$test_cnt++;
-		}
+		$chk = $ent;
+		$test_cnt++;
 	}
+	
 	$tot = 0;
 	open(OUT, "> $out");
 	if($test_cnt > 0){
@@ -5616,6 +4047,9 @@ sub new_pix {
 
 	($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst) = localtime(time);
 	$uyear += 1900;
+	$uyday++;
+	$today = "$uyear:$uyday";
+	$dom_today = ch_ydate_to_dom($today);
 
 #
 #--- find which ccd has the new bad pixel in past
@@ -5629,23 +4063,14 @@ sub new_pix {
 		open(OUT, '>./Working_dir/zout');
 		while(<FH>){
 			chomp $_;
-			@atemp = split(/\)/, $_);
-			$c_date = $atemp[1];
-			$c_date =~ s/\s+//g;
-			@btemp = split(/:/, $c_date);
-			$c_year = $btemp[0];
-			$c_day  = $btemp[1];
-			$c_day14 = $c_day + 14;
+			@atemp = split(/\[/, $_);
+			$first_show = $atemp[1];
+			$first_show =~ s/\]//g;
+			$c_day14 = $first_show + 14;
 #
 #----- check whether the bad pixel is listed 14 days or more. if it is, remove
 #
-			if($c_day14 > 365){
-				$c_year++;
-				$c_day14 -= 365;
-			}
-			if($c_year > $uyear) {
-				print OUT "$_\n";
-			}elsif($c_year == $uyear && $c_day14 >= $uyday){
+			if($c_day14 > $dom_today){
 				print OUT "$_\n";
 			}
 		}
@@ -5659,7 +4084,11 @@ sub new_pix {
 	$temp_file = `ls $file2`;
 	@ccd_list  = split(/\s+/, $temp_file);
 
+	OUTER:
 	foreach $file (@ccd_list){
+		if($file =~ /_cnt/){
+			next OUTER;
+		}
 		@atemp = split(/ccd/, $file);
 		$kccd  = $atemp[1];
 #
@@ -5713,8 +4142,9 @@ sub new_pix {
 
 			if($new_ind == 0){
 				$first_day = "$uyear:$uyday";
+				$dom_today = ch_ydate_to_dom($first_day);
 				open(OUT,">>$web_dir/Disp_dir/totally_new$kccd");
-				print OUT "($x,$y)\t$first_day\n";
+				print OUT "($x,$y)\t$first_day [$dom_today]\n";
 				close(OUT);
 				${$out_ind.$kccd}++;
 			}
@@ -5733,6 +4163,9 @@ sub find_totally_new_col {
 #
 	($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst) = localtime(time);
 	$uyear += 1900;
+	$uyday++;
+	$today = "$uyear:$uyday";
+	$dom_today = ch_ydate_to_dom($today);
 #
 #------- find which ccd has the new bad columns in past
 #
@@ -5744,24 +4177,14 @@ sub find_totally_new_col {
 		open(OUT, '>./Working_dir/zout');
 		while(<FH>){
 			chomp $_;
-			@atemp = split(/\)/, $_);
-			$c_date = $atemp[1];
-			$c_date =~ s/\s+//g;
-			@btemp = split(/:/, $c_date);
-			$c_year = $btemp[0];
-			$c_day  = $btemp[1];
-			$c_day14 = $c_day + 14;
+			@atemp = split(/\[/, $_);
+			$first_show = $atemp[1];
+			$first_show =~ s/\]//g;
+			$c_day14 = $first_show + 14;
 #
 #----- check whether the bad pixel is listed 14 days or more. if it is, remove
 #
-			if($c_day14 > 365){
-				$c_year++;
-				$c_day14 -= 365;
-			}
-
-			if($c_year > $uyear) {
-				print OUT "$_\n";
-			}elsif($c_year == $uyear && $c_day14 >= $uyday){
+			if($c_day14 > $dom_today){
 				print OUT "$_\n";
 			}
 		}
@@ -5775,7 +4198,11 @@ sub find_totally_new_col {
 	$temp_file = `ls $web_dir/Disp_dir/col*`;
 	@col_list  = split(/\s+/, $temp_file);
 
+	OUTER:
 	foreach $file (@col_list){
+		if($file =~ /_cnt/){
+			next OUTER;
+		}
 		@atemp = split(/col/, $file);
 		$kccd = $atemp[1];
 #
@@ -5817,13 +4244,36 @@ sub find_totally_new_col {
 
 			if($new_ind == 0){
 				$first_day = "$uyear:$uyday";
+				$dom_today = ch_ydate_to_dom($first_day);
 				open(OUT,">>$web_dir/Disp_dir/totally_new_col$kccd");
-				print OUT "$col\t$first_day\n";
+				print OUT "$col\t$first_day [$dom_today]\n";
 				close(OUT);
 				${tot_new_col.$kccd}++;
 			}
 		}
 		close(FH);
 	}
+}
+
+##################################################################################
+### ch_ydate_to_dom: change yyyy:ddd to dom (date from 1999:202)               ###
+##################################################################################
+
+sub ch_ydate_to_dom{
+        ($in_date) = @_;
+        chomp $in_date;
+        @htemp     = split(/:/, $in_date);
+        $hyear     = $htemp[0];
+        $hyday     = $htemp[1];
+        $hdiff     = $hyear - 1999;
+        $acc_date  = $hdiff * 365;
+
+        $hdiff    += 2;
+        $leap_corr = int(0.25 * $hdiff);
+
+        $acc_date += $leap_corr;
+        $acc_date += $hyday;
+        $acc_date -= 202;
+        return($acc_date);
 }
 
