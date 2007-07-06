@@ -7,7 +7,7 @@ use PGPLOT;
 #				and warm columns and plots the results		#
 #										#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)			#
-#	last update:	Jul 05, 2007						#
+#	last update:	Jul 06, 2007						#
 #										#
 #	input:									#
 #		if $ARGV[0] = live: /dsops/ap/sdp/cache/*/acis/*bias0.fits	#
@@ -2527,7 +2527,26 @@ sub print_html{
 
 #------  data display page
 
-		if(${ccd_ind.$i} > 0  || ${hccd_ind.$i} > 0){
+		$chk = 0;
+		open(CH, "$web_dir/Disp_dir/ccd$i");
+		while(<CH>){
+			chomp $_;
+			if($_ =~ /\d/){
+				$chk++;
+			}
+		}
+		close(CH);
+
+		open(CH, "$web_dir/Disp_dir/hccd$i");
+		while(<CH>){
+			chomp $_;
+			if($_ =~ /\d/){
+				$chk++;
+			}
+		}
+		close(CH);
+
+		if($chk > 0){
 			print OUT '<td><a href = "./Html_dir/ccd_data',"$i",'.html">Bad Pixels Today</a></td>',"\n";
 		}else{
 			print OUT '<td><a href = "./Html_dir/ccd_data',"$i",'.html">No Bad Pixels Today</a></td>',"\n";
@@ -2535,7 +2554,7 @@ sub print_html{
 
 #----- warm pix history
 
-		if($test =~ /change_ccd$i/){
+		if($test =~ /hist_ccd$i/){
 			print OUT '<TD><a href=./Disp_dir/',"hist_ccd$i",'>Change</a></TD>',"\n";
 		}else{
 			print OUT '<TD>No History</TD>',"\n";
@@ -2543,7 +2562,7 @@ sub print_html{
 
 #----- hot pix history
 
-		if($test =~ /change_hccd$i/){
+		if($test =~ /hist_hccd$i/){
 			print OUT '<TD><a href=./Disp_dir/',"hist_hccd$i",'>Change</a></TD>',"\n";
 		}else{
 			print OUT '<TD>No History</TD>',"\n";
@@ -2551,7 +2570,7 @@ sub print_html{
 #
 #----- bad column history
 #
-		if($test =~ /change_col$i/){
+		if($test =~ /hist_col$i/){
 			print OUT '<TD><a href=./Disp_dir/',"hist_col$i",'>Change</a></TD>',"\n";
 		}else{
 			print OUT '<TD>No History</TD>',"\n";
