@@ -2736,7 +2736,7 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 | ppmtogif > $web_dir/Plots/hist_ccd.gif");
+	system("echo ''|gs -sDEVICE=ppmraw  -r100x100 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 | ppmtogif > $web_dir/Plots/hist_ccd.gif");
 	system("rm pgplot.ps");
 
 #
@@ -2811,7 +2811,7 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_ccd5.gif");
+	system("echo ''|gs -sDEVICE=ppmraw  -r100x100 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_ccd5.gif");
 	system("rm pgplot.ps");
 
 #
@@ -2887,7 +2887,7 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_ccd7.gif");
+	system("echo ''|gs -sDEVICE=ppmraw  -r100x100 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_ccd7.gif");
 	system("rm pgplot.ps");
 
 #
@@ -2968,7 +2968,7 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_hccd.gif");
+	system("echo ''|gs -sDEVICE=ppmraw  -r100x100 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_hccd.gif");
 	system("rm pgplot.ps");
 
 #
@@ -3041,7 +3041,7 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_hccd5.gif");
+	system("echo ''|gs -sDEVICE=ppmraw  -r100x100 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_hccd5.gif");
 	system("rm pgplot.ps");
 
 #
@@ -3115,7 +3115,7 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_hccd7.gif");
+	system("echo ''|gs -sDEVICE=ppmraw  -r100x100 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_hccd7.gif");
 	system("rm pgplot.ps");
 
 #
@@ -3190,7 +3190,7 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_col.gif");
+	system("echo ''|gs -sDEVICE=ppmraw  -r100x100 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_col.gif");
 	system("rm pgplot.ps");
 
 #
@@ -3265,7 +3265,7 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_col5.gif");
+	system("echo ''|gs -sDEVICE=ppmraw  -r100x100 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_col5.gif");
 	system("rm pgplot.ps");
 
 #
@@ -3339,7 +3339,7 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_col7.gif");
+	system("echo ''|gs -sDEVICE=ppmraw  -r100x100 -q -NOPAUSE -sOutputFile=-  pgplot.ps|pnmcrop| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_col7.gif");
 	system("rm pgplot.ps");
 
 }
