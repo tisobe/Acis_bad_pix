@@ -7,7 +7,7 @@ use PGPLOT;
 #				and warm columns and plots the results		#
 #										#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)			#
-#	last update:	Jul 06, 2007						#
+#	last update:	Oct 10, 2007						#
 #										#
 #	input:									#
 #		if $ARGV[0] = live: /dsops/ap/sdp/cache/*/acis/*bias0.fits	#
@@ -127,11 +127,11 @@ $web_dir       = '/data/mta/www/mta_bad_pixel/';
 $old_dir       = $web_dir;
 $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 
-#$bin_dir       = '/data/mta/MTA/bin/';
-#$bdat_dir      = '/data/mta/MTA/data/';
-#$web_dir       = '/data/mta/www/mta_bad_pixel/Test/';
-#$old_dir       = $web_dir;
-#$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
+$bin_dir       = '/data/mta/MTA/bin/';
+$bdat_dir      = '/data/mta/MTA/data/';
+$web_dir       = '/data/mta/www/mta_bad_pixel/Test/';
+$old_dir       = $web_dir;
+$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
 
 $lookup   = '/home/ascds/DS.release/data/dmmerge_header_lookup.txt';    # dmmerge header rule lookup table
 
@@ -144,7 +144,7 @@ $hot_factor = 1000.0;
 #######################################
 
 $file = `ls -d`;					# clearn up the directory
-@file = split(//, $file);				
+@file = split(/\s+/, $file);				
 
 if($file =~ /Working_dir/){
 	system("rm -rf ./Working_dir");
@@ -165,6 +165,7 @@ if($input_type eq 'live'){
 }else{
 	regroup_data();
 }
+
 
 read_bad_pix_list();					# read known bad pixel list and bad col list
 
@@ -200,7 +201,7 @@ if($dcnt > 0){						# yes we have new data, so let compute
 	
 		select_bad_pix();			# find bad pix appear three consequtive files
 	
-		prep_bad_col();				# preparing bad column test
+####		prep_bad_col();				# preparing bad column test (!!!we do not use this anymore!!!)
 	
 		add_to_list();				# adding bad pixels to lists
 	
@@ -409,9 +410,9 @@ sub regroup_data{
 	$dcnt = 0;
         $cnt = 0;
         foreach $ent (@t_input_list){
-                chomp $_;
-                push(@data, $_);
-		push(@bias_bg_comp_list, $_);
+                chomp $ent;
+                push(@data, $ent);
+		push(@bias_bg_comp_list, $ent);
                 $cnt++;
         }
 
@@ -1434,11 +1435,16 @@ sub print_bad_pix_data{
 #
 #--- set today's date again and find dom
 #
-	($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst)= localtime(time);
-	$today_year = $uyear + 1900;
-	$uyday++;
-	$date_obs2  = "$today_year:$uyday";
-	$dom        = ch_ydate_to_dom($date_obs2);
+	if($input_type =~ /live/){
+		($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst)= localtime(time);
+		$today_year = $uyear + 1900;
+		$uyday++;
+		$date_obs2  = "$today_year:$uyday";
+		$dom        = ch_ydate_to_dom($date_obs2);
+	}else{
+		$date_obs2  = $today_time;
+		$dom        = ch_ydate_to_dom($today_time);
+	}
 	
 	OUTER:
 	for($ip = 0; $ip < 10; $ip++){
@@ -1477,15 +1483,29 @@ sub print_bad_pix_data{
 			}
 			close(OUT2);
 			$chk = 0;
+			@temp_save = ();
 			OUTER2:
 			for($i = 0; $i < $ptot; $i++){
 				@atemp = split(/<>/, $past_data[$i]);
 				if($dom == $atemp[0]){
+					if($past_data[$i] eq $pline){
+						$chk = -1;
+						last OUTER2;
+					}
+					push(@temp_save, $pline);
 					$chk++;
-					last OUTER2;
+				}else{
+					push(@temp_save, $past_data[$i]);
 				}
 			}
+			if($chk > 0){
+				@past_data = @temp_save;
+			}
 			if($chk == 0){
+				push(@past_data, $pline);
+				$chk++;
+			}
+			if($chk > 0){
 				$max = $dom + 100;
 				for($k = 0; $k < $max; $k++){
 					@bdate[$k]   = 'na';
@@ -1493,7 +1513,6 @@ sub print_bad_pix_data{
 					@npix_cnt[$k] = 0;
 					@ipix_cnt[$k] = 0;
 				}
-				push(@past_data, $pline);
 				@temp = sort{$a<=>$b} @past_data;
 				open(TEMP, ">$web_dir/Disp_dir/hist_ccd$ip");
 				$k1 = 0;
@@ -1638,15 +1657,29 @@ sub print_bad_pix_data{
 
 			close(OUT2);
 			$chk = 0;
+			@temp_save = ();
 			OTUER2:
 			for($i = 0; $i < $ptot; $i++){
 				@atemp = split(/<>/, $past_data[$i]);
 				if($dom == $atemp[0]){
+					if($past_data[$i] eq $pline){
+						$chk = -1;
+						last OUTER2;
+					}
+					push(@temp_save, $pline);
 					$chk++;
-					last OUTER2;
+				}else{
+					push(@temp_save, $past_data[$i]);
 				}
 			}
+			if($chk > 0){
+				@past_data = @temp_save;
+			}
 			if($chk == 0){
+				push(@past_data, $pline);
+				$chk++;
+			}
+			if($chk > 0){
 				$max = $dom + 100;
 				for($k = 0; $k < $max; $k++){
 					@bdate[$k]   = 'na';
@@ -2081,7 +2114,7 @@ sub print_bad_col{
 #
 #--- if there are currently bad cols, then...
 #
-			if(${col_cnt.$k} > 0){
+####			if(${col_cnt.$k} > 0){
 				@bad_col_new = ();
 				@bad_col_imp = ();
 				@col_hold    = ();
@@ -2132,10 +2165,16 @@ sub print_bad_col{
 					$tcnt++;
 				}
 				close(IN);
+				$current_col_no = 0;
 				$nline = "$dom<>$date_obs2<>";
+				$col_name = "$web_dir".'/Disp_dir/col'."$k";
+				open(OUT2,">$col_name");
 				foreach $ent (@{bad_col_list.$k}){
 					$nline = "$nline:"."$ent";
+					print OUT2 "$ent\n";
+					$current_col_no++;
 				}
+				close(OUT2);
 				push(@tline, $nline);
 				@sorted_tline = sort{$a<=>$b} @tline;
 				@cleaned = ("$sorted_tline[0]");
@@ -2148,10 +2187,8 @@ sub print_bad_col{
 				}
 				$name = "hist_col$k";
 				open(OUT, ">$web_dir/Disp_dir/$name");
-				$current_col_no = 0;
 				foreach $ent (@cleaned){
 					print OUT "$ent\n";
-					$current_col_no++;
 				}
 				close(OUT);
 
@@ -2235,7 +2272,7 @@ sub print_bad_col{
 					$tcnt++;
 				}
 				close(IN);
-				$nline = "$dom<>$date_obs2<>$current_col_no",":$chk_col_new:$chk_col_imp";
+				$nline = "$dom<>$date_obs2<>$current_col_no".":$chk_col_new:$chk_col_imp";
 				push(@tline, $nline);
 				@sorted_tline = sort{$a<=>$b} @tline;
 				@cleaned = ("$sorted_tline[0]");
@@ -2251,7 +2288,7 @@ sub print_bad_col{
 					print OUT "$ent\n";
 				}
 				close(OUT);
-			}
+#######			}
 		}
 	}
 }
@@ -2273,11 +2310,18 @@ sub chk_old_data{
 	$day30 = 2592000;
 	$day7  = 604800;
 
-	($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst)= localtime(time);
-	$year = $uyear + 1900;
-	$uyday++;
-	$today = "$year:$uyday:$uhour:$umin:$usec";
-	$today_chk = `/home/ascds/DS.release/bin/axTime3 $today t d u s`;
+        if($input_type =~ /live/){
+                ($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst)= localtime(time);
+                $today_year = $uyear + 1900;
+                $uyday++;
+                $today  = "$today_year:$uyday".":00:00:00";
+		$today_chk = `/home/ascds/DS.release/bin/axTime3 $today t d u s`;
+        }else{
+                $date_obs2  = $today_time;
+                $today  = "$today_time".":00:00:00";
+		$today_chk = `/home/ascds/DS.release/bin/axTime3 $today t d u s`;
+        }
+
 	
 	$month_ago = $today_chk - $day30;
 #	$week_ago  = $today_chk - $day7;
@@ -3406,8 +3450,16 @@ sub linr_fit {
 #####################################################################
 
 sub mv_old_data{
-	($hsec, $hmin, $hhour, $hmday, $hmon, $hyear, $hwday, $hyday, $hisdst)= localtime(time);
-	$year = 1900 + $hyear;
+        if($input_type =~ /live/){
+                ($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst)= localtime(time);
+                $year = $uyear + 1900;
+                $hyday++;
+        }else{
+                @atemp = split(/:/, $today_time);
+		$year  = $atemp[0];
+		$hyday = $atemp[1];
+        }
+
 	$hyday -= 90;
 	if($hyday < 0) {
 		$year--;
@@ -3456,11 +3508,19 @@ sub flickering_check{
 		$chk = 'new_hccd';
 	}
 
-	($hsec, $hmin, $hhour, $hmday, $hmon, $hyear, $hwday, $hyday, $hisdst)= localtime(time);
+        if($input_type =~ /live/){
+                ($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst)= localtime(time);
+                $tyear = $uyear + 1900;
+                $hyday++;
+        }else{
+                @atemp = split(/:/, $today_time);
+		$tyear = $atemp[0];
+		$hyday = $atemp[1];
+        }
+
 #
 #--- find date for 90 days ago
 #
-	$tyear = 1900 + $hyear;
 	$pdate = $hyday - 90;
 
 	if ($pdate < 1){
@@ -3565,7 +3625,16 @@ sub flickering_check{
 
 
 sub flickering_col{
-	($hsec, $hmin, $hhour, $hmday, $hmon, $hyear, $hwday, $hyday, $hisdst)= localtime(time);
+
+        if($input_type =~ /live/){
+                ($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst)= localtime(time);
+                $tyear = $uyear + 1900;
+                $hyday++;
+        }else{
+                @atemp = split(/:/, $today_time);
+		$tyear = $atemp[0];
+		$hyday = $atemp[1];
+        }
 #
 #--- find date for 90 days ago
 #
@@ -4064,11 +4133,17 @@ sub new_pix {
 #--- find today's date
 #
 
-	($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst) = localtime(time);
-	$uyear += 1900;
-	$uyday++;
-	$today = "$uyear:$uyday";
-	$dom_today = ch_ydate_to_dom($today);
+        if($input_type =~ /live/){
+                ($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst)= localtime(time);
+                $today_year = $uyear + 1900;
+                $uyday++;
+                $today        = "$today_year:$uyday";
+                $dom_today    = ch_ydate_to_dom($date_obs2);
+        }else{
+                $today        = $today_time;
+                $dom_today    = ch_ydate_to_dom($today_time);
+        }
+
 
 #
 #--- find which ccd has the new bad pixel in past
@@ -4180,11 +4255,17 @@ sub find_totally_new_col {
 #
 #------ find today's date
 #
-	($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst) = localtime(time);
-	$uyear += 1900;
-	$uyday++;
-	$today = "$uyear:$uyday";
-	$dom_today = ch_ydate_to_dom($today);
+        if($input_type =~ /live/){
+                ($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst)= localtime(time);
+                $today_year = $uyear + 1900;
+                $uyday++;
+                $today      = "$today_year:$uyday";
+                $dom_today  = ch_ydate_to_dom($date_obs2);
+        }else{
+                $today      = $today_time;
+                $dom_today  = ch_ydate_to_dom($today_time);
+        }
+
 #
 #------- find which ccd has the new bad columns in past
 #
