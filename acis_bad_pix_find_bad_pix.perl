@@ -7,7 +7,7 @@ use PGPLOT;
 #				and warm columns and plots the results		#
 #										#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)			#
-#	last update:	Oct 10, 2007						#
+#	last update:	Oct 11, 2007						#
 #										#
 #	input:									#
 #		if $ARGV[0] = live: /dsops/ap/sdp/cache/*/acis/*bias0.fits	#
@@ -126,12 +126,6 @@ $bdat_dir      = '/data/mta/MTA/data/';
 $web_dir       = '/data/mta/www/mta_bad_pixel/';
 $old_dir       = $web_dir;
 $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
-
-$bin_dir       = '/data/mta/MTA/bin/';
-$bdat_dir      = '/data/mta/MTA/data/';
-$web_dir       = '/data/mta/www/mta_bad_pixel/Test/';
-$old_dir       = $web_dir;
-$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
 
 $lookup   = '/home/ascds/DS.release/data/dmmerge_header_lookup.txt';    # dmmerge header rule lookup table
 
@@ -2175,6 +2169,7 @@ sub print_bad_col{
 					$current_col_no++;
 				}
 				close(OUT2);
+
 				push(@tline, $nline);
 				@sorted_tline = sort{$a<=>$b} @tline;
 				@cleaned = ("$sorted_tline[0]");
@@ -2334,8 +2329,8 @@ sub chk_old_data{
 			@btemp = split(/_/, $atemp[1]);
 			if($btemp[0] < $month_ago){
 #			if($btemp[0] < $week_ago){
-				system("mv $ent $old_dir/Old_data/CCD$k/.");
-				system("gzip $old_dir/Old_data/CCD$k/$atemp[1]");
+###				system("mv $ent $old_dir/Old_data/CCD$k/.");
+###				system("gzip $old_dir/Old_data/CCD$k/$atemp[1]");
 			}
 		}
 	}
@@ -3481,8 +3476,8 @@ sub mv_old_data{
 				$old_file = 'acis'."$btemp[1]";
 				@ctemp = split(/_/, $btemp[1]);
 				if($ctemp[0] < $sec_form_time){
-					system("mv  $atemp[7] $web_dir/Old_data/CCD$dccd/.");
-					system("gzip $web_dir/Old_data/CCD$dccd/$old_file");
+###					system("mv  $atemp[7] $web_dir/Old_data/CCD$dccd/.");
+###					system("gzip $web_dir/Old_data/CCD$dccd/$old_file");
 				}
 #			}else{
 #				system("rm $atemp[7]");
