@@ -20,6 +20,6 @@ perl /data/mta/MTA/bin/acis_bias_html_update.perl
 
 perl /data/mta/MTA/bin/acis_bias_run_all_ccd.perl
 
-perl /data/mta/MTA/bin/clearnup.perl
+perl /data/mta/MTA/bin/cleanup.perl
 
 rm -rf ./Working_dir
