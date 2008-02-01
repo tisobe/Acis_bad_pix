@@ -74,7 +74,7 @@ use PGPLOT;
 #	loca_chk:	cimpute a local mean around a givn pix 16x16		#
 #	read_bad_pix_list:	read a knwon bad pixel/column list		#
 #	rm_prev_bad_data:	rmove known bad pixels/columns from data	#	
-#	select_bad_pix:	find bac pix appeared three consequtive files		#
+#	select_bad_pix:	find bac pix appeared three consecutive files		#
 #			actual findings are done in the following sub		#
 #	find_bad_pix:	find bad pixels						#
 #	add_to_list:	add bad pixels to output data list			#
@@ -193,7 +193,7 @@ if($dcnt > 0){						# yes we have new data, so let compute
 	
 		int_file_for_day();			# prepare files for analysis
 	
-		select_bad_pix();			# find bad pix appear three consequtive files
+		select_bad_pix();			# find bad pix appear three consecutive files
 	
 ####		prep_bad_col();				# preparing bad column test (!!!we do not use this anymore!!!)
 	
@@ -949,7 +949,7 @@ sub rm_prev_bad_data {
 
 
 ##########################################################################
-### select_bad_pix: find bad pix appears three consequtive files      ####
+### select_bad_pix: find bad pix appears three consecutive files      ####
 ###                 actual finding is done in sub find_bd_pix	      ####
 ##########################################################################
 
@@ -2629,16 +2629,16 @@ sub print_html{
 	print OUT '<BR>',"\n";
 	print OUT 'Bad Pixel Trend Plots<br>',"\n";
 #	print OUT '<a href=./bad_pix_hist> ASCII Data<br>',"\n";
-	print OUT '<a href=./Plots/hist_ccd.gif>Plot for History of Bad Pixel: Front Side CCDs</a><br>',"\n";
-	print OUT '<a href=./Plots/hist_ccd5.gif>Plot for History of Bad Pixel: CCD 5</a><br>',"\n";
-	print OUT '<a href=./Plots/hist_ccd7.gif>Plot for History of Bad Pixel: CCD 7</a><br>',"\n";
+	print OUT '<a href=./Plots/hist_ccd.gif>Plot for History of Warm Pixel: Front Side CCDs</a><br>',"\n";
+	print OUT '<a href=./Plots/hist_ccd5.gif>Plot for History of Warm Pixel: CCD 5</a><br>',"\n";
+	print OUT '<a href=./Plots/hist_ccd7.gif>Plot for History of Warm Pixel: CCD 7</a><br>',"\n";
 
 	print OUT '<a href=./Plots/hist_hccd.gif>Plot for History of Hot Pixel: Front Side CCDs</a><br>',"\n";
 	print OUT '<a href=./Plots/hist_hccd5.gif>Plot for History of Hot Pixel: CCD 5</a><br>',"\n";
 	print OUT '<a href=./Plots/hist_hccd7.gif>Plot for History of Hot Pixel: CCD 7</a><br>',"\n";
 
 	print OUT '<a href=./Plots/hist_col.gif>Plot for History of Bad Columns: Front Side CCDs</a><br>',"\n";
-	print OUT '<a href=./Plots/hist_col5.gif>Plot for History of Bad Columns: CCD 5</a><br>',"\n";
+	print OUT '<a href=./Plots/hist_col5.gif>Plot for History of  Bad  Columns: CCD 5</a><br>',"\n";
 	print OUT '<a href=./Plots/hist_col7.gif>Plot for History of Bad Columns: CCD 7</a><br>',"\n";
 	print OUT '</font>';
 
@@ -2648,15 +2648,21 @@ sub print_html{
 	print OUT 'A bad pixel was selected as follows:',"\n";
 	print OUT '<ul>',"\n";
 	print OUT '<li> acis*bias0.fits in a given period were obtained',"\n";
-	print OUT '<li> compute an average of count rates for each ccd',"\n";
-	print OUT '<li> compare each pixel to the average, and if a pixel value',"\n";
-	print OUT 'was 5 sigma  higher than the average,  a local average (32x32) was computed.',"\n";
+	print OUT '<li> compute an average of ADU for each CCD',"\n";
+	print OUT '<li> compare the value of each pixel to the CCD average, if a pixel value',"\n";
+	print OUT 'was 5 sigma higher than the average, a local average (32x32) was computed',"\n";
 	print OUT '<li>if the pixel value was still 5 sigma higher than the local average,',"\n";
 	print OUT 'it was marked as a possible candidate for a warm pixel.',"\n";
-	print OUT '<li> if three consequtive bias frames had the same pixel marked as a',"\n";
+	print OUT '<li> if three consecutive(sp) bias frames had the same pixel marked as a',"\n";
 	print OUT 'warm pixel candidate, the pixel was listed as a warm pixel.',"\n";
-	print OUT '<li> if the pixel was located at the edge of the CCD (y = 1023, 1024), it',"\n";
-	print OUT 'was droped form the list.',"\n";
+	print OUT '<li> if the pixels appear and disappear repeatedly during the last three months',"\n";
+	print OUT  the pixels are listed in flickering pixels',"\n";
+	print OUT '<li> if the pixels which appeared in "current warm pixels" list, even once in the past',"\n";
+	print OUT ' the pixels are parmanently listed in "Past Warm Pixels" list', "\n";
+	print OUT '<li> hot pixels are defined as warm pixels with an adu value of greater than',"\n";
+	print OUT ' the CCD average +1000.',"\n";
+	print OUT '<li> if the pixel was located at the edge of the CCD (y = 1023, 1024), it is ignored and not',"\n";
+	print OUT ' included on either the list.',"\n";
 	print OUT '<br>',"\n";
 
 	print OUT '<li>for a hot pixel, a process was same, except a threshold was ',"\n";
@@ -2671,7 +2677,7 @@ sub print_html{
 	print OUT 'compare the column average to a local average (10 columns).',"\n";
 	print OUT '<li> if the column was still 5 sigma higher than the local average, mark it as',"\n";
 	print OUT 'a bad column candidate',"\n";
-	print OUT '<li> if the column appeared as a bad column for a 3 consequtive frames, it was ',"\n";
+	print OUT '<li> if the column appeared as a bad column for a 3 consecutive frames, it was ',"\n";
 	print OUT 'marked as a real bad column.',"\n";
 	print OUT '</font>',"\n";
 	print OUT '</ul>',"\n";
