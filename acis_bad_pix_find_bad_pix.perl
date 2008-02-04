@@ -2656,7 +2656,7 @@ sub print_html{
 	print OUT '<li> if three consecutive(sp) bias frames had the same pixel marked as a',"\n";
 	print OUT 'warm pixel candidate, the pixel was listed as a warm pixel.',"\n";
 	print OUT '<li> if the pixels appear and disappear repeatedly during the last three months',"\n";
-	print OUT  the pixels are listed in flickering pixels',"\n";
+	print OUT 'the pixels are listed in flickering pixels',"\n";
 	print OUT '<li> if the pixels which appeared in "current warm pixels" list, even once in the past',"\n";
 	print OUT ' the pixels are parmanently listed in "Past Warm Pixels" list', "\n";
 	print OUT '<li> hot pixels are defined as warm pixels with an adu value of greater than',"\n";
