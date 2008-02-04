@@ -397,7 +397,7 @@ sub get_dir {
 
 sub regroup_data{
 
-	$t_input = `ls $input_type/acisf*fits`;
+	$t_input = `ls $input_type/acisf*bias0.fits`;
 	@t_input_list = split(/\s+/, $t_input);
 	@bias_bg_comp_list = ();				# this will be used to compute bias bg
         @data = ();
