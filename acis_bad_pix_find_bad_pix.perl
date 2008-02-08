@@ -1470,7 +1470,19 @@ sub print_bad_pix_data{
 
 			$pline =  "$dom<>$date_obs2<>";
 
-			foreach $ent (@{temp_ccd.$ip}){
+			$first = shift(@{temp_ccd.$ip});
+			@new   = ($first);
+			CHK:
+			foreach $chk1 (@{temp_ccd.$ip}){
+				foreach $comp (@new){
+					if($chk1 eq $comp){
+						next CHK;
+					}
+				}
+				push(@new, $chk1);
+			}
+
+			foreach $ent (@new){
 				@pos   = split(/\./, $ent);
 				$pline = "$pline".":($pos[0],$pos[1])";
 				print OUT2 "$pos[0]\t$pos[1]\n";	
@@ -1643,7 +1655,19 @@ sub print_bad_pix_data{
 
 			$pline =  "$dom<>$date_obs2<>";
 
-			foreach $ent (@{temp_ccd.$ip}){
+			$first = shift(@{temp_ccd.$ip});
+			@new   = ($first);
+			CHK:
+			foreach $chk1 (@{temp_ccd.$ip}){
+				foreach $comp (@new){
+					if($chk1 eq $comp){
+						next CHK;
+					}
+				}
+				push(@new, $chk1);
+			}
+
+			foreach $ent (@new){
 				@pos = split(/\./,$ent);
 				$pline = "$pline".":($pos[0],$pos[1])";
 				print OUT2 "$pos[0]\t$pos[1]\n";	
