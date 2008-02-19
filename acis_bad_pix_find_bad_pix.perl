@@ -7,7 +7,7 @@ use PGPLOT;
 #				and warm columns and plots the results		#
 #										#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)			#
-#	last update:	Oct 11, 2007						#
+#	last update:	Feb 19, 2008						#
 #										#
 #	input:									#
 #		if $ARGV[0] = live: /dsops/ap/sdp/cache/*/acis/*bias0.fits	#
@@ -121,7 +121,7 @@ use PGPLOT;
 #--- output directory
 
 $bin_dir       = '/data/mta/MTA/bin/';
-$bin_dir      = '//data/mta/Script/ACIS/Bad_pixels/Test/';
+#$bin_dir      = '//data/mta/Script/ACIS/Bad_pixels/Test/';
 $bdat_dir      = '/data/mta/MTA/data/';
 $web_dir       = '/data/mta/www/mta_bad_pixel/';
 $old_dir       = $web_dir;
@@ -203,9 +203,9 @@ if($dcnt > 0){						# yes we have new data, so let compute
 	
 		print_bad_col();			# pint bad columns
 
-		system("perl $bin_dir/mk_front_ccd_tot.perl");
-		system("perl $bin_dir/mk_front_ccd_tot.perl hot");
-		system("perl $bin_dir/mk_front_col_tot.perl");
+#		system("perl $bin_dir/mk_front_ccd_tot.perl");
+#		system("perl $bin_dir/mk_front_ccd_tot.perl hot");
+#		system("perl $bin_dir/mk_front_col_tot.perl");
 	
 		if($input_type eq 'live'){
 			chk_old_data();			# find data older than 30 days (7 days) and move to Save
@@ -218,7 +218,12 @@ if($dcnt > 0){						# yes we have new data, so let compute
 	flickering_col();         			# check which cols are flickering in the past 90 days
 	find_more_bad_pix_info();			# find additional information about bad pixels
 
-	plot_hist();					# plotting history of bad pixel increase
+#
+#--- plotting of the history is now done by new_plot_set.perl
+#
+
+###	plot_hist();					# plotting history of bad pixel increase
+
 	print_html();					# print up-dated html page for bad pixel
 }
 
@@ -1825,7 +1830,7 @@ sub find_bad_col{
         $asum2 = 0;
         $fcnt  = 0;
 #
-#--- make an average of averaged column value average of column is caluculated in sub extract.
+#--- make an average of averaged column value; average of column is caluculated in sub extract.
 #
         for($icol = 1; $icol <= 256; $icol++){		
                 if($cnt[$icol] > 0){			
@@ -1836,8 +1841,8 @@ sub find_bad_col{
                 }
         }
 	if($fcnt > 0){
-        	$cavg = $asum/$fcnt;
-        	$std = sqrt($asum2/$fcnt - $cavg * $cavg);
+        	$cavg  = $asum/$fcnt;
+        	$std   = sqrt($asum2/$fcnt - $cavg * $cavg);
         	$limit = $cavg + $col_factor * $std;			# setting limits
 	
         	$outdir_name  = "$house_keeping/Defect/CCD"."$ccd_id".'/'."$head".'_col';
@@ -1872,6 +1877,33 @@ sub find_bad_col{
         	}
         	close(OUT);
 	}
+#
+#--- clean up the duplicated lines
+#
+	open(IN, "$outdir_name");
+	@test = ();
+	while(<IN>){
+		chomp $_;
+		push(@test, $_);
+	}
+	close(IN);
+	@temp  = sort($a<=>$b} @test;
+	$first = shift(@temp);
+	@new   = ($first);
+	OUTER:
+	foreach $tent (@temp){
+		foreach $comp (@new){
+			if($tent eq $comp){
+				next OUTER;
+			}
+		}
+		push(@new, $tent);
+	}
+	open(OUT, ">$outdir_name");
+	foreach $tent (@new){
+		print OUT, "$tent\nr";
+	}
+	close(OUT);	
 }
 
 ################################################################################
@@ -2087,7 +2119,7 @@ sub chk_bad_col {
 					$first = shift(@temp_list);
 					${bcnt.$k}++;
 					@new = ($first);
-					@{bad_col_list.$k} = @{new};
+					@{bad_col_list.$k} = @new;
 					OUTER:
 					foreach $ent (@temp_list){
 						foreach $comp (@new){
@@ -2125,10 +2157,39 @@ sub print_bad_col{
 		if(${tdycnt.$k} == 0){			# only when today's data exists
 			next OUTER;
 		}
+
+		if(${bcnt.$k} == 0){
+			system("rm $web_dir/Disp_dir/ccd$k");
+			open(OUTW, ">>$web_dir/Disp_dir/hist_col$k");
+			$nline = "$dom<>$date_obs2<>";
+			print OUTW "$nline\n";
+			close(OUTW);
+
+			open(IN, "$web_dir/Disp_dir/hist_col$k");
+			$last_line = '';
+			while(<IN>){
+				chomp $_;
+				$last_list = $_;
+			}
+			close(IN);
+			@atemp = split(/<>:/, $last_line);
+
+			open(OUTW, ">>$web_dir/Disp_dir/imp_col$k");
+			$nline = "$dom<>$date_obs2<>:$atemp[1]";
+			print OUTW "$nline\n";
+			close(OUTW);
+
+			open(OUTW, ">>$web_dir/Disp_dir/new_col$k");
+			$nline = "$dom<>$date_obs2<>:";
+			print OUTW "$nline\n";
+			close(OUTW);
+
+			open(OUTW, ">$web_dir/Disp_dir/col$k");
+			close(OUTW);
 #
 #--- if there are new bad cols, then...
 #
-		if(${bcnt.$k} > 0){
+		}else{
 #
 #--- if there are currently bad cols, then...
 #
@@ -2140,59 +2201,111 @@ sub print_bad_col{
 				$chk_col_imp = 0;
 				$chk_col_hld = 0;
 
-				OUTER:
-				foreach $ent (@{bad_col_list.$k}){
-					@ctemp = split(//, $ent);
-					if($ctemp[0] eq '#'){
-						next OUTER;
-					}
-					foreach $comp (@{col_data.$k}){
-						if($ent == $comp){
-							push(@col_hold, $ent);
-							$chk_col_hld++;
-							next OUTER;
-						}
-					}
-					push(@bad_col_new, $ent);
-					$chk_col_new++;
-				}
-
-				OUTER:
-				foreach $ent (@{col_data.$k}){
-					@ctemp = split(//, $ent);
-					if($ctemp[0] eq '#'){
-						next OUTER;
-					}
-					foreach $comp (@{bad_col_list.$k}){
-						if($ent == $comp){
-							next OUTER;
-						}
-					}
-					push(@bad_col_imp, $ent);
-					$chk_col_imp++;
-				}
+##				OUTER:
+##				foreach $ent (@{bad_col_list.$k}){
+##					@ctemp = split(//, $ent);
+##					if($ctemp[0] eq '#'){
+##						next OUTER;
+##					}
+##					foreach $comp (@{col_data.$k}){
+##						if($ent == $comp){
+##							push(@col_hold, $ent);
+##							$chk_col_hld++;
+##							next OUTER;
+##						}
+##					}
+##					push(@bad_col_new, $ent);
+##					$chk_col_new++;
+##				}
+##
+##				OUTER:
+##				foreach $ent (@{col_data.$k}){
+##					@ctemp = split(//, $ent);
+##					if($ctemp[0] eq '#'){
+##						next OUTER;
+##					}
+##					foreach $comp (@{bad_col_list.$k}){
+##						if($ent == $comp){
+##							next OUTER;
+##						}
+##					}
+##					push(@bad_col_imp, $ent);
+##					$chk_col_imp++;
+##				}
 #
 #---history file for col
 #
 				open(IN, "$web_dir/Disp_dir/hist_col$k");
 				@tline = ();
 				$tcnt  = 0;
+				$last  = '';
 				while(<IN>){
 					chomp $_;
 					push(@tline, $_);
+					$last = $_;
 					$tcnt++;
 				}
 				close(IN);
+				@atemp    = split(/<>:/, $last);
+				@last_ent = split(/:/, $atemp[1]);
+
 				$current_col_no = 0;
-				$nline = "$dom<>$date_obs2<>";
-				$col_name = "$web_dir".'/Disp_dir/col'."$k";
+				@new_col        = ();
+				@imp_col        = ();
+				$nline          = "$dom<>$date_obs2<>";
+				$col_name       = "$web_dir".'/Disp_dir/col'."$k";
+
 				open(OUT2,">$col_name");
+
+				OUTER2:
 				foreach $ent (@{bad_col_list.$k}){
 					$nline = "$nline:"."$ent";
 					print OUT2 "$ent\n";
 					$current_col_no++;
+
+					foreach $comp (@last_ent){
+						if($ent eq $comp){
+							next OUTER2:
+						}
+					}
+					push(@new_col, $ent);
+						
 				}
 				close(OUT2);
+
+				OTUER2:
+				foreach $test (@last_ent)
+					foreach $comp (@@{bad_col_list.$k}){
+						if($test eq $comp){
+							next OTUER2;
+						}
+					}
+					push(@imp_col, $test);
+				}
+#
+#---- printing a new bad col
+#
+				$sline = "$dom<>$date_obs2<>";
+				foreach $ent (@new_col){
+					$sline = "$sline".":$ent";
+				}
+				open(OUT3, ">>$web_dir".'/Disp_dir/new_col'."$k";
+				print OUT3 "$sline\n";
+				close(OUT3);
+#
+#--- printing a imp col
+#
+				$sline = "$dom<>$date_obs2<>";
+				foreach $ent (@imp_col){
+					$sline = "$sline".":$ent";
+				}
+				open(OUT3, ">>$web_dir".'/Disp_dir/imp_col'."$k";
+				print OUT3 "$sline\n";
+				close(OUT3);
+					
+#
+#--- cleaning up col history list
+#
 
 				push(@tline, $nline);
 				@sorted_tline = sort{$a<=>$b} @tline;
@@ -2214,70 +2327,73 @@ sub print_bad_col{
 #
 #---history file for new bad col
 #
-				$name = "new_col$k";
-				open(IN, "$web_dir/Disp_dir/$name");
-				@tline = ();
-				$tcnt  = 0;
-				while(<IN>){
-					chomp $_;
-					push(@tline, $_);
-					$tcnt++;
-				}
-				close(IN);
-				$nline = "$dom<>$date_obs2<>";
-				foreach $ent (@{bad_col_new}){
-					$nline = "$nline:"."$ent";
-				}
-				push(@tline, $nline);
-				@sorted_tline = sort{$a<=>$b} @tline;
-				@cleaned = ("$sorted_tline[0]");
-				OUTER:
-				for($i = 1; $i <= $tcnt; $i++){
-					if($sorted_tline[$i] eq $sorted_tline[$i-1]){
-						next OUTER;
-					}
-					push(@cleaned, $sorted_tline[$i]);
-				}
-				$name = "new_col$k";
-				open(OUT, ">$web_dir/Disp_dir/$name");
-				foreach $ent (@cleaned){
-					print OUT "$ent\n";
-				}
-				close(OUT);
-
-
+##				$name = "new_col$k";
+##				open(IN, "$web_dir/Disp_dir/$name");
+#
+#--- cleaning up col history list
+#
+##				@tline = ();
+##				$tcnt  = 0;
+##				while(<IN>){
+##					chomp $_;
+##					push(@tline, $_);
+##					$tcnt++;
+##				}
+##				close(IN);
+##				$nline = "$dom<>$date_obs2<>";
+##				foreach $ent (@{bad_col_new}){
+##					$nline = "$nline:"."$ent";
+##				}
+##				push(@tline, $nline);
+##				@sorted_tline = sort{$a<=>$b} @tline;
+##				@cleaned = ("$sorted_tline[0]");
+##				OUTER:
+##				for($i = 1; $i <= $tcnt; $i++){
+##					if($sorted_tline[$i] eq $sorted_tline[$i-1]){
+##						next OUTER;
+##					}
+##					push(@cleaned, $sorted_tline[$i]);
+##				}
+##				$name = "new_col$k";
+##				open(OUT, ">$web_dir/Disp_dir/$name");
+##				foreach $ent (@cleaned){
+##					print OUT "$ent\n";
+##				}
+##				close(OUT);
+##
+##
 #
 #---history file for disappeared  bad col
 #
-				$name = "imp_col$k";
-				open(IN, "$web_dir/Disp_dir/$name");
-				@tline = ();
-				$tcnt  = 0;
-				while(<IN>){
-					chomp $_;
-					push(@tline, $_);
-					$tcnt++;
-				}
-				close(IN);
-				$nline = "$dom<>$date_obs2<>";
-				foreach $ent (@{bad_col_imp}){
-					$nline = "$nline:"."$ent";
-				}
-				push(@tline, $nline);
-				@sorted_tline = sort{$a<=>$b} @tline;
-				@cleaned = ("$sorted_tline[0]");
-				OUTER:
-				for($i = 1; $i <= $tcnt; $i++){
-					if($sorted_tline[$i] eq $sorted_tline[$i-1]){
-						next OUTER;
-					}
-					push(@cleaned, $sorted_tline[$i]);
-				}
-				open(OUT, ">$web_dir/Disp_dir/imp_col$k");
-				foreach $ent (@cleaned){
-					print OUT "$ent\n";
-				}
-				close(OUT);
+##				$name = "imp_col$k";
+##				open(IN, "$web_dir/Disp_dir/$name");
+##				@tline = ();
+##				$tcnt  = 0;
+##				while(<IN>){
+##					chomp $_;
+##					push(@tline, $_);
+##					$tcnt++;
+##				}
+##				close(IN);
+##				$nline = "$dom<>$date_obs2<>";
+##				foreach $ent (@{bad_col_imp}){
+##					$nline = "$nline:"."$ent";
+##				}
+##				push(@tline, $nline);
+##				@sorted_tline = sort{$a<=>$b} @tline;
+##				@cleaned = ("$sorted_tline[0]");
+##				OUTER:
+##				for($i = 1; $i <= $tcnt; $i++){
+##					if($sorted_tline[$i] eq $sorted_tline[$i-1]){
+##						next OUTER;
+##					}
+##					push(@cleaned, $sorted_tline[$i]);
+##				}
+##				open(OUT, ">$web_dir/Disp_dir/imp_col$k");
+##				foreach $ent (@cleaned){
+##					print OUT "$ent\n";
+##				}
+##				close(OUT);
 #
 #---- bad col count history
 #
@@ -2291,7 +2407,8 @@ sub print_bad_col{
 					$tcnt++;
 				}
 				close(IN);
-				$nline = "$dom<>$date_obs2<>$current_col_no".":$chk_col_new:$chk_col_imp";
+##				$nline = "$dom<>$date_obs2<>$current_col_no".":$chk_col_new:$chk_col_imp";
+				$nline = "$dom<>$date_obs2<>$current_col_no";
 				push(@tline, $nline);
 				@sorted_tline = sort{$a<=>$b} @tline;
 				@cleaned = ("$sorted_tline[0]");
@@ -2653,17 +2770,23 @@ sub print_html{
 	print OUT '<BR>',"\n";
 	print OUT 'Bad Pixel Trend Plots<br>',"\n";
 #	print OUT '<a href=./bad_pix_hist> ASCII Data<br>',"\n";
-	print OUT '<a href=./Plots/hist_ccd.gif>Plot for History of Warm Pixel: Front Side CCDs</a><br>',"\n";
-	print OUT '<a href=./Plots/hist_ccd5.gif>Plot for History of Warm Pixel: CCD 5</a><br>',"\n";
-	print OUT '<a href=./Plots/hist_ccd7.gif>Plot for History of Warm Pixel: CCD 7</a><br>',"\n";
+#	print OUT '<a href=./Plots/hist_ccd.gif>Plot for History of Warm Pixel: Front Side CCDs</a><br>',"\n";
+#	print OUT '<a href=./Plots/hist_ccd5.gif>Plot for History of Warm Pixel: CCD 5</a><br>',"\n";
+#	print OUT '<a href=./Plots/hist_ccd7.gif>Plot for History of Warm Pixel: CCD 7</a><br>',"\n";
+#	print OUT '<a href=./Plots/hist_hccd.gif>Plot for History of Hot Pixel: Front Side CCDs</a><br>',"\n";
+#	print OUT '<a href=./Plots/hist_hccd5.gif>Plot for History of Hot Pixel: CCD 5</a><br>',"\n";
+#	print OUT '<a href=./Plots/hist_hccd7.gif>Plot for History of Hot Pixel: CCD 7</a><br>',"\n";
+#	print OUT '<a href=./Plots/hist_col.gif>Plot for History of Bad Columns: Front Side CCDs</a><br>',"\n";
+#	print OUT '<a href=./Plots/hist_col5.gif>Plot for History of  Bad  Columns: CCD 5</a><br>',"\n";
+#	print OUT '<a href=./Plots/hist_col7.gif>Plot for History of Bad Columns: CCD 7</a><br>',"\n";
 
-	print OUT '<a href=./Plots/hist_hccd.gif>Plot for History of Hot Pixel: Front Side CCDs</a><br>',"\n";
-	print OUT '<a href=./Plots/hist_hccd5.gif>Plot for History of Hot Pixel: CCD 5</a><br>',"\n";
-	print OUT '<a href=./Plots/hist_hccd7.gif>Plot for History of Hot Pixel: CCD 7</a><br>',"\n";
+	print OUT '<a href=./Plots/hist_plot_front_side.gif>Plot for History of Warm Pixel: Front Side CCDs</a><br>',"\n";
+	print OUT '<a href=./Plots/hist_plot_ccd5.gif>Plot for History of Warm Pixel: CCD 5</a><br>',"\n";
+	print OUT '<a href=./Plots/hist_plot_ccd7.gif>Plot for History of Warm Pixel: CCD 7</a><br>',"\n";
 
-	print OUT '<a href=./Plots/hist_col.gif>Plot for History of Bad Columns: Front Side CCDs</a><br>',"\n";
-	print OUT '<a href=./Plots/hist_col5.gif>Plot for History of  Bad  Columns: CCD 5</a><br>',"\n";
-	print OUT '<a href=./Plots/hist_col7.gif>Plot for History of Bad Columns: CCD 7</a><br>',"\n";
+	print OUT '<a href=./Plots/hist_col_plot_front_side.gif>Plot for History of Bad Columns: Front Side CCDs</a><br>',"\n";
+	print OUT '<a href=./Plots/hist_plot_ccd5.gif>Plot for History of Bad Columns: CCD 5</a><br>',"\n";
+	print OUT '<a href=./Plots/hist_plot_ccd7.gif>Plot for History of Bad Columns: CCD 7</a><br>',"\n";
 	print OUT '</font>';
 
 
