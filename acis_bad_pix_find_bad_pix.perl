@@ -1448,9 +1448,9 @@ sub print_bad_pix_data{
 	OUTER:
 	for($ip = 0; $ip < 10; $ip++){
 		system("rm $web_dir/Disp_dir/ccd$ip");
-		if(${tdycnt.$ip} == 0){
-			next OUTER;				# if there is no data for this date
-		}						# skip this ccd
+##		if(${tdycnt.$ip} == 0){
+##			next OUTER;				# if there is no data for this date
+##		}						# skip this ccd
 #
 #--- warm pixel case
 #
@@ -1475,24 +1475,27 @@ sub print_bad_pix_data{
 
 			$pline =  "$dom<>$date_obs2<>";
 
-			$first = shift(@{temp_ccd.$ip});
-			@new   = ($first);
-			CHK:
-			foreach $chk1 (@{temp_ccd.$ip}){
-				foreach $comp (@new){
-					if($chk1 eq $comp){
-						next CHK;
+			if(${tdycnt.$ip} > 0){
+				$first = shift(@{temp_ccd.$ip});
+				@new   = ($first);
+				CHK:
+				foreach $chk1 (@{temp_ccd.$ip}){
+					foreach $comp (@new){
+						if($chk1 eq $comp){
+							next CHK;
+						}
 					}
+					push(@new, $chk1);
 				}
-				push(@new, $chk1);
-			}
 
-			foreach $ent (@new){
-				@pos   = split(/\./, $ent);
-				$pline = "$pline".":($pos[0],$pos[1])";
-				print OUT2 "$pos[0]\t$pos[1]\n";	
+				foreach $ent (@new){
+					@pos   = split(/\./, $ent);
+					$pline = "$pline".":($pos[0],$pos[1])";
+					print OUT2 "$pos[0]\t$pos[1]\n";	
+				}
 			}
 			close(OUT2);
+
 			$chk = 0;
 			@temp_save = ();
 			OUTER2:
@@ -1517,122 +1520,122 @@ sub print_bad_pix_data{
 				$chk++;
 			}
 			if($chk > 0){
-				$max = $dom + 100;
-				for($k = 0; $k < $max; $k++){
-					@bdate[$k]   = 'na';
-					@bpix_cnt[$k] = 0;
-					@npix_cnt[$k] = 0;
-					@ipix_cnt[$k] = 0;
-				}
+#				$max = $dom + 100;
+#				for($k = 0; $k < $max; $k++){
+#					@bdate[$k]   = 'na';
+#					@bpix_cnt[$k] = 0;
+#					@npix_cnt[$k] = 0;
+#					@ipix_cnt[$k] = 0;
+#				}
 				@temp = sort{$a<=>$b} @past_data;
 				open(TEMP, ">$web_dir/Disp_dir/hist_ccd$ip");
 				$k1 = 0;
 				foreach $ent (@temp){
 					print TEMP "$ent\n";
-					@gtemp = split(/<>/, $ent);
-					@htemp = split(/:/,   $gtemp[2]);
-					$tcnt = 0;
-					foreach $ent (@htemp){
-						if($ent ne ''){
-							$tcnt++;
-						}
-					}
-					$bdate[$k1]    = "$gtemp[0]<>$gtemp[1]";;
-					$bpix_cnt[$k1] = $tcnt;
-					$k1++;
+#					@gtemp = split(/<>/, $ent);
+#					@htemp = split(/:/,   $gtemp[2]);
+#					$tcnt = 0;
+#					foreach $ent (@htemp){
+#						if($ent ne ''){
+#							$tcnt++;
+#						}
+#					}
+#					$bdate[$k1]    = "$gtemp[0]<>$gtemp[1]";;
+#					$bpix_cnt[$k1] = $tcnt;
+#					$k1++;
 				}
 				close(TEMP);
 
-				open(OUT3, ">$web_dir/Disp_dir/imp_ccd$ip");
-				open(OUT4, ">$web_dir/Disp_dir/new_ccd$ip");
-				open(OUT5, ">$web_dir/Disp_dir/change_ccd$ip");
-				for($i = 1; $i <= $ptot; $i++){
-					$j = $i - 1;
-					@atemp = split(/<>/, $temp[$j]);
-					@btemp = split(/:/,   $atemp[2]);
-	
-					@ctemp = split(/<>/, $temp[$i]);
-					@dtemp = split(/:/,   $ctemp[2]);
+#				open(OUT3, ">$web_dir/Disp_dir/imp_ccd$ip");
+#				open(OUT4, ">$web_dir/Disp_dir/new_ccd$ip");
+#				open(OUT5, ">$web_dir/Disp_dir/change_ccd$ip");
+#				for($i = 1; $i <= $ptot; $i++){
+#					$j = $i - 1;
+#					@atemp = split(/<>/, $temp[$j]);
+#					@btemp = split(/:/,   $atemp[2]);
+#	
+#					@ctemp = split(/<>/, $temp[$i]);
+#					@dtemp = split(/:/,   $ctemp[2]);
 	
 #
 #--- create improved pixel list
 #
-					@imp_save = ();
-					OUTER3:
-					foreach $ent (@btemp){
-						if($ent eq ''){
-							next OUTER3;
-						}
-						foreach $comp (@dtemp){
-							if(($comp ne '') && ($ent eq $comp)){
-								next OUTER3;
-							}
-						}
-						push(@imp_save, $ent);
-					}
-					print OUT3 "$atemp[0]<>$atemp[1]<>";
-					$k2 = 0;
-					foreach $ent (@imp_save){
-						print OUT3 ":$ent";
-						$k2++;
-					}
-					print OUT3 "\n";
-					$ipix_cnt[$i] = $k2;
+#					@imp_save = ();
+#					OUTER3:
+#					foreach $ent (@btemp){
+#						if($ent eq ''){
+#							next OUTER3;
+#						}
+#						foreach $comp (@dtemp){
+#							if(($comp ne '') && ($ent eq $comp)){
+#								next OUTER3;
+#							}
+#						}
+#						push(@imp_save, $ent);
+#					}
+#					print OUT3 "$atemp[0]<>$atemp[1]<>";
+#					$k2 = 0;
+#					foreach $ent (@imp_save){
+#						print OUT3 ":$ent";
+#						$k2++;
+#					}
+#					print OUT3 "\n";
+#					$ipix_cnt[$i] = $k2;
 #
 #--- create new bad pixel list
 #
-					@new_save = ();
-					OUTER4:
-					foreach $ent (@dtemp){
-						if($ent eq ''){
-							next OUTER4;
-						}
-						foreach $comp (@btemp){
-							if(($comp ne '') && ($ent eq $comp)){
-								next OUTER4;
-							}
-						}
-						push(@new_save, $ent);
-					}
-					print OUT4 "$atemp[0]<>$atemp[1]<>";
-					$k3 = 0;
-					foreach $ent (@new_save){
-						print OUT4 ":$ent";
-						$k3++;
-					}
-					print OUT4 "\n";
-					$npix_cnt[$i] = $k3++;
+#					@new_save = ();
+#					OUTER4:
+#					foreach $ent (@dtemp){
+#						if($ent eq ''){
+#							next OUTER4;
+#						}
+#						foreach $comp (@btemp){
+#							if(($comp ne '') && ($ent eq $comp)){
+#								next OUTER4;
+#							}
+#						}
+#						push(@new_save, $ent);
+#					}
+#					print OUT4 "$atemp[0]<>$atemp[1]<>";
+#					$k3 = 0;
+#					foreach $ent (@new_save){
+#						print OUT4 ":$ent";
+#						$k3++;
+#					}
+#					print OUT4 "\n";
+#					$npix_cnt[$i] = $k3++;
 #
 #--- make a file for display
 #
-					print OUT5 "$atemp[0]<>$atemp[1]\n";
-					print OUT5 "\tNew: ";
-					foreach $ent (@new_save){
-						print OUT5 "$ent ";
-					}
-					print OUT5 "\n";
-					print OUT5 "\tImp: ";
-					foreach $ent (@imp_save){
-						print OUT5 "$ent ";
-					}
-					print OUT5 "\n";
-				}
-				close(OUT3);
-				close(OUT4);
-				close(OUT5);
+#					print OUT5 "$atemp[0]<>$atemp[1]\n";
+#					print OUT5 "\tNew: ";
+#					foreach $ent (@new_save){
+#						print OUT5 "$ent ";
+#					}
+#					print OUT5 "\n";
+#					print OUT5 "\tImp: ";
+#					foreach $ent (@imp_save){
+#						print OUT5 "$ent ";
+#					}
+#					print OUT5 "\n";
+#				}
+#				close(OUT3);
+#				close(OUT4);
+#				close(OUT5);
 #
 #--- print out counts of total bad pix, new bad pix, and disappeared bad pix
 #
-				$name = 'ccd'."$ip".'_cnt';
-				open(OUT6, ">$web_dir/Disp_dir/$name");
-				for($k = 0; $k < $ptot; $k++){
-					print OUT6 "$bdate[$k]<>";
-					print OUT6 "$bpix_cnt[$k]:";
-					print OUT6 "$npix_cnt[$k]:";
-					print OUT6 "$ipix_cnt[$k]\n";
-				}
-				close(OUT6);
-
+#				$name = 'ccd'."$ip".'_cnt';
+#				open(OUT6, ">$web_dir/Disp_dir/$name");
+#				for($k = 0; $k < $ptot; $k++){
+#					print OUT6 "$bdate[$k]<>";
+#					print OUT6 "$bpix_cnt[$k]:";
+#					print OUT6 "$npix_cnt[$k]:";
+#					print OUT6 "$ipix_cnt[$k]\n";
+#				}
+#				close(OUT6);
+#
 
 			}
 #

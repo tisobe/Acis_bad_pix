@@ -21,7 +21,7 @@ $old_dir       = $web_dir;
 $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 
 #-- TEST ----
-$bin_dir = "/data/mta/Script/ACIS/Bad_pixels/Acis_bad_pix/";
+###$bin_dir = "/data/mta/Script/ACIS/Bad_pixels/Acis_bad_pix/";
 #------------
 
 system("cp $web_dir/Disp_dir/hist_ccd* $web_dir/Disp_dir/hist_col* .");
@@ -59,8 +59,8 @@ system("perl $bin_dir/plot_col_history.perl");
 system("perl $bin_dir/plot_front_col_hsotry.perl");
 
 
-##system("mv *gif $web_dir/Plots/");
-##system("mv bad* cum* ccd*cnt col*cnt hist* new* imp* flk*     $web_dir/Disp_dir/");
+system("mv *gif $web_dir/Plots/");
+system("mv bad* cum* ccd*cnt col*cnt hist* new* imp* flk*     $web_dir/Disp_dir/");
 
-system("mv *gif ./Plots/");
-system("mv bad* cum* ccd*cnt col*cnt hist* new* imp* flk*     ./Disp_dir/");
+##system("mv *gif ./Plots/");
+##system("mv bad* cum* ccd*cnt col*cnt hist* new* imp* flk*     ./Disp_dir/");
