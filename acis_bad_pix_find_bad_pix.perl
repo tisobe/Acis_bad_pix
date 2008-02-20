@@ -2268,7 +2268,7 @@ sub print_bad_col{
 
 					foreach $comp (@last_ent){
 						if($ent eq $comp){
-							next OUTER2:
+							next OUTER2;
 						}
 					}
 					push(@new_col, $ent);
@@ -2277,8 +2277,8 @@ sub print_bad_col{
 				close(OUT2);
 
 				OTUER2:
-				foreach $test (@last_ent)
-					foreach $comp (@@{bad_col_list.$k}){
+				foreach $test (@last_ent){
+					foreach $comp (@{bad_col_list.$k}){
 						if($test eq $comp){
 							next OTUER2;
 						}
@@ -2292,7 +2292,8 @@ sub print_bad_col{
 				foreach $ent (@new_col){
 					$sline = "$sline".":$ent";
 				}
-				open(OUT3, ">>$web_dir".'/Disp_dir/new_col'."$k";
+				$out_line = "$web_dir".'/Disp_dir/new_col'."$k";
+				open(OUT3, ">>$out_line");
 				print OUT3 "$sline\n";
 				close(OUT3);
 #
@@ -2302,7 +2303,8 @@ sub print_bad_col{
 				foreach $ent (@imp_col){
 					$sline = "$sline".":$ent";
 				}
-				open(OUT3, ">>$web_dir".'/Disp_dir/imp_col'."$k";
+				$out_line = "$web_dir".'/Disp_dir/imp_col'."$k";
+				open(OUT3, ">>$out_line");
 				print OUT3 "$sline\n";
 				close(OUT3);
 					
