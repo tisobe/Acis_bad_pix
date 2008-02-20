@@ -1890,7 +1890,7 @@ sub find_bad_col{
 		push(@test, $_);
 	}
 	close(IN);
-	@temp  = sort($a<=>$b} @test;
+	@temp  = sort{$a<=>$b} @test;
 	$first = shift(@temp);
 	@new   = ($first);
 	OUTER:
@@ -1904,7 +1904,7 @@ sub find_bad_col{
 	}
 	open(OUT, ">$outdir_name");
 	foreach $tent (@new){
-		print OUT, "$tent\nr";
+		print OUT "$tent\n";
 	}
 	close(OUT);	
 }
