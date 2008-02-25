@@ -6,9 +6,18 @@
 #											#
 #		author: t. isobe (tisobe@cfa.harvard.edu)				#
 #											#
-#		last update: Feb 14, 2008						#
+#		last update: Feb 25, 2008						#
 #											#
 #########################################################################################
+
+#--- output directory
+
+$bin_dir       = '/data/mta/MTA/bin/';
+$bdat_dir      = '/data/mta/MTA/data/';
+$web_dir       = '/data/mta/www/mta_bad_pixel/';
+$old_dir       = $web_dir;
+$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+
 
 #
 #--- find today's date
@@ -16,6 +25,7 @@
 
 ($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst)= localtime(time);
 $end_year = 1900 + $uyear;
+$uyday++;
 
 #
 #--- first make a full list of dom<--->year<>ydate list
@@ -33,7 +43,7 @@ for($year = 1999; $year <= $end_year; $year++){
 		if($year == 1999 && $yday < 202){
 			next OUTER;
 		}
-		if($year == 2008 && $yday > $uyday){
+		if($year == $end_year && $yday > $uyday){
 			last OUTER;
 		}
 
@@ -49,7 +59,7 @@ for($year = 1999; $year <= $end_year; $year++){
 #
 
 for($ccd = 0; $ccd < 10; $ccd++){
-	$in_name = 'hist_ccd'."$ccd";
+	$in_name = "$web_dir".'/Disp_dir/hist_ccd'."$ccd";
 	open(FH, "$in_name");
 	open(OUT, "> temp_out");
 	$counter = 1;

@@ -7,33 +7,47 @@ use PGPLOT;
 #												#
 #		author: t. isobe (tisobe@cfa.harvard.edu)					#
 #												#
-#		last update: Feb 14, 2008							#
+#		last update: Feb 22, 2008							#
 #												#
 #################################################################################################
+
+#--- output directory
+
+$bin_dir       = '/data/mta/MTA/bin/';
+#$bin_dir      = '//data/mta/Script/ACIS/Bad_pixels/Test/';
+$bdat_dir      = '/data/mta/MTA/data/';
+$web_dir       = '/data/mta/www/mta_bad_pixel/';
+$old_dir       = $web_dir;
+$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+
 
 pgbegin(0, '"./pgplot.ps"/cps',1,1);
 pgsubp(1,3);
 pgsch(2);
 pgslw(4);
 
+@x    = ();
 @y    = ();
+$tot  = 0;
 foreach $ccd (0, 1, 2, 3, 4, 6, 8, 9){
 
 #
 #---- warm pixel counts
 #
-	$file = 'ccd'."$ccd".'_cnt';
-	@x    = ();
-	$tot  = 0;
+	$file = "$web_dir".'/Disp_dir/ccd'."$ccd".'_cnt';
 	open(FH, "$file");
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/<>/, $_);
-		push(@x, $atemp[0]);
 
 		@btemp = split(/:/, $atemp[2]);
-		$y[$atemp[0]] = $btemp[1];
-		$tot++;
+		if($ccd == 0){
+			push(@x, $atemp[0]);
+			$y[$atemp[0]] = $btemp[1];
+			$tot++;
+		}else{
+			$y[$atemp[0]] += $btemp[1];
+		}
 	}
 	close(FH);
 }
@@ -72,20 +86,24 @@ pglabel("Time (DOM)", "Counts", "Numbers of Warm Pixels: Front Side CCDs");
 #----- potentintial bad pixel counts
 #
 
+@x    = ();
 @y    = ();
+$tot  = 0;
 foreach $ccd (0, 1, 2, 3, 4, 6, 8, 9){
-	$file = 'bad_ccd'."$ccd".'_cnt';
-	@x    = ();
-	$tot  = 0;
+	$file = "$web_dir".'/Disp_dir/bad_ccd'."$ccd".'_cnt';
 	open(FH, "$file");
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/<>/, $_);
-		push(@x, $atemp[0]);
 
 		@btemp = split(/:/, $atemp[2]);
-		$y[$atemp[0]] = $btemp[1];
-		$tot++;
+		if($ccd == 0){
+			push(@x, $atemp[0]);
+			$y[$atemp[0]] = $btemp[1];
+			$tot++;
+		}else{
+			$y[$atemp[0]] += $btemp[1];
+		}
 	}
 	close(FH);
 }
@@ -125,20 +143,24 @@ pglabel("Time (DOM)", "Counts", "$title");
 #----- cumulative warm pixel counts
 #
 
+@x    = ();
 @y    = ();
+$tot  = 0;
 foreach $ccd (0, 1, 2, 3, 4, 6, 8, 9){
-	$file = 'cum_ccd'."$ccd".'_cnt';
-	@x    = ();
-	$tot  = 0;
+	$file = "$web_dir".'/Disp_dir/cum_ccd'."$ccd".'_cnt';
 	open(FH, "$file");
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/<>/, $_);
-		push(@x, $atemp[0]);
 
 		@btemp = split(/:/, $atemp[2]);
-		$y[$atemp[0]] = $btemp[1];
-		$tot++;
+		if($ccd == 0){
+			push(@x, $atemp[0]);
+			$y[$atemp[0]] = $btemp[1];
+			$tot++;
+		}else{
+			$y[$atemp[0]] += $btemp[1];
+		}
 	}
 	close(FH);
 }

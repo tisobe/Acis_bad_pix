@@ -7,9 +7,18 @@ use PGPLOT;
 #												#
 #		author: t. isobe (tisobe@cfa.harvard.edu)					#
 #												#
-#		last update: Feb 14, 2008							#
+#		last update: Feb 22, 2008							#
 #												#
 #################################################################################################
+
+#--- output directory
+
+$bin_dir       = '/data/mta/MTA/bin/';
+#$bin_dir      = '//data/mta/Script/ACIS/Bad_pixels/Test/';
+$bdat_dir      = '/data/mta/MTA/data/';
+$web_dir       = '/data/mta/www/mta_bad_pixel/';
+$old_dir       = $web_dir;
+$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 
 
 for($ccd = 0; $ccd < 10; $ccd++){
@@ -23,7 +32,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 #---- warm column counts
 #
 
-	$file = 'col'."$ccd".'_cnt';
+	$file = "$web_dir".'/Disp_dir/col'."$ccd".'_cnt';
 	open(FH, "$file");
 	@x    = ();
 	@y    = ();
@@ -72,7 +81,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 #----- potentintial bad pixel counts
 #
 
-	$file = 'bad_col'."$ccd".'_cnt';
+	$file = "$web_dir".'/Disp_dir/bad_col'."$ccd".'_cnt';
 	open(FH, "$file");
 	@x   = ();
 	@y   = ();
@@ -122,7 +131,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 #----- cumulative warm pixel counts
 #
 
-	$file = 'cum_col'."$ccd".'_cnt';
+	$file = "$web_dir".'/Disp_dir/cum_col'."$ccd".'_cnt';
 	open(FH, "$file");
 	@x   = ();
 	@y   = ();
@@ -154,6 +163,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	}else{
 		$ymin = $min;
 	}
+	$ymin = 0;
 	
 	$ymax = $med + $diff;
 	$chk  = $ymax - $temp[$tot -1];

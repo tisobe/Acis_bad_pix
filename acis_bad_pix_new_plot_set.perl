@@ -30,7 +30,7 @@ system("cp $web_dir/Disp_dir/hist_ccd* $web_dir/Disp_dir/hist_col* .");
 #--- warm pixel cases
 #
 
-system("perl $bin_dir/fill_ccd_hist.perl");
+###system("perl $bin_dir/fill_ccd_hist.perl");
 
 system("perl $bin_dir/create_new_and_imp_ccd_list.perl");
 
@@ -46,7 +46,7 @@ system("perl $bin_dir/plot_front_ccd_hsotry.perl");
 #--- warm column cases
 #
 
-system("perl $bin_dir/fill_col_hist.perl");
+###system("perl $bin_dir/fill_col_hist.perl");
 
 system("perl $bin_dir/create_new_and_imp_col_list.perl");
 

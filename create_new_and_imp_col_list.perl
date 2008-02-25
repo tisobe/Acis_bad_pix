@@ -6,19 +6,29 @@
 #											#
 #		author: t. isobe (tisobe@cfa.harvard.edu)				#
 #											#
-#		last update: Feb 14, 2008						#
+#		last update: Feb 25, 2008						#
 #											#
 #########################################################################################
+
+#--- output directory
+
+$bin_dir       = '/data/mta/MTA/bin/';
+#$bin_dir      = '//data/mta/Script/ACIS/Bad_pixels/Test/';
+$bdat_dir      = '/data/mta/MTA/data/';
+$web_dir       = '/data/mta/www/mta_bad_pixel/';
+$old_dir       = $web_dir;
+$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+
 
 for($ccd = 0; $ccd < 10; $ccd++){
 #
 #--- set input/output file names
 #
-	$hist = 'hist_col'."$ccd";
-	$new  = 'new_col'."$ccd";
-	$imp  = 'imp_col'."$ccd";
+	$hist = "$web_dir".'/Disp_dir/hist_col'."$ccd";
+	$new  = "$web_dir".'/Disp_dir/new_col'."$ccd";
+	$imp  = "$web_dir".'/Disp_dir/imp_col'."$ccd";
 
-	$hst_cnt = 'col'."$ccd".'_cnt';
+	$hst_cnt = "$web_dir".'/Disp_dir/col'."$ccd".'_cnt';
 #
 #--- read a history file
 #

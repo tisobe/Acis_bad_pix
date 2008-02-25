@@ -9,18 +9,27 @@
 #											#
 #		author: t. isobe (tisobe@cfa.harvard.edu)				#
 #											#
-#		last update: Feb 14, 2008						#
+#		last update: Feb 25, 2008						#
 #											#
 #########################################################################################
+
+
+#--- output directory
+
+$bin_dir       = '/data/mta/MTA/bin/';
+$bdat_dir      = '/data/mta/MTA/data/';
+$web_dir       = '/data/mta/www/mta_bad_pixel/';
+$old_dir       = $web_dir;
+$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 
 for($ccd = 0; $ccd < 10; $ccd++){
 #
 #--- set input/output file names
 #
-	$new_col     = 'new_col'."$ccd";		#--- use this (new_ccd#) for input
-	$flk_col     = 'flk_col'."$ccd";		#--- flickering col hist
-	$flk_col_cnt = 'flk_col'."$ccd".'_cnt';		#--- flickering col count hist
-	$cum_col     = 'cum_col'."$ccd".'_cnt';		#--- cumulative # of warm col
+	$new_col     = "$web_dir".'/Disp_dir/new_col'."$ccd";		#--- use this (new_ccd#) for input
+	$flk_col     = "$web_dir".'/Disp_dir/flk_col'."$ccd";		#--- flickering col hist
+	$flk_col_cnt = "$web_dir".'/Disp_dir/flk_col'."$ccd".'_cnt';	#--- flickering col count hist
+	$cum_col     = "$web_dir".'/Disp_dir/cum_col'."$ccd".'_cnt';	#--- cumulative # of warm col
 
 	open(FH,   "$new_col");
 	open(OUT1, ">$flk_col");

@@ -9,18 +9,27 @@
 #											#
 #		author: t. isobe (tisobe@cfa.harvard.edu)				#
 #											#
-#		last update: Feb 14, 2008						#
+#		last update: Feb 25, 2008						#
 #											#
 #########################################################################################
+
+#--- output directory
+
+$bin_dir       = '/data/mta/MTA/bin/';
+#$bin_dir      = '//data/mta/Script/ACIS/Bad_pixels/Test/';
+$bdat_dir      = '/data/mta/MTA/data/';
+$web_dir       = '/data/mta/www/mta_bad_pixel/';
+$old_dir       = $web_dir;
+$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 
 for($ccd = 0; $ccd < 10; $ccd++){
 #
 #--- set input/output file names
 #
-	$new_ccd     = 'new_ccd'."$ccd";		#--- use this (new_ccd#) for input
-	$flk_ccd     = 'flk_ccd'."$ccd";		#--- flickering pix hist
-	$flk_ccd_cnt = 'flk_ccd'."$ccd".'_cnt';		#--- flickering pix count hist
-	$cum_ccd     = 'cum_ccd'."$ccd".'_cnt';		#--- cumulative # of warm pix
+	$new_ccd     = "$web_dir".'/Disp_dir/new_ccd'."$ccd";		#--- use this (new_ccd#) for input
+	$flk_ccd     = "$web_dir".'/Disp_dir/flk_ccd'."$ccd";		#--- flickering pix hist
+	$flk_ccd_cnt = "$web_dir".'/Disp_dir/flk_ccd'."$ccd".'_cnt';	#--- flickering pix count hist
+	$cum_ccd     = "$web_dir".'/Disp_dir/cum_ccd'."$ccd".'_cnt';	#--- cumulative # of warm pix
 
 	open(FH,   "$new_ccd");
 	open(OUT1, ">$flk_ccd");

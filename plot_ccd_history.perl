@@ -7,9 +7,17 @@ use PGPLOT;
 #												#
 #		author: t. isobe (tisobe@cfa.harvard.edu)					#
 #												#
-#		last update: Feb 14, 2008							#
+#		last update: Feb 25, 2008							#
 #												#
 #################################################################################################
+
+#--- output directory
+
+$bin_dir       = '/data/mta/MTA/bin/';
+$bdat_dir      = '/data/mta/MTA/data/';
+$web_dir       = '/data/mta/www/mta_bad_pixel/';
+$old_dir       = $web_dir;
+$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 
 
 for($ccd = 0; $ccd < 10; $ccd++){
@@ -23,7 +31,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 #---- warm pixel counts
 #
 
-	$file = 'ccd'."$ccd".'_cnt';
+	$file = "$web_dir".'/Disp_dir/ccd'."$ccd".'_cnt';
 	open(FH, "$file");
 	@x    = ();
 	@y    = ();
@@ -72,7 +80,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 #----- potentintial bad pixel counts
 #
 
-	$file = 'bad_ccd'."$ccd".'_cnt';
+	$file = "$web_dir".'/Disp_dir/bad_ccd'."$ccd".'_cnt';
 	open(FH, "$file");
 	@x   = ();
 	@y   = ();
@@ -122,7 +130,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 #----- cumulative warm pixel counts
 #
 
-	$file = 'cum_ccd'."$ccd".'_cnt';
+	$file = "$web_dir".'/Disp_dir/cum_ccd'."$ccd".'_cnt';
 	open(FH, "$file");
 	@x   = ();
 	@y   = ();

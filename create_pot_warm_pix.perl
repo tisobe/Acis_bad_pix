@@ -6,14 +6,22 @@
 #													#
 #		author: t. isobe (tisobe@cfa.harvard.edu)						#
 #													#
-#		last updated: Feb. 14, 2008								#
+#		last updated: Feb. 25, 2008								#
 #													#
 #########################################################################################################
 
+#--- output directory
+
+$bin_dir       = '/data/mta/MTA/bin/';
+$bdat_dir      = '/data/mta/MTA/data/';
+$web_dir       = '/data/mta/www/mta_bad_pixel/';
+$old_dir       = $web_dir;
+$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+
 for($ccd = 0; $ccd < 10; $ccd++){
-	$hst = 'hist_ccd'."$ccd";
-	$flk = 'flk_ccd'."$ccd";
-	$ptn = 'bad_ccd'."$ccd".'_cnt';
+	$hst = "$web_dir".'/Disp_dir/hist_ccd'."$ccd";
+	$flk = "$web_dir".'/Disp_dir/flk_ccd'."$ccd";
+	$ptn = "$web_dir".'/Disp_dir/bad_ccd'."$ccd".'_cnt';
 
 #
 #--- read history file
