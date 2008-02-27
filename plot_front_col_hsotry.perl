@@ -43,11 +43,13 @@ pgslw(4);
 
 @x    = ();
 @y    = ();
+$tot  = 0;
 for($i = 0; $i < $dom; $i++){
 	$x[$i] = $i;
 	$y[$i] = 0;
+	$tot++;
 }
-$tot  = 0;
+
 foreach $ccd (0, 1, 2, 3, 4, 6, 8, 9){
 
 #
@@ -63,7 +65,7 @@ foreach $ccd (0, 1, 2, 3, 4, 6, 8, 9){
 		if($ccd == 0){
 #			push(@x, $atemp[0]);
 			$y[$atemp[0]] = $btemp[1];
-			$tot++;
+#			$tot++;
 		}else{
 			$y[$atemp[0]] += $btemp[1];
 		}
@@ -164,11 +166,12 @@ pglabel("Time (DOM)", "Counts", "$title");
 
 @x    = ();
 @y    = ();
+$tot  = 0;
 for($i = 0; $i < $dom; $i++){
 	$x[$i] = $i;
 	$y[$i] = 0;
+	$tot++;
 }
-$tot  = 0;
 foreach $ccd (0, 1, 2, 3, 4, 6, 8, 9){
 	$file = "$web_dir".'/Disp_dir/cum_col'."$ccd".'_cnt';
 	open(FH, "$file");
@@ -179,9 +182,10 @@ foreach $ccd (0, 1, 2, 3, 4, 6, 8, 9){
 		if($ccd == 0){
 #			push(@x, $atemp[0]);
 			$y[$atemp[0]] = $btemp[1];
-			$tot++;
+#			$tot++;
 		}else{
 			$y[$atemp[0]] += $btemp[1];
+###print "$y[$atemp[0]]<--->$btemp[1]\n";
 		}
 	}
 	close(FH);

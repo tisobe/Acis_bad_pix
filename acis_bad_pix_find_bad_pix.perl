@@ -7,7 +7,7 @@ use PGPLOT;
 #				and warm columns and plots the results		#
 #										#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)			#
-#	last update:	Feb 19, 2008						#
+#	last update:	Feb 26, 2008						#
 #										#
 #	input:									#
 #		if $ARGV[0] = live: /dsops/ap/sdp/cache/*/acis/*bias0.fits	#
@@ -213,9 +213,9 @@ if($dcnt > 0){						# yes we have new data, so let compute
 
 	}
 
-	flickering_check('warm');			# check which pixels are flickering in the past 90 days
-	flickering_check('hot');			# check which pixels are flickering in the past 90 days
-	flickering_col();         			# check which cols are flickering in the past 90 days
+##	flickering_check('warm');			# check which pixels are flickering in the past 90 days
+##	flickering_check('hot');			# check which pixels are flickering in the past 90 days
+##	flickering_col();         			# check which cols are flickering in the past 90 days
 	find_more_bad_pix_info();			# find additional information about bad pixels
 
 #
@@ -237,7 +237,7 @@ mv_old_data();						# move old data from an active dir to a save dir
 #########################################################
 
 sub get_dir {
-	open(FH, '$house_keeping/past_input_data');
+	open(FH, "$house_keeping/past_input_data");
 	@past_list = ();
 	@past_date_list = ();				# get a previous data list
 	while(<FH>){
@@ -416,7 +416,8 @@ sub regroup_data{
         }
 
         find_ydate($data[0]);                                   # chnage date format
-        $day_start = $yday;                                     # first date of the data period
+        $day_start      = $yday;                                # first date of the data period
+	$data_set_start = $time_sec;
 
         find_ydate($data[$cnt-1]);
         $day_end = $yday;                                       # last date of the data period
@@ -448,12 +449,13 @@ sub regroup_data{
 ################################################################
 
 sub find_ydate {
-        ($input) = @_;
-        @atemp   = split(/acisf/, $input);
-        @btemp   = split(/N/, $atemp[1]);
-	$n_time  = `/home/ascds/DS.release/bin/axTime3 $btemp[0] u s t d`;
-        @atemp   = split(/:/, $n_time);
-        $yday    = $atemp[1];
+        ($input)  = @_;
+        @atemp    = split(/acisf/, $input);
+        @btemp    = split(/N/, $atemp[1]);
+	$n_time   = `/home/ascds/DS.release/bin/axTime3 $btemp[0] u s t d`;
+        @atemp    = split(/:/, $n_time);
+        $yday     = $atemp[1];
+	$time_sec = $btemp[0];
 }
 
 
@@ -2257,7 +2259,14 @@ sub print_bad_col{
 				}
 				close(IN);
 				@atemp    = split(/<>:/, $last);
-				@last_ent = split(/:/, $atemp[1]);
+				@last_ent = split(/:/,   $atemp[1]);
+#
+#--- if the new entry is older than the previously entired data, ignore
+#
+				@btemp    = split(/<>/,  $last);
+				if($dom < $btemp[0]){
+					next OUTER;
+				}
 
 				$current_col_no = 0;
 				@new_col        = ();
@@ -2267,8 +2276,12 @@ sub print_bad_col{
 
 				open(OUT2,">$col_name");
 
+				$chk = 0;
 				OUTER2:
 				foreach $ent (@{bad_col_list.$k}){
+					if($ent eq ''){
+						next OUTER2;
+					}
 					$nline = "$nline:"."$ent";
 					print OUT2 "$ent\n";
 					$current_col_no++;
@@ -2279,9 +2292,13 @@ sub print_bad_col{
 						}
 					}
 					push(@new_col, $ent);
+					$chk++;
 						
 				}
 				close(OUT2);
+				if($chk == 0){
+					$nline = "$nline:";
+				}
 
 ##				OTUER2:
 ##				foreach $test (@last_ent){
@@ -2319,22 +2336,22 @@ sub print_bad_col{
 #--- cleaning up col history list
 #
 
-##				push(@tline, $nline);
-##				@sorted_tline = sort{$a<=>$b} @tline;
-##				@cleaned = ("$sorted_tline[0]");
-##				OUTER:
-##				for($i = 1; $i <= $tcnt; $i++){
-##					if($sorted_tline[$i] eq $sorted_tline[$i-1]){
-##						next OUTER;
-##					}
-##					push(@cleaned, $sorted_tline[$i]);
-##				}
-##				$name = "hist_col$k";
-##				open(OUT, ">$web_dir/Disp_dir/$name");
-##				foreach $ent (@cleaned){
-##					print OUT "$ent\n";
-##				}
-##				close(OUT);
+				push(@tline, $nline);
+				@sorted_tline = sort{$a<=>$b} @tline;
+				@cleaned = ("$sorted_tline[0]");
+				OUTER:
+				for($i = 1; $i <= $tcnt; $i++){
+					if($sorted_tline[$i] eq $sorted_tline[$i-1]){
+						next OUTER;
+					}
+					push(@cleaned, $sorted_tline[$i]);
+				}
+				$name = "hist_col$k";
+				open(OUT, ">$web_dir/Disp_dir/$name");
+				foreach $ent (@cleaned){
+					print OUT "$ent\n";
+				}
+				close(OUT);
 
 #
 #---history file for new bad col
@@ -3614,24 +3631,25 @@ sub mv_old_data{
                 ($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst)= localtime(time);
                 $year = $uyear + 1900;
                 $hyday++;
-        }else{
-                @atemp = split(/:/, $today_time);
-		$year  = $atemp[0];
-		$hyday = $atemp[1];
-        }
 
-	$hyday -= 90;
-	if($hyday < 0) {
-		$year--;
-		$hyday = 365 + $hyday;
-	}
+		$hyday -= 6;
+		if($hyday < 0) {
+			$year--;
+			$hyday = 365 + $hyday;
+		}
 	
-	$time = "$year:$hyday:00:00:00";
-	timeconv2($time);
+		$time = "$year:$hyday:00:00:00";
+		timeconv2($time);
+        }else{
+#               @atemp = split(/:/, $today_time);
+#		$year  = $atemp[0];
+#		$hyday = $atemp[1];
+		$sec_form_time = $data_set_start - 518400;
+        }
 	
 	for($dccd = 0; $dccd < 10; $dccd++){
 		system("chmod 775  $house_keeping/Defect/CCD$dccd/*");
-		system("ls -l $house_keeping/Defect/CCD$dccd/* > ./Working_dir/list");
+		system("ls -d $house_keeping/Defect/CCD$dccd/acis* > ./Working_dir/list");
 		open(FH, './Working_dir/list');
 		while(<FH>){
 			chomp $_;
@@ -3641,8 +3659,8 @@ sub mv_old_data{
 				$old_file = 'acis'."$btemp[1]";
 				@ctemp = split(/_/, $btemp[1]);
 				if($ctemp[0] < $sec_form_time){
-###					system("mv  $atemp[7] $web_dir/Old_data/CCD$dccd/.");
-###					system("gzip $web_dir/Old_data/CCD$dccd/$old_file");
+					system("mv  $_ $web_dir/Old_data/CCD$dccd/.");
+					system("gzip $web_dir/Old_data/CCD$dccd/$old_file");
 				}
 #			}else{
 #				system("rm $atemp[7]");
@@ -4453,7 +4471,7 @@ sub find_totally_new_col {
 		system("mv ./Working_dir/zout $file");
 	}
 #
-#---- find today's bad pixels
+#---- find today's bad cols
 #
 	$temp_file = `ls $web_dir/Disp_dir/col*`;
 	@col_list  = split(/\s+/, $temp_file);
@@ -4505,10 +4523,12 @@ sub find_totally_new_col {
 			if($new_ind == 0){
 				$first_day = "$uyear:$uyday";
 				$dom_today = ch_ydate_to_dom($first_day);
-				open(OUT,">>$web_dir/Disp_dir/totally_new_col$kccd");
-				print OUT "$col\t$first_day [$dom_today]\n";
-				close(OUT);
-				${tot_new_col.$kccd}++;
+				if($dom_today > 0){
+					open(OUT,">>$web_dir/Disp_dir/totally_new_col$kccd");
+					print OUT "$col\t$first_day [$dom_today]\n";
+					close(OUT);
+					${tot_new_col.$kccd}++;
+				}
 			}
 		}
 		close(FH);
