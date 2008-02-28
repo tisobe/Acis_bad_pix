@@ -414,6 +414,11 @@ sub regroup_data{
 		push(@bias_bg_comp_list, $ent);
                 $cnt++;
         }
+	
+	if($cnt < 1){
+		print "There is not bias data in this period; existing\n";
+		exit 1;
+	}
 
         find_ydate($data[0]);                                   # chnage date format
         $day_start      = $yday;                                # first date of the data period
@@ -1491,8 +1496,10 @@ sub print_bad_pix_data{
 
 				foreach $ent (@new){
 					@pos   = split(/\./, $ent);
-					$pline = "$pline".":($pos[0],$pos[1])";
-					print OUT2 "$pos[0]\t$pos[1]\n";	
+					if($pos[0] =~ /\d/ && $pos[1] =~ /\d/){
+						$pline = "$pline".":($pos[0],$pos[1])";
+						print OUT2 "$pos[0]\t$pos[1]\n";	
+					}
 				}
 			}
 			close(OUT2);
@@ -2279,7 +2286,7 @@ sub print_bad_col{
 				$chk = 0;
 				OUTER2:
 				foreach $ent (@{bad_col_list.$k}){
-					if($ent eq ''){
+					if($ent !~ /\d/ || $ent eq ''){
 						next OUTER2;
 					}
 					$nline = "$nline:"."$ent";

@@ -9,7 +9,7 @@
 #											#
 #		author: t. isobe (tisobe@cfa.harvard.edu)				#
 #											#
-#		last update: Feb 25, 2008						#
+#		last update: Feb 28, 2008						#
 #											#
 #########################################################################################
 
@@ -26,10 +26,25 @@ for($ccd = 0; $ccd < 10; $ccd++){
 #
 #--- set input/output file names
 #
+	$hst_ccd     = "$web_dir".'/Disp_dir/hist_ccd'."$ccd";		#--- warm pix history file
 	$new_ccd     = "$web_dir".'/Disp_dir/new_ccd'."$ccd";		#--- use this (new_ccd#) for input
 	$flk_ccd     = "$web_dir".'/Disp_dir/flk_ccd'."$ccd";		#--- flickering pix hist
 	$flk_ccd_cnt = "$web_dir".'/Disp_dir/flk_ccd'."$ccd".'_cnt';	#--- flickering pix count hist
 	$cum_ccd     = "$web_dir".'/Disp_dir/cum_ccd'."$ccd".'_cnt';	#--- cumulative # of warm pix
+
+#
+#--- read currently active warm pixel list
+#
+
+	open(FH,   "$hst_ccd");
+	@hist_pix = ();
+	while(<FH>){
+		chomp $_;
+		@atemp = split(/<>/,  $_);
+		$dom   = $atemp[0];
+		$hist_pix[$dom] = $atemp[2];
+	}
+	close(FH);
 
 	open(FH,   "$new_ccd");
 	open(OUT1, ">$flk_ccd");
@@ -37,14 +52,14 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	open(OUT3, ">$cum_ccd");
 
 	$cum_cnt   = 0;
+	@flikering = ();
 
 	while(<FH>){
 		chomp $_;
-		@today_flk = ();
-		$today_cnt = 0;
 		@atemp     = split(/<>/, $_);
 		$dom       = $atemp[0];
 		$date      = $atemp[1];
+		@today_flk = ();
 
 		print OUT1 "$dom".'<>'."$date".'<>';
 
@@ -84,12 +99,66 @@ for($ccd = 0; $ccd < 10; $ccd++){
 #--- if this is a new pix, count in cumulative count
 #
 			}
-			foreach $ent (@today_flk){
-				print OUT1 ":$ent";
-			}
-
-
 		}
+#
+#--- check whether all columns in the list is still active flickering columns
+#
+		@current = @today_flk;
+		@temp    = ();
+		OUTER2:
+		foreach $ent (@flikering){
+			foreach $comp (@current){
+				if($ent eq $comp){
+					next OUTER2;
+				}
+			}
+			push(@temp, $ent);
+		}
+
+		OUTER3:
+		foreach $ent (@temp){
+			$ztext = $ent;
+			$ztext =~ s/\(//;
+			$ztext =~ s/\)//;
+			@atemp = split(/,/, $ztext);
+			if($atemp[0] =~ /\d/ && $atemp[1] =~ /\d/){
+				$ztext =~ s/\,/\./;
+				$p_dom = ${data.$ccd.$ztext}{dom}[0];
+				$diff  = $dom - $p_dom;
+				if($diff < 90){
+					push(@current, $ent);
+				}
+			}
+		}
+
+#
+#---- remove pixels listed on currently active list (from hist_pccd*) 
+#---- so that only dimmed flickering pixels are listed 
+#
+		@today_flk = ();
+		@active    = split(/:/, $hist_pix[$dom]);
+		OUTER4:
+		foreach $ent (@current){
+			foreach $comp (@active){
+				if($ent eq $comp){
+					next OUTER4;
+				}
+			}
+			push(@today_flk, $ent);
+		}
+
+		$today_cnt = 0;
+		foreach $ent (@today_flk){
+			if($today_cnt == 0){
+				print OUT1 "$ent";
+				$today_cnt++;
+			}else{
+				print OUT1 ":$ent";
+				$today_cnt++;
+			}
+		}
+		@flikering = @current;
+
 		print OUT1 "\n";
 		print OUT2 ":$today_cnt\n";
 		print OUT3 ":$cum_cnt\n";
