@@ -32,6 +32,8 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	$flk_ccd_cnt = "$web_dir".'/Disp_dir/flk_ccd'."$ccd".'_cnt';	#--- flickering pix count hist
 	$cum_ccd     = "$web_dir".'/Disp_dir/cum_ccd'."$ccd".'_cnt';	#--- cumulative # of warm pix
 
+	$flickering_bad = "$web_dir".'/Disp_dir/flickering'."$ccd";
+
 #
 #--- read currently active warm pixel list
 #
@@ -167,5 +169,11 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	close(OUT1);
 	close(OUT2);
 	close(OUT3);
+
+	open(OUT4, ">$flickering_bad");
+	foreach $ent (@today_flk){
+		print OUT4 "$ent\n";
+	}
+	close(OUT4);
 }
 

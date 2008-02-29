@@ -8,7 +8,7 @@
 #												#
 #		author: t. isobe (tisobe@cfa.harvard.edu)					#
 #												#
-#		last update: Feb 19, 2008							#
+#		last update: Feb 29, 2008							#
 #												#
 #################################################################################################
 
@@ -40,7 +40,7 @@ system("perl $bin_dir/create_pot_warm_pix.perl");
 
 system("perl $bin_dir/plot_ccd_history.perl");
 
-system("perl $bin_dir/plot_front_ccd_hsotry.perl");
+system("perl $bin_dir/plot_front_ccd_history.perl");
 
 #
 #--- warm column cases
@@ -56,7 +56,7 @@ system("perl $bin_dir/create_pot_warm_col.perl");
 
 system("perl $bin_dir/plot_col_history.perl");
 
-system("perl $bin_dir/plot_front_col_hsotry.perl");
+system("perl $bin_dir/plot_front_col_history.perl");
 
 
 system("mv *gif $web_dir/Plots/");

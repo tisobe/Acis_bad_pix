@@ -3,7 +3,7 @@ use PGPLOT;
 
 #################################################################################################
 #												#
-#	plot_front_ccd_hsotry.perl: plot front ccd combined warm pixel history			#
+#	plot_front_ccd_histry.perl: plot front ccd combined warm pixel history			#
 #												#
 #		author: t. isobe (tisobe@cfa.harvard.edu)					#
 #												#

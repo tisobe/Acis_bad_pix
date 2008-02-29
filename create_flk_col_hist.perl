@@ -31,6 +31,8 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	$flk_col     = "$web_dir".'/Disp_dir/flk_col'."$ccd";		#--- flickering col hist
 	$flk_col_cnt = "$web_dir".'/Disp_dir/flk_col'."$ccd".'_cnt';	#--- flickering col count hist
 	$cum_col     = "$web_dir".'/Disp_dir/cum_col'."$ccd".'_cnt';	#--- cumulative # of warm col
+
+	$flickering_col = "$web_dir".'/Disp_dir/flickering_col'."$ccd";
 #
 #--- read currently active warm column list
 #
@@ -159,5 +161,11 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	close(OUT1);
 	close(OUT2);
 	close(OUT3);
+
+	open(OUT4, ">$flickering_col");
+	foreach $ent (@today_flk){
+		print OUT4 "$ent\n";
+	}
+	close(OUT4);
 }
 

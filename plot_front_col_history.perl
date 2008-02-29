@@ -174,18 +174,38 @@ for($i = 0; $i < $dom; $i++){
 }
 foreach $ccd (0, 1, 2, 3, 4, 6, 8, 9){
 	$file = "$web_dir".'/Disp_dir/cum_col'."$ccd".'_cnt';
+	$chk1 = 0;
+	$chk2 = 0;
 	open(FH, "$file");
+	OUTER:
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/<>/, $_);
 		@btemp = split(/:/, $atemp[2]);
 		if($ccd == 0){
-#			push(@x, $atemp[0]);
-			$y[$atemp[0]] = $btemp[1];
-#			$tot++;
+			if($atemp[0] == $chk1){
+				next OUTER;
+			}
+			if($btemp[1] < $chk2){
+				$btemp[1] = $chk2;
+				$y[$atemp[0]] = $btemp[1];
+			}else{
+				$y[$atemp[0]] = $btemp[1];
+				$chk2 = $btemp[1];
+			}
+			$chk1 = $atemp[0];
 		}else{
-			$y[$atemp[0]] += $btemp[1];
-###print "$y[$atemp[0]]<--->$btemp[1]\n";
+			if($atemp[0] == $chk1){
+				next OUTER;
+			}
+			if($btemp[1] < $chk2){
+				$btemp[1] = $chk2;
+				$y[$atemp[0]] += $btemp[1];
+			}else{
+				$y[$atemp[0]] += $btemp[1];
+				$chk2 = $btemp[1];
+			}
+			$chk1 = $atemp[0];
 		}
 	}
 	close(FH);
@@ -216,8 +236,14 @@ $ymax = 1.1 * $temp[$tot-1];
 pgenv($xmin, $xmax, $ymin, $ymax, 0, 0);
 
 pgmove($x[0], $y[0]);
+$chk = 0;
 for($i = 1; $i < $tot; $i++){
-	pgdraw($x[$i], $y[$i]);
+	if($y[$i] < $chk){
+		pgdraw($x[$i], $chk);
+	}else{
+		pgdraw($x[$i], $y[$i]);
+		$chk = $y[$i];
+	}
 }
 
 $title = "Cumulative Numbers of Columns Which Were Warm Columns during the Mission: Front Side CCDs";

@@ -7,7 +7,7 @@ use PGPLOT;
 #				and warm columns and plots the results		#
 #										#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)			#
-#	last update:	Feb 26, 2008						#
+#	last update:	Feb 28, 2008						#
 #										#
 #	input:									#
 #		if $ARGV[0] = live: /dsops/ap/sdp/cache/*/acis/*bias0.fits	#
@@ -1448,7 +1448,11 @@ sub print_bad_pix_data{
 		$date_obs2  = "$today_year:$uyday";
 		$dom        = ch_ydate_to_dom($date_obs2);
 	}else{
-		$date_obs2  = $today_time;
+		@atemp      = split(/:/, $today_time);
+		if($atemp[1]   =~ /^0/){
+			$atemp[1] =~ s/^0//;
+		}
+		$date_obs2  = "$atemp[0]:$atemp[1]";
 		$dom        = ch_ydate_to_dom($today_time);
 	}
 	
@@ -1480,6 +1484,7 @@ sub print_bad_pix_data{
 			open(OUT2, ">$web_dir/Disp_dir/ccd$ip");
 
 			$pline =  "$dom<>$date_obs2<>";
+			$chk   = 0;
 
 			if(${tdycnt.$ip} > 0){
 				$first = shift(@{temp_ccd.$ip});
@@ -1499,10 +1504,15 @@ sub print_bad_pix_data{
 					if($pos[0] =~ /\d/ && $pos[1] =~ /\d/){
 						$pline = "$pline".":($pos[0],$pos[1])";
 						print OUT2 "$pos[0]\t$pos[1]\n";	
+						$chk++;
 					}
 				}
 			}
 			close(OUT2);
+
+			if($chk == 0){
+				$pline = "$pline".':';
+			}
 
 			$chk = 0;
 			@temp_save = ();
@@ -2305,6 +2315,19 @@ sub print_bad_col{
 				close(OUT2);
 				if($chk == 0){
 					$nline = "$nline:";
+				}else{
+					$chk2 = 0;
+					@ctemp = split(//, $nline);
+					foreach (@ctemp){
+						$chk2++;
+					}
+					if($ctemp[$chk2 -1] eq ':'){
+						$cline = '';
+						for($i = 0; $i < $chk2 -1; $i++){
+							$cline = "$cline"."$ctemp[$i]";
+						}
+						$nline = $cline;
+					}
 				}
 
 ##				OTUER2:
