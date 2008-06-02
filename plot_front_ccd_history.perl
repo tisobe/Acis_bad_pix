@@ -113,7 +113,7 @@ $xmin = 0;
 $xmax = 1.1 * $temp[$tot -1];
 
 @temp = sort{$a<=>$b} @y;
-$med  = $temp[$tot/2];
+$med  = $temp[int($tot/2)];
 $max  = $temp[int(0.98 * $tot)];
 $min  = $temp[int(0.02 * $tot)];
 if($min - 5 < 0){
@@ -127,6 +127,8 @@ if($diff > 10){
 }else{ 
 	$ymax = int(1.1 * $temp[$tot-1]) + 1;
 }
+
+$ymax = 2.0 * $med;
 
 pgenv($xmin, $xmax, $ymin, $ymax, 0, 0);
 
@@ -193,6 +195,10 @@ pgenv($xmin, $xmax, $ymin, $ymax, 0, 0);
 
 pgmove($x[0], $y[0]);
 for($i = 1; $i < $tot; $i++){
+	if($y[$i] == 0){
+		$y[$i] = $y[$i-1];
+	}
+
 	pgdraw($x[$i], $y[$i]);
 }
 

@@ -11,7 +11,7 @@ use PGPLOT;
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: 04/21/2006								#
+#	last update: 05/29/2008								#
 #											#
 #########################################################################################
 
@@ -119,7 +119,7 @@ close(OUT);
 #-- the following perl script computes a moving average, envelopes, and
 #-- polynomial fit for the data
 #
-system("perl $bin_dir/find_moving_avg.perl temp_data 5 4 out_data");
+system("perl $bin_dir/find_moving_avg.perl temp_data 5 5  4 out_data");
 #
 #--- read the data just computed
 #

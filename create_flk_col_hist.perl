@@ -9,7 +9,7 @@
 #											#
 #		author: t. isobe (tisobe@cfa.harvard.edu)				#
 #											#
-#		last update: Feb 28, 2008						#
+#		last update: Jun 02, 2008						#
 #											#
 #########################################################################################
 
@@ -39,10 +39,14 @@ for($ccd = 0; $ccd < 10; $ccd++){
 
 	open(FH,   "$hst_col");
 	@hist_col  = ();
+	OUTER:
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/<>/,  $_);
 		$dom   = $atemp[0];
+		if($dom < 0){
+			next OUTER;
+		}
 		@btemp = split(/<>:/, $_);
 		$hist_col[$dom] = $btemp[1];
 	}

@@ -6,7 +6,7 @@
 #													#
 #		author: t. isobe (tisobe@cfa.harvard.edu)						#
 #													#
-#		last updated: Feb. 25, 2008								#
+#		last updated: Jun  02, 2008								#
 #													#
 #########################################################################################################
 
@@ -31,10 +31,14 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	@hist_file = ();
 
 	$h_file[$i]  = '';
+	OUTER:
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/<>:/, $_);
 		@btemp = split(/<>/,  $atemp[0]);
+		if($btemp[0] < 0){
+			next OUTER;
+		}
 		$hist_file[$btemp[0]] = $atemp[1];
 	}
 	close(FH);
