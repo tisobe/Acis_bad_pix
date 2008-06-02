@@ -7,7 +7,7 @@ use PGPLOT;
 #				and warm columns and plots the results		#
 #										#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)			#
-#	last update:	Feb 28, 2008						#
+#	last update:	Jun 02, 2008						#
 #										#
 #	input:									#
 #		if $ARGV[0] = live: /dsops/ap/sdp/cache/*/acis/*bias0.fits	#
@@ -2296,21 +2296,22 @@ sub print_bad_col{
 				$chk = 0;
 				OUTER2:
 				foreach $ent (@{bad_col_list.$k}){
-					if($ent !~ /\d/ || $ent eq ''){
-						next OUTER2;
-					}
-					$nline = "$nline:"."$ent";
-					print OUT2 "$ent\n";
-					$current_col_no++;
-
-					foreach $comp (@last_ent){
-						if($ent eq $comp){
-							next OUTER2;
+#					if($ent !~ /\d/ || $ent eq ''){
+#						next OUTER2;
+#					}
+					if($ent =~ /\d/){
+						$nline = "$nline:"."$ent";
+						print OUT2 "$ent\n";
+						$current_col_no++;
+	
+						foreach $comp (@last_ent){
+							if($ent eq $comp){
+								next OUTER2;
+							}
 						}
-					}
-					push(@new_col, $ent);
-					$chk++;
-						
+						push(@new_col, $ent);
+						$chk++;
+					}	
 				}
 				close(OUT2);
 				if($chk == 0){
@@ -3660,20 +3661,17 @@ sub mv_old_data{
         if($input_type =~ /live/){
                 ($usec, $umin, $uhour, $umday, $umon, $uyear, $uwday, $uyday, $uisdst)= localtime(time);
                 $year = $uyear + 1900;
-                $hyday++;
+                $uyday++;
 
-		$hyday -= 6;
-		if($hyday < 0) {
+		$uyday -= 6;
+		if($uyday < 0) {
 			$year--;
-			$hyday = 365 + $hyday;
+			$uyday = 365 + $uyday;
 		}
 	
-		$time = "$year:$hyday:00:00:00";
+		$time = "$year:$uyday:00:00:00";
 		timeconv2($time);
         }else{
-#               @atemp = split(/:/, $today_time);
-#		$year  = $atemp[0];
-#		$hyday = $atemp[1];
 		$sec_form_time = $data_set_start - 518400;
         }
 	
@@ -3683,18 +3681,13 @@ sub mv_old_data{
 		open(FH, './Working_dir/list');
 		while(<FH>){
 			chomp $_;
-			@atemp = split(/\s+/, $_);
-#			if($atemp[3] > 0) {
-				@btemp = split(/acis/, $atemp[7]);
-				$old_file = 'acis'."$btemp[1]";
-				@ctemp = split(/_/, $btemp[1]);
-				if($ctemp[0] < $sec_form_time){
-					system("mv  $_ $web_dir/Old_data/CCD$dccd/.");
-					system("gzip $web_dir/Old_data/CCD$dccd/$old_file");
-				}
-#			}else{
-#				system("rm $atemp[7]");
-#			}
+			@btemp = split(/acis/, $_);
+			$old_file = 'acis'."$btemp[1]";
+			@ctemp = split(/_/, $btemp[1]);
+			if($ctemp[0] < $sec_form_time){
+				system("mv  $_ $web_dir/Old_data/CCD$dccd/.");
+				system("gzip $web_dir/Old_data/CCD$dccd/$old_file");
+			}
 		}
 		close(FH);
 		system("rm ./Working_dir/list");
