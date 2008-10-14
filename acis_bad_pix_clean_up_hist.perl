@@ -5,9 +5,28 @@
 #
 #		t. isobe (tisobe@cfa.harvard.edu);
 #
-#		Feb 01, 2008
+#		Oct 14, 2008
 #
 #
+
+#
+#--- check whether there is enough space
+#
+
+system('df -k . > zspace');
+open(FH, "./zspace");
+while(<FH>){
+        chomp $_;
+        if($_ =~ /\%/){
+                @atemp = split(/\s+/, $_);
+                @btemp = split(/\%/, $atemp[4]);
+                if($btemp[0] > 98%){
+                        exit 0;
+                }
+        }
+}
+
+
 $in_list = `ls /data/mta_www/mta_bad_pixel/Disp_dir/*hist*`;
 @list    = split(/\s+/, $in_list);
 
