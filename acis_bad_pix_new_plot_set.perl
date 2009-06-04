@@ -8,7 +8,7 @@
 #												#
 #		author: t. isobe (tisobe@cfa.harvard.edu)					#
 #												#
-#		last update: Feb 29, 2008							#
+#		last update: Jun 04, 2009							#
 #												#
 #################################################################################################
 
@@ -32,15 +32,15 @@ system("cp $web_dir/Disp_dir/hist_ccd* $web_dir/Disp_dir/hist_col* .");
 
 ###system("perl $bin_dir/fill_ccd_hist.perl");
 
-system("perl $bin_dir/create_new_and_imp_ccd_list.perl");
+system("/opt/local/bin/perl $bin_dir/create_new_and_imp_ccd_list.perl");
 
-system("perl $bin_dir/create_flk_pix_hist.perl");
+system("/opt/local/bin/perl $bin_dir/create_flk_pix_hist.perl");
 
-system("perl $bin_dir/create_pot_warm_pix.perl");
+system("/opt/local/bin/perl $bin_dir/create_pot_warm_pix.perl");
 
-system("perl $bin_dir/plot_ccd_history.perl");
+system("/opt/local/bin/perl $bin_dir/plot_ccd_history.perl");
 
-system("perl $bin_dir/plot_front_ccd_history.perl");
+system("/opt/local/bin/perl $bin_dir/plot_front_ccd_history.perl");
 
 #
 #--- warm column cases
@@ -48,15 +48,15 @@ system("perl $bin_dir/plot_front_ccd_history.perl");
 
 ###system("perl $bin_dir/fill_col_hist.perl");
 
-system("perl $bin_dir/create_new_and_imp_col_list.perl");
+system("/opt/local/bin/perl $bin_dir/create_new_and_imp_col_list.perl");
 
-system("perl $bin_dir/create_flk_col_hist.perl");
+system("/opt/local/bin/perl $bin_dir/create_flk_col_hist.perl");
 
-system("perl $bin_dir/create_pot_warm_col.perl");
+system("/opt/local/bin/perl $bin_dir/create_pot_warm_col.perl");
 
-system("perl $bin_dir/plot_col_history.perl");
+system("/opt/local/bin/perl $bin_dir/plot_col_history.perl");
 
-system("perl $bin_dir/plot_front_col_history.perl");
+system("/opt/local/bin/perl $bin_dir/plot_front_col_history.perl");
 
 
 system("mv *gif $web_dir/Plots/");

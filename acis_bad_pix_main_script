@@ -7,20 +7,20 @@ source /home/mta/bin/reset_param
 setenv PFILES "${PDIRS}:${SYSPFILES}"
 set path = (/home/ascds/DS.release/bin/  $path)
 
-perl /data/mta/MTA/bin/acis_bad_pix_find_bad_pix.perl live
-perl /data/mta/MTA/bin/acis_bad_pix_clean_up.perl
-perl /data/mta/MTA/bin/acis_bad_pix_new_plot_set.perl
-perl /data/mta/MTA/bin/acis_bad_pix_create_data_table.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bad_pix_find_bad_pix.perl live
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bad_pix_clean_up.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bad_pix_new_plot_set.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bad_pix_create_data_table.perl
 
-perl /data/mta/MTA/bin/acis_bias_print_today_data.perl
-perl /data/mta/MTA/bin/acis_bias_compute_avg.perl ./Working_dir/today_input_data
-perl /data/mta/MTA/bin/acis_bias_get_info.perl ./Working_dir/today_input_data
-perl /data/mta/MTA/bin/acis_bias_plot_bias.perl
-perl /data/mta/MTA/bin/acis_bias_plot_sub_info.perl
-perl /data/mta/MTA/bin/acis_bias_html_update.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bias_print_today_data.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bias_compute_avg.perl ./Working_dir/today_input_data
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bias_get_info.perl ./Working_dir/today_input_data
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bias_plot_bias.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bias_plot_sub_info.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bias_html_update.perl
 
-perl /data/mta/MTA/bin/acis_bias_run_all_ccd.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bias_run_all_ccd.perl
 
-perl /data/mta/MTA/bin/cleanup.perl
+/opt/local/bin/perl /data/mta/MTA/bin/cleanup.perl
 
 rm -rf ./Working_dir

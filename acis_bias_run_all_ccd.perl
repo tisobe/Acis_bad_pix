@@ -6,7 +6,7 @@
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: 05/15/2006								#
+#	last update: Jun 04, 2009							#
 #											#
 #########################################################################################
 
@@ -52,7 +52,7 @@ $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 for($ccd = 0; $ccd < 10; $ccd++){
 	for($node = 0; $node < 4; $node++){
 		$file = '/data/mta_www/mta_bias_bkg/Bias_save/CCD'."$ccd".'/quad'."$node";
-		system("perl $bin_dir/acis_bias_moving_avg.perl $file");
+		system("/opt/local/bin/perl $bin_dir/acis_bias_moving_avg.perl $file");
 		system("mv bias_plot_*.gif $web_dir/Plots/Sub2/");
 	}
 }
