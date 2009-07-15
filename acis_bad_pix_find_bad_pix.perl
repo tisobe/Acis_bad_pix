@@ -457,7 +457,8 @@ sub find_ydate {
         ($input)  = @_;
         @atemp    = split(/acisf/, $input);
         @btemp    = split(/N/, $atemp[1]);
-	$n_time   = `/home/ascds/DS.release/bin/axTime3 $btemp[0] u s t d`;
+#	$n_time   = `/home/ascds/DS.release/bin/axTime3 $btemp[0] u s t d`;
+	$n_time   = y1999sec_to_ydate($btemp[0]);
         @atemp    = split(/:/, $n_time);
         $yday     = $atemp[1];
 	$time_sec = $btemp[0];
@@ -2494,7 +2495,8 @@ sub print_bad_col{
 ########################################################################
 
 sub conv_time{
-	$time_form2 = `/home/ascds/DS.release/bin/axTime3 $time_form1 u s t d`;
+#	$time_form2 = `/home/ascds/DS.release/bin/axTime3 $time_form1 u s t d`;
+	$time_form2 = y1999sec_to_ydate($time_form1);
 }
 
 
@@ -2511,11 +2513,13 @@ sub chk_old_data{
                 $today_year = $uyear + 1900;
                 $uyday++;
                 $today  = "$today_year:$uyday".":00:00:00";
-		$today_chk = `/home/ascds/DS.release/bin/axTime3 $today t d u s`;
+#		$today_chk = `/home/ascds/DS.release/bin/axTime3 $today t d u s`;
+		$today_chk = ydate_to_y1998sec($today);
         }else{
                 $date_obs2  = $today_time;
                 $today  = "$today_time".":00:00:00";
-		$today_chk = `/home/ascds/DS.release/bin/axTime3 $today t d u s`;
+#		$today_chk = `/home/ascds/DS.release/bin/axTime3 $today t d u s`;
+		$today_chk = ydate_to_y1998sec($today);
         }
 
 	
@@ -2570,7 +2574,8 @@ sub conv_time_dom {
 
 sub timeconv1 {
 	($time) = @_;
-	$normal_time = `/home/ascds/DS.release/bin/axTime3 $time u s t d`;
+#	$normal_time = `/home/ascds/DS.release/bin/axTime3 $time u s t d`;
+	$normal_time = y1999sec_to_ydate($time);
 }
 
 ################################################################
@@ -2579,7 +2584,8 @@ sub timeconv1 {
 
 sub timeconv2 {
 	($time) = @_;
-	$sec_form_time = `/home/ascds/DS.release/bin/axTime3 $time t d u s`;
+#	$sec_form_time = `/home/ascds/DS.release/bin/axTime3 $time t d u s`;
+	$sec_form_time = ydate_to_y1998sec($time);
 }
 
 ################################################################
@@ -3970,7 +3976,8 @@ sub rm_incomplete_data{
 	$tdate   = "$ttemp[4]$ttemp[5]$ttemp[6]";
 	$date    = "$tyear:$tdate";
 	$tdate   = "$date:00:00:00";
-	$secdate = `/home/ascds/DS.release/bin/axTime3 $tdate t d u s`;
+#	$secdate = `/home/ascds/DS.release/bin/axTime3 $tdate t d u s`;
+	$secdate = ydate_to_y1998sec($tdate);
 	
 	foreach $file  ('bad_col_cnt','bad_col_cnt5','bad_col_cnt7',
 			'bad_pix_cnt','bad_pix_cnt5','bad_pix_cnt7',
@@ -4580,3 +4587,112 @@ sub ch_ydate_to_dom{
         return($acc_date);
 }
 
+######################################################################################
+### ydate_to_y1998sec: 20009:033:00:00:00 format to 349920000 fromat               ###
+######################################################################################
+
+sub ydate_to_y1998sec{
+#
+#---- this script computes total seconds from 1998:001:00:00:00
+#---- to whatever you input in the same format. it is equivalent of
+#---- axTime3 2008:001:00:00:00 t d m s
+#---- there is no leap sec corrections.
+#
+
+	my($date, $atemp, $year, $ydate, $hour, $min, $sec, $yi);
+	my($leap, $ysum, $total_day);
+
+	($date)= @_;
+	
+	@atemp = split(/:/, $date);
+	$year  = $atemp[0];
+	$ydate = $atemp[1];
+	$hour  = $atemp[2];
+	$min   = $atemp[3];
+	$sec   = $atemp[4];
+	
+	$leap  = 0;
+	$ysum  = 0;
+	for($yi = 1998; $yi < $year; $yi++){
+		$chk = 4.0 * int(0.25 * $yi);
+		if($yi == $chk){
+			$leap++;
+		}
+		$ysum++;
+	}
+	
+	$total_day = 365 * $ysum + $leap + $ydate -1;
+	
+	$total_sec = 86400 * $total_day + 3600 * $hour + 60 * $min + $sec;
+	
+	return($total_sec);
+}
+
+######################################################################################
+### y1999sec_to_ydate: format from 349920000 to 2009:33:00:00:00 format            ###
+######################################################################################
+
+sub y1999sec_to_ydate{
+#
+#----- this chage the seconds from 1998:001:00:00:00 to (e.g. 349920000)
+#----- to 2009:033:00:00:00.
+#----- it is equivalent of axTime3 349920000 m s t d
+#
+
+	my($date, $in_date, $day_part, $rest, $in_hr, $hour, $min_part);
+	my($in_min, $min, $sec_part, $sec, $year, $tot_yday, $chk, $hour);
+	my($min, $sec);
+
+	($date) = @_;
+
+	$in_day   = $date/86400;
+	$day_part = int ($in_day);
+	
+	$rest     = $in_day - $day_part;
+	$in_hr    = 24 * $rest;
+	$hour     = int ($in_hr);
+	
+	$min_part = $in_hr - $hour;
+	$in_min   = 60 * $min_part;
+	$min      = int ($in_min);
+	
+	$sec_part = $in_min - $min;
+	$sec      = int(60 * $sec_part);
+	
+	OUTER:
+	for($year = 1998; $year < 2100; $year++){
+		$tot_yday = 365;
+		$chk = 4.0 * int(0.25 * $year);
+		if($chk == $year){
+			$tot_yday = 366;
+		}
+		if($day_part < $tot_yday){
+			last OUTER;
+		}
+		$day_part -= $tot_yday;
+	}
+	
+	$day_part++;
+	if($day_part < 10){
+		$day_part = '00'."$day_part";
+	}elsif($day_part < 100){
+		$day_part = '0'."$day_part";
+	}
+	
+	if($hour < 10){
+		$hour = '0'."$hour";
+	}
+	
+	if($min  < 10){
+		$min  = '0'."$min";
+	}
+	
+	if($sec  < 10){
+		$sec  = '0'."$sec";
+	}
+	
+	$time = "$year:$day_part:$hour:$min:$sec";
+	
+	return($time);
+}
+		

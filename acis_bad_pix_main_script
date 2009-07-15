@@ -6,6 +6,7 @@ mkdir param
 source /home/mta/bin/reset_param
 setenv PFILES "${PDIRS}"
 set path = (/home/ascds/DS.release/bin/  $path)
+set path = (/home/ascds/DS.release/ots/bin/ $path)
 
 /opt/local/bin/perl /data/mta/MTA/bin/acis_bad_pix_find_bad_pix.perl live
 /opt/local/bin/perl /data/mta/MTA/bin/acis_bad_pix_clean_up.perl
