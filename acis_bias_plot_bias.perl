@@ -7,7 +7,7 @@ use PGPLOT;
 #				  background html display		#
 #									#
 #	author: t. isobe (tisobe@cfa.harvard.edu)			#
-#	last upate: Sep 19, 2005					#
+#	last upate: Jul 15, 2009					#
 #									#
 #########################################################################
 
@@ -84,7 +84,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	}
 	pgclos();
 
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $web_dir/Plots/Bias_bkg/ccd$ccd.gif");
+	system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $web_dir/Plots/Bias_bkg/ccd$ccd.gif");
 
 	system("rm pgplot.ps");
 
@@ -142,7 +142,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	}
 	pgclos();
 
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $web_dir/Plots/Overclock/ccd$ccd.gif");
+	system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $web_dir/Plots/Overclock/ccd$ccd.gif");
 	system("rm pgplot.ps");
 
 	pgbegin(0, "/ps",1,1);
@@ -203,7 +203,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 		pglabel("Time (DOM)", 'Bias', "$title");
 	}
 	pgclos();
-	system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $web_dir/Plots/Sub/ccd$ccd.gif");
+	system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $web_dir/Plots/Sub/ccd$ccd.gif");
 	system("rm pgplot.ps");
 }
 			

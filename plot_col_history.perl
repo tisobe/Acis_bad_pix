@@ -7,7 +7,7 @@ use PGPLOT;
 #												#
 #		author: t. isobe (tisobe@cfa.harvard.edu)					#
 #												#
-#		last update: Feb 22, 2008							#
+#		last update: Jul 15, 2009							#
 #												#
 #################################################################################################
 
@@ -187,7 +187,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	
 	$out_gif = 'hist_plot_col'."$ccd".'.gif';
 
-	system("echo ''|gs -sDEVICE=ppmraw  -r128x128 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps|pnmcrop| pnmflip -r270 | ppmtogif > $out_gif");
+	system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r128x128 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps|pnmcrop| pnmflip -r270 | ppmtogif > $out_gif");
 	system("rm pgplot.ps");
 
 }

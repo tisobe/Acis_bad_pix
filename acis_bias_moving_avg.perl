@@ -373,7 +373,7 @@ pgsci(1);
 pglabel("Time (DOM)", "Sigma of Moving Average", "$title");
 
 pgclos();
-system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps|/data/mta/MTA/bin/pnmcrop| /data/mta/MTA/bin/pnmflip -r270 |/data/mta/MTA/bin/ppmtogif > $out_name");
+system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps|/data/mta/MTA/bin/pnmcrop| /data/mta/MTA/bin/pnmflip -r270 |/data/mta/MTA/bin/ppmtogif > $out_name");
 
 system("rm temp_data out_data  pgplot.ps");
 

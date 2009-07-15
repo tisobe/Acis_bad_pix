@@ -7,7 +7,7 @@ use PGPLOT;
 #												#
 #		author: t. isobe (tisobe@cfa.harvard.edu)					#
 #												#
-#		last update: Feb 25, 2008							#
+#		last update: Jul 15, 2009							#
 #												#
 #################################################################################################
 
@@ -253,7 +253,7 @@ pgclos();
 
 $out_gif = 'hist_col_plot_front_side.gif';
 
-system("echo ''|gs -sDEVICE=ppmraw  -r128x128 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps|pnmcrop| pnmflip -r270 | ppmtogif > $out_gif");
+system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r128x128 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps|pnmcrop| pnmflip -r270 | ppmtogif > $out_gif");
 	system("rm pgplot.ps");
 
 
