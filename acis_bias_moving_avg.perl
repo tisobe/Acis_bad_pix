@@ -11,7 +11,7 @@ use PGPLOT;
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: Jun 04 2009							#
+#	last update: Jul 15 2009							#
 #											#
 #########################################################################################
 
@@ -147,7 +147,12 @@ while(<FH>){
 	$sum += $atemp[1];
 }
 close(FH);
-$avg = $sum/$tot;
+if($tot > 0){
+	$avg = $sum/$tot;
+}else{
+	$avg = 0;
+}
+
 #
 #--- set a plotting range for x
 #
