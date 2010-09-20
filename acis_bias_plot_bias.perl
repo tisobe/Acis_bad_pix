@@ -125,7 +125,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 		$xmin  = $time[0] - $extra;
 		$xmax  = $time[$cnt-1] + $extra;
 
-		$ymin  = $sum3/$cnt -  50;
+		$ymin  = $sum3/$cnt - 100;
 		$ymax  = $sum3/$cnt + 150;
 
 		pgenv($xmin, $xmax, $ymin, $ymax, 0, 0);

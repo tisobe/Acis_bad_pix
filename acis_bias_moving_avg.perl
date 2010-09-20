@@ -11,7 +11,7 @@ use PGPLOT;
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: Jul 15 2009							#
+#	last update: Sep 20 2010							#
 #											#
 #########################################################################################
 
@@ -85,6 +85,9 @@ while(<FH>){
 #---- diff is difference between bias - overclock
 #
 	$diff = $atemp[1] - $atemp[3];
+	if($diff < -3){
+		next OUTER;
+	}
 #
 #---- there are a few cases, the diff value changed significantly. assume that that happens
 #---- if error for the bias changed to larger than 20 (normally around 1), and last more than 10 times
@@ -133,9 +136,13 @@ open(FH, "out_data");
 @top     = ();
 $tot     = 0;
 $sum     = 0;
+OUTER:
 while(<FH>){
 	chomp $_;
 	@atemp = split(/\s+/, $_);
+if($atemp[1] < 0){
+	next OUTER;
+}
 	push(@time,   $atemp[0]);
 	push(@mvavg,  $atemp[1]);
 	push(@sigma,  $atemp[2]);
