@@ -6,7 +6,7 @@ use PGPLOT;
 #	plot_sub_info.perl: plot bias background data of different classifications	#
 #											#
 #		author: t. isobe (tiosbe@cfa.harvard.edu)				#
-#		last update: Jul 15, 2009						#
+#		last update: Sep 21, 2010						#
 #											#
 #########################################################################################
 
@@ -77,6 +77,7 @@ sub plot_param_dep{
 		chomp $_;
 		@atemp = split(/\s+/, $_);
 		$dom = ($atemp[0] - 48902399)/86400;
+		$dom = 0.01 * int (100 * $dom);
 		push(@ttime, $dom);
 		push(@ccd_no, $atemp[1]);
 		$c_cnt++;
@@ -105,6 +106,7 @@ sub plot_param_dep{
 		chomp $_;
 		@atemp = split(/\t/, $_);
 		$dom = ($atemp[0] - 48902399)/86400;
+		$dom = 0.01 * int (100 * $dom);
 		push(@time,      $dom);
 		push(@overclock, $atemp[1]);
 		$sum += $atemp[1];
@@ -294,7 +296,8 @@ sub plot_param_dep{
 
 		OUTER:
 		for($i = 0; $i < $cnt; $i++){
-			for($m = $mstep; $m < $c_cnt; $m++){
+#			for($m = $mstep; $m < $c_cnt; $m++){
+			for($m = 0; $m < $c_cnt; $m++){
 				if($time[$i] == $ttime[$m]){
 					if($ccd_no[$m] == 6){
 						push(@x1, $time[$i]);
@@ -367,12 +370,15 @@ sub plot_param_dep2{
 	open(FH, "$web_dir/Info_dir/list_of_ccd_no");
 	@ttime = ();
 	@ccd_no = ();
+	$ttcnt  = 0;
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/\s+/, $_);
                 $dom = ($atemp[0] - 48902399)/86400;
+		$dom = 0.01 * int (100 * $dom);
                 push(@ttime, $dom);
 		push(@ccd_no, $atemp[1]);
+		$ttcnt++;
 	}
 	close(FH);
 	
@@ -398,6 +404,7 @@ sub plot_param_dep2{
 		chomp $_;
 		@atemp = split(/\t/, $_);
 		$dom = ($atemp[0] - 48902399)/86400;
+		$dom = 0.01 * int (100 * $dom);
 		push(@time,      $dom);
 		push(@overclock, $atemp[1]);
 		$sum += $atemp[1];
@@ -605,7 +612,7 @@ sub plot_param_dep2{
 	$cnt3 = 0;
 	OUTER:
 	for($i = 0; $i < $cnt; $i++){
-		for($m = $mstep; $m < $cnt; $m++){
+		for($m = $mstep; $m < $ttcnt; $m++){
 			if($time[$i] == $ttime[$m]){
 				if($ccd_no[$m] == 6){
 					push(@x1, $time[$i]);
