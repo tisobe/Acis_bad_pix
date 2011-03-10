@@ -6,19 +6,44 @@
 #											#
 #		author: t. isobe (tisobe@cfa.harvard.edu)				#
 #											#
-#		last update: Feb 14, 2008						#
+#		last update: Feb 09, 2011						#
 #											#
 #########################################################################################
+
+@dir_list = ();
+
+#--- output directory
+
+open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list");
+@dir_list = ();
+OUTER:
+while(<FH>){
+        if($_ =~ /#/){
+                next OUTER;
+        }
+        chomp $_;
+        push(@dir_list, $_);
+}
+close(FH);
+
+$bin_dir       = $dir_list[0];
+$bdat_dir      = $dir_list[1];
+$web_dir       = $dir_list[2];
+$exc_dir       = $dir_list[3];
+$data_dir      = $dir_list[4];
+$house_keeping = $dir_list[5];
+
+#--------------------------------------
 
 for($ccd = 0; $ccd < 10; $ccd++){
 #
 #--- set input/output file names
 #
-	$hist = 'hist_ccd'."$ccd";
-	$new  = 'new_ccd'."$ccd";
-	$imp  = 'imp_ccd'."$ccd";
+	$hist = "$data_dir".'/Disp_dir/hist_ccd'."$ccd";
+	$new  = "$data_dir".'/Disp_dir/new_ccd'."$ccd";
+	$imp  = "$data_dir".'/Disp_dir/imp_ccd'."$ccd";
 	
-	$hst_cnt  = 'ccd'."$ccd".'_cnt';
+	$hst_cnt  = "$data_dir".'/Disp_dir/ccd'."$ccd".'_cnt';
 
 #
 #--- read a history file

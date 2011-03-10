@@ -7,19 +7,33 @@ use PGPLOT;
 #												#
 #		author: t. isobe (tisobe@cfa.harvard.edu)					#
 #												#
-#		last update: Jul 15, 2009							#
+#		last update: Mar 09, 2011							#
 #												#
 #################################################################################################
 
 #--- output directory
 
-$bin_dir       = '/data/mta/MTA/bin/';
-#$bin_dir      = '//data/mta/Script/ACIS/Bad_pixels/Test/';
-$bdat_dir      = '/data/mta/MTA/data/';
-$web_dir       = '/data/mta/www/mta_bad_pixel/';
-$old_dir       = $web_dir;
-$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 
+open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list");
+@dir_list = ();
+OUTER:
+while(<FH>){
+        if($_ =~ /#/){
+                next OUTER;
+        }
+        chomp $_;
+        push(@dir_list, $_);
+}
+close(FH);
+
+$bin_dir       = $dir_list[0];
+$bdat_dir      = $dir_list[1];
+$web_dir       = $dir_list[2];
+$exc_dir       = $dir_list[3];
+$data_dir      = $dir_list[4];
+$house_keeping = $dir_list[5];
+
+#----------------------------------------------
 
 pgbegin(0, '"./pgplot.ps"/cps',1,1);
 pgsubp(1,3);
@@ -34,7 +48,7 @@ foreach $ccd (0, 1, 2, 3, 4, 6, 8, 9){
 #
 #---- warm pixel counts
 #
-	$file = "$web_dir".'/Disp_dir/ccd'."$ccd".'_cnt';
+	$file = "$data_dir".'/Disp_dir/ccd'."$ccd".'_cnt';
 	open(FH, "$file");
 	while(<FH>){
 		chomp $_;
@@ -90,7 +104,7 @@ pglabel("Time (DOM)", "Counts", "Numbers of Warm Pixels: Front Side CCDs");
 @y    = ();
 $tot  = 0;
 foreach $ccd (0, 1, 2, 3, 4, 6, 8, 9){
-	$file = "$web_dir".'/Disp_dir/bad_ccd'."$ccd".'_cnt';
+	$file = "$data_dir".'/Disp_dir/bad_ccd'."$ccd".'_cnt';
 	open(FH, "$file");
 	while(<FH>){
 		chomp $_;
@@ -149,7 +163,7 @@ pglabel("Time (DOM)", "Counts", "$title");
 @y    = ();
 $tot  = 0;
 foreach $ccd (0, 1, 2, 3, 4, 6, 8, 9){
-	$file = "$web_dir".'/Disp_dir/cum_ccd'."$ccd".'_cnt';
+	$file = "$data_dir".'/Disp_dir/cum_ccd'."$ccd".'_cnt';
 	open(FH, "$file");
 	while(<FH>){
 		chomp $_;

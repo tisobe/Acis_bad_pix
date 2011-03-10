@@ -5,7 +5,7 @@
 #	acis_bias_get_info.perl: extract information about baisbackground entires		#
 #												#
 #	author: t. isobe (tisobe@cfa.harvard.edu)						#
-#	last update: Jul 15, 2009								#
+#	last update: Mar 09, 2011								#
 #												#
 #################################################################################################
 
@@ -16,15 +16,24 @@
 
 #--- output directory
 
-$bin_dir       = '/data/mta/MTA/bin/';
-$bdat_dir      = '/data/mta/MTA/data/';
-$web_dir       = '/data/mta_www/mta_bias_bkg/';
-$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list");
+@dir_list = ();
+OUTER:
+while(<FH>){
+        if($_ =~ /#/){
+                next OUTER;
+        }
+        chomp $_;
+        push(@dir_list, $_);
+}
+close(FH);
 
-#$bin_dir       = '/data/mta/MTA/bin/';
-#$bdat_dir      = '/data/mta/MTA/data/';
-#$web_dir       = '/data/mta_www/mta_bias_bkg_test';
-#$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
+$bin_dir       = $dir_list[0];
+$bdat_dir      = $dir_list[1];
+$web_dir       = $dir_list[2];
+$exc_dir       = $dir_list[3];
+$data_dir      = $dir_list[4];
+$house_keeping = $dir_list[5];
 
 #######################################
 
@@ -143,7 +152,7 @@ sub int_file_for_day{
 					push(@stamp_list, $htime);
 		
 					$overclock = $overclock_a;
-					$bias_file = "$web_dir".'/Info_dir/CCD'."$im".'/quad0';
+					$bias_file = "$data_dir".'/Info_dir/CCD'."$im".'/quad0';
 						open(QIN,">> $bias_file");
 						printf QIN "%10.1f\t%4.2f\t",$htime,$overclock;
 						print  QIN "$datamode\t";
@@ -153,7 +162,7 @@ sub int_file_for_day{
 						close(QIN);
 		
 					$overclock = $overclock_b;
-					$bias_file = "$web_dir".'/Info_dir/CCD'."$im".'/quad1';
+					$bias_file = "$data_dir".'/Info_dir/CCD'."$im".'/quad1';
 						open(QIN,">> $bias_file");
 						printf QIN "%10.1f\t%4.2f\t",$htime,$overclock;
 						print  QIN "$datamode\t";
@@ -163,7 +172,7 @@ sub int_file_for_day{
 						close(QIN);
 		
 					$overclock = $overclock_c;
-					$bias_file = "$web_dir".'/Info_dir/CCD'."$im".'/quad2';
+					$bias_file = "$data_dir".'/Info_dir/CCD'."$im".'/quad2';
 						open(QIN,">> $bias_file");
 						printf QIN "%10.1f\t%4.2f\t",$htime,$overclock;
 						print  QIN "$datamode\t";
@@ -173,7 +182,7 @@ sub int_file_for_day{
 						close(QIN);
 		
 					$overclock = $overclock_d;
-					$bias_file = "$web_dir".'/Info_dir/CCD'."$im".'/quad3';
+					$bias_file = "$data_dir".'/Info_dir/CCD'."$im".'/quad3';
 						open(QIN,">> $bias_file");
 						printf QIN "%10.1f\t%4.2f\t",$htime,$overclock;
 						print  QIN "$datamode\t";
@@ -217,7 +226,7 @@ sub int_file_for_day{
 		foreach $ent (@stamp_list){
 			${cnt.$ent}{cnt}[0]++;
 		}
-		open(CNO, ">>$web_dir/Info_dir/list_of_ccd_no");
+		open(CNO, ">>$data_dir/Info_dir/list_of_ccd_no");
 		foreach $ent (@new){
 			@atemp = split(/\./, $ent);
 			print CNO "$atemp[0]\t${cnt.$ent}{cnt}[0]\n";

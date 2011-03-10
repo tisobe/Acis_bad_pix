@@ -6,7 +6,7 @@
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: Jul 15, 2009							#
+#	last update: Mar 09, 2011							#
 #											#
 #########################################################################################
 
@@ -17,15 +17,25 @@
 
 #--- output directory
 
-$bin_dir       = '/data/mta/MTA/bin/';
-$bdat_dir      = '/data/mta/MTA/data/';
-$web_dir       = '/data/mta_www/mta_bias_bkg/';
-$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list");
+@dir_list = ();
+OUTER:
+while(<FH>){
+        if($_ =~ /#/){
+                next OUTER;
+        }
+        chomp $_;
+        push(@dir_list, $_);
+}
+close(FH);
 
-#$bin_dir       = '/data/mta/MTA/bin/';
-#$bdat_dir      = '/data/mta/MTA/data/';
-#$web_dir       = '/data/mta/www/mta_bias_bkg_test/';
-#$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
+$bin_dir       = $dir_list[0];
+$bdat_dir      = $dir_list[1];
+$web_dir       = $dir_list[2];
+$exc_dir       = $dir_list[3];
+$data_dir      = $dir_list[4];
+$house_keeping = $dir_list[5];
+
 
 #######################################
 
@@ -137,7 +147,7 @@ GETOUT:
 				$q_file = 'out1.fits';
 				$bias_avg = 0;
 				$bias_std = 0;
-				$bias_file = "$web_dir/".'Bias_save/CCD'."$im".'/quad0';
+				$bias_file = "$data_dir/".'Bias_save/CCD'."$im".'/quad0';
 				$c_start = 0;                                   # starting column
 				$xlow  = 1;
 				$xhigh = 256;
@@ -157,7 +167,7 @@ GETOUT:
 				$q_file = 'out2.fits';
 				$bias_avg = 0;
 				$bias_std = 0;
-				$bias_file = "$web_dir/".'Bias_save/CCD'."$im".'/quad1';
+				$bias_file = "$data_dir/".'Bias_save/CCD'."$im".'/quad1';
 				$c_start = 256;
 				$xlow  = 257;
 				$xhigh = 512;
@@ -178,7 +188,7 @@ GETOUT:
 				$c_start = 512;
 				$bias_avg = 0;
 				$bias_std = 0;
-				$bias_file = "$web_dir/".'Bias_save/CCD'."$im".'/quad2';
+				$bias_file = "$data_dir/".'Bias_save/CCD'."$im".'/quad2';
 				$xlow  = 513;
 				$xhigh = 768;
 				$overclock = $overclock_c;
@@ -198,7 +208,7 @@ GETOUT:
 				$c_start = 768;
 				$bias_avg = 0;
 				$bias_std = 0;
-				$bias_file = "$web_dir/".'Bias_save/CCD'."$im".'/quad3';
+				$bias_file = "$data_dir/".'Bias_save/CCD'."$im".'/quad3';
 				$xlow  = 769;
 				$xhigh = 1024;
 				$overclock = $overclock_d;

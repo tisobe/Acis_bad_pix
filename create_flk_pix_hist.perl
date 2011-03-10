@@ -9,30 +9,44 @@
 #											#
 #		author: t. isobe (tisobe@cfa.harvard.edu)				#
 #											#
-#		last update: Feb 28, 2008						#
+#		last update: Mar 09, 2011						#
 #											#
 #########################################################################################
 
 #--- output directory
 
-$bin_dir       = '/data/mta/MTA/bin/';
-#$bin_dir      = '//data/mta/Script/ACIS/Bad_pixels/Test/';
-$bdat_dir      = '/data/mta/MTA/data/';
-$web_dir       = '/data/mta/www/mta_bad_pixel/';
-$old_dir       = $web_dir;
-$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list");
+@dir_list = ();
+OUTER:
+while(<FH>){
+        if($_ =~ /#/){
+                next OUTER;
+        }
+        chomp $_;
+        push(@dir_list, $_);
+}
+close(FH);
+
+$bin_dir       = $dir_list[0];
+$bdat_dir      = $dir_list[1];
+$web_dir       = $dir_list[2];
+$exc_dir       = $dir_list[3];
+$data_dir      = $dir_list[4];
+$house_keeping = $dir_list[5];
+
+#-----------------------------------------
 
 for($ccd = 0; $ccd < 10; $ccd++){
 #
 #--- set input/output file names
 #
-	$hst_ccd     = "$web_dir".'/Disp_dir/hist_ccd'."$ccd";		#--- warm pix history file
-	$new_ccd     = "$web_dir".'/Disp_dir/new_ccd'."$ccd";		#--- use this (new_ccd#) for input
-	$flk_ccd     = "$web_dir".'/Disp_dir/flk_ccd'."$ccd";		#--- flickering pix hist
-	$flk_ccd_cnt = "$web_dir".'/Disp_dir/flk_ccd'."$ccd".'_cnt';	#--- flickering pix count hist
-	$cum_ccd     = "$web_dir".'/Disp_dir/cum_ccd'."$ccd".'_cnt';	#--- cumulative # of warm pix
+	$hst_ccd     = "$data_dir".'/Disp_dir/hist_ccd'."$ccd";		#--- warm pix history file
+	$new_ccd     = "$data_dir".'/Disp_dir/new_ccd'."$ccd";		#--- use this (new_ccd#) for input
+	$flk_ccd     = "$data_dir".'/Disp_dir/flk_ccd'."$ccd";		#--- flickering pix hist
+	$flk_ccd_cnt = "$data_dir".'/Disp_dir/flk_ccd'."$ccd".'_cnt';	#--- flickering pix count hist
+	$cum_ccd     = "$data_dir".'/Disp_dir/cum_ccd'."$ccd".'_cnt';	#--- cumulative # of warm pix
 
-	$flickering_bad = "$web_dir".'/Disp_dir/flickering'."$ccd";
+	$flickering_bad = "$data_dir".'/Disp_dir/flickering'."$ccd";
 
 #
 #--- read currently active warm pixel list

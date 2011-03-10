@@ -6,29 +6,42 @@
 #											#
 #		author: t. isobe (tisobe@cfa.harvard.edu)				#
 #											#
-#		last update: Feb 25, 2008						#
+#		last update: Mar 09, 2011						#
 #											#
 #########################################################################################
 
 #--- output directory
 
-$bin_dir       = '/data/mta/MTA/bin/';
-#$bin_dir      = '//data/mta/Script/ACIS/Bad_pixels/Test/';
-$bdat_dir      = '/data/mta/MTA/data/';
-$web_dir       = '/data/mta/www/mta_bad_pixel/';
-$old_dir       = $web_dir;
-$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list");
+@dir_list = ();
+OUTER:
+while(<FH>){
+        if($_ =~ /#/){
+                next OUTER;
+        }
+        chomp $_;
+        push(@dir_list, $_);
+}
+close(FH);
 
+$bin_dir       = $dir_list[0];
+$bdat_dir      = $dir_list[1];
+$web_dir       = $dir_list[2];
+$exc_dir       = $dir_list[3];
+$data_dir      = $dir_list[4];
+$house_keeping = $dir_list[5];
+
+#----------------------------------------------------------
 
 for($ccd = 0; $ccd < 10; $ccd++){
 #
 #--- set input/output file names
 #
-	$hist = "$web_dir".'/Disp_dir/hist_col'."$ccd";
-	$new  = "$web_dir".'/Disp_dir/new_col'."$ccd";
-	$imp  = "$web_dir".'/Disp_dir/imp_col'."$ccd";
+	$hist = "$data_dir".'/Disp_dir/hist_col'."$ccd";
+	$new  = "$data_dir".'/Disp_dir/new_col'."$ccd";
+	$imp  = "$data_dir".'/Disp_dir/imp_col'."$ccd";
 
-	$hst_cnt = "$web_dir".'/Disp_dir/col'."$ccd".'_cnt';
+	$hst_cnt = "$data_dir".'/Disp_dir/col'."$ccd".'_cnt';
 #
 #--- read a history file
 #

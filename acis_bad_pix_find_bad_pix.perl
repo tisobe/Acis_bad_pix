@@ -7,19 +7,19 @@ use PGPLOT;
 #				and warm columns and plots the results		#
 #										#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)			#
-#	last update:	Jun 08, 2010						#
+#	last update:	Mar 09, 2011						#
 #										#
 #	input:									#
 #		if $ARGV[0] = live: /dsops/ap/sdp/cache/*/acis/*bias0.fits	#
 #			otherwse:   *bias0.fits in dir given by $ARGV[0]	#		
-#		$web_dir/past_input_data: a list of the past input data		#
-#		$web_dir/Defect/bad_pix_list: known bad pix list		#
-#		$web_dir/Defect/Bad_col_list: known bad col list		#
+#		$hosue_keepign/past_input_data: a list of the past input data	#
+#		$house_keeping/Defect/bad_pix_list: known bad pix list		#
+#		$house_keeping/Defect/Bad_col_list: known bad col list		#
 #	output:									#
 #		$web_dir/Defect/CCD*/						#
 #			acis*_q*_max: bad pix candidates			#
 #			acis*_q*_hot: hot pix candidates			#
-#		$web_dir/Disp_dir/  						#
+#		$data_dir/Disp_dir/  						#
 #			all_past_bad_col*: a list of all past bad columns	#
 #			all_past_bad_pix*: a list of all past bad pixels	#
 #			all_past_hot_pix*: a list of all past hot pixels	#
@@ -52,7 +52,7 @@ use PGPLOT;
 #			today_new_col*:	   a list of today's bad columns	#
 #			totally_new*:	   a list of totally new bad pix	#
 #			totally_new_col*:  a list of totally new bad cols	#
-#		$web_dir/Bias_save/CCD*/					#
+#		$bias_dir/Bias_save/CCD*/					#
 #			quad*:  a list of time bias averge and sigma		#
 #		$web_dir/Plot/							#
 #			ccd*.gif: a plot of bias background			#
@@ -120,12 +120,25 @@ use PGPLOT;
 
 #--- output directory
 
-$bin_dir       = '/data/mta/MTA/bin/';
-#$bin_dir      = '//data/mta/Script/ACIS/Bad_pixels/Test/';
-$bdat_dir      = '/data/mta/MTA/data/';
-$web_dir       = '/data/mta/www/mta_bad_pixel/';
-$old_dir       = $web_dir;
-$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list");
+@dir_list = ();
+OUTER:
+while(<FH>){
+	if($_ =~ /#/){
+		next OUTER;
+	}
+	chomp $_;
+	push(@dir_list, $_);
+}
+close(FH);
+
+$bin_dir       = $dir_list[0];
+$bdat_dir      = $dir_list[1];
+$web_dir       = $dir_list[2];
+$exc_dir       = $dir_list[3];
+$data_dir      = $dir_list[4];
+$house_keeping = $dir_list[5];
+
 
 $lookup   = '/home/ascds/DS.release/data/dmmerge_header_lookup.txt';    # dmmerge header rule lookup table
 
@@ -167,7 +180,7 @@ $dcnt = 1;
 
 if($dcnt > 0){						# yes we have new data, so let compute
 	
-	system("rm $web_dir/Disp_dir/today*");
+	system("rm $data_dir/Disp_dir/today*");
 	for($kn = 0; $kn <= $kdir; $kn++){
 		system("rm ./Working_dir/today*");
 		$today_new_bad_pix  = 0;		# these are used to count how many new and improved
@@ -537,7 +550,7 @@ sub int_file_for_day{
 #
 		${tdycnt.$im} = ${cnt.$im};
 		if(${cnt.$im} > 0){
-			open(FOUT, ">>$web_dir/Disp_dir/data_used.$im");	# record for data used
+			open(FOUT, ">>$data_dir/Disp_dir/data_used.$im");	# record for data used
 			foreach $file (@{todaylist.$im}){
 				@ntemp = split(/acisf/, $file);
 				print FOUT "$date_obs: acisf$ntemp[1]\n";
@@ -1332,7 +1345,7 @@ sub add_to_list {
 #
 #--- find out which data are currently in the output directory
 #
-	$temp_wdir = `ls $web_dir/Disp_dir/ccd*`;
+	$temp_wdir = `ls $data_dir/Disp_dir/ccd*`;
 	@temp_wdir_list = split(/\s+/, $temp_wdir);
 	@dir_ccd  = ();
 	foreach $ent (@temp_wdir_list){
@@ -1340,7 +1353,7 @@ sub add_to_list {
 			push(@dir_ccd, $ent);
 		}
 	}
-	$temp_wdir = `ls $web_dir/Disp_dir/hccd*`;
+	$temp_wdir = `ls $data_dir/Disp_dir/hccd*`;
 	@temp_wdir_list = split(/\s+/, $temp_wdir);
 	@dir_hccd  = ();
 	foreach $ent (@temp_wdir_list){
@@ -1348,7 +1361,7 @@ sub add_to_list {
 			push(@dir_hccd, $ent);
 		}
 	}
-	$temp_wdir = `ls $web_dir/Disp_dir/col*`;
+	$temp_wdir = `ls $data_dir/Disp_dir/col*`;
 	@temp_wdir_list = split(/\s+/, $temp_wdir);
 	@dir_col  = ();
 	foreach $ent (@temp_wdir_list){
@@ -1356,7 +1369,7 @@ sub add_to_list {
 			push(@dir_col, $ent);
 		}
 	}
-	$temp_wdir = `ls $web_dir/Disp_dir/hcol*`;
+	$temp_wdir = `ls $data_dir/Disp_dir/hcol*`;
 	@temp_wdir_list = split(/\s+/, $temp_wdir);
 	@dir_hcol  = ();
 	foreach $ent (@temp_wdir_list){
@@ -1367,12 +1380,12 @@ sub add_to_list {
 #
 #--- if today* lists are there,
 #
-	$temp_wdir = `ls $web_dir/Disp_dir/today*ccd*`;
+	$temp_wdir = `ls $data_dir/Disp_dir/today*ccd*`;
 	@temp_wdir_list = split(/\s+/, $temp_wdir);
 
 	foreach $ent (@temp_wdir_list){
 		if(${tdycnt.$dtemp[1]} > 0){
-			system("rm $web_dir/Disp_dir/$ent");
+			system("rm $data_dir/Disp_dir/$ent");
 		}
 	}
 #
@@ -1459,7 +1472,7 @@ sub print_bad_pix_data{
 	
 	OUTER:
 	for($ip = 0; $ip < 10; $ip++){
-		system("rm $web_dir/Disp_dir/ccd$ip");
+		system("rm $data_dir/Disp_dir/ccd$ip");
 ##		if(${tdycnt.$ip} == 0){
 ##			next OUTER;				# if there is no data for this date
 ##		}						# skip this ccd
@@ -1470,7 +1483,7 @@ sub print_bad_pix_data{
 #
 #--- read the previous bad pix history list
 #
-			open(IN, "$web_dir/Disp_dir/hist_ccd$ip");
+			open(IN, "$data_dir/Disp_dir/hist_ccd$ip");
 			@past_data = ();
 			$ptot      = 0;
 			while(<IN>){
@@ -1482,7 +1495,7 @@ sub print_bad_pix_data{
 #
 #--- print out today's bad pix, and prepare to add that to the history list
 #
-			open(OUT2, ">$web_dir/Disp_dir/ccd$ip");
+			open(OUT2, ">$data_dir/Disp_dir/ccd$ip");
 
 			$pline =  "$dom<>$date_obs2<>";
 			$chk   = 0;
@@ -1547,7 +1560,7 @@ sub print_bad_pix_data{
 #					@ipix_cnt[$k] = 0;
 #				}
 				@temp = sort{$a<=>$b} @past_data;
-				open(TEMP, ">$web_dir/Disp_dir/hist_ccd$ip");
+				open(TEMP, ">$data_dir/Disp_dir/hist_ccd$ip");
 				$k1 = 0;
 				foreach $ent (@temp){
 					print TEMP "$ent\n";
@@ -1565,9 +1578,9 @@ sub print_bad_pix_data{
 				}
 				close(TEMP);
 
-#				open(OUT3, ">$web_dir/Disp_dir/imp_ccd$ip");
-#				open(OUT4, ">$web_dir/Disp_dir/new_ccd$ip");
-#				open(OUT5, ">$web_dir/Disp_dir/change_ccd$ip");
+#				open(OUT3, ">$data_dir/Disp_dir/imp_ccd$ip");
+#				open(OUT4, ">$data_dir/Disp_dir/new_ccd$ip");
+#				open(OUT5, ">$data_dir/Disp_dir/change_ccd$ip");
 #				for($i = 1; $i <= $ptot; $i++){
 #					$j = $i - 1;
 #					@atemp = split(/<>/, $temp[$j]);
@@ -1646,7 +1659,7 @@ sub print_bad_pix_data{
 #--- print out counts of total bad pix, new bad pix, and disappeared bad pix
 #
 #				$name = 'ccd'."$ip".'_cnt';
-#				open(OUT6, ">$web_dir/Disp_dir/$name");
+#				open(OUT6, ">$data_dir/Disp_dir/$name");
 #				for($k = 0; $k < $ptot; $k++){
 #					print OUT6 "$bdate[$k]<>";
 #					print OUT6 "$bpix_cnt[$k]:";
@@ -1669,7 +1682,7 @@ sub print_bad_pix_data{
 			$dom       = ch_ydate_to_dom($date_obs2);
 
 			$name = "ccd$ip";	
-			open(IN, "$web_dir/Disp_dir/hist_hccd$ip");
+			open(IN, "$data_dir/Disp_dir/hist_hccd$ip");
 			@past_data = ();
 			$ptot      = 0;
 			while(<IN>){
@@ -1678,7 +1691,7 @@ sub print_bad_pix_data{
 				$ptot++;
 			}
 			close(IN);
-			open(OUT2, ">$web_dir/Disp_dir/hccd$ip");
+			open(OUT2, ">$data_dir/Disp_dir/hccd$ip");
 
 			$pline =  "$dom<>$date_obs2<>";
 
@@ -1734,7 +1747,7 @@ sub print_bad_pix_data{
 				}
 				push(@past_data, $pline);
 				@temp = sort{$a<=>$b} @past_data;
-				open(TEMP, ">$web_dir/Disp_dir/hist_hccd$ip");
+				open(TEMP, ">$data_dir/Disp_dir/hist_hccd$ip");
 				$k1 = 0;
 				foreach $ent (@temp){
 					print TEMP "$ent\n";
@@ -1750,9 +1763,9 @@ sub print_bad_pix_data{
 				}
 				close(TEMP);
 
-				open(OUT3, ">$web_dir/Disp_dir/imp_hccd$ip");
-				open(OUT4, ">$web_dir/Disp_dir/new_hccd$ip");
-				open(OUT5, ">$web_dir/Disp_dir/change_hccd$ip");
+				open(OUT3, ">$data_dir/Disp_dir/imp_hccd$ip");
+				open(OUT4, ">$data_dir/Disp_dir/new_hccd$ip");
+				open(OUT5, ">$data_dir/Disp_dir/change_hccd$ip");
 				for($i = 1; $i <= $ptot; $i++){
 					$j = $i - 1;
 					@atemp = split(/<>/, $temp[$j]);
@@ -1830,7 +1843,7 @@ sub print_bad_pix_data{
 #--- print out counts of total bad pix, new bad pix, and disappeared bad pix
 #
 				$name = 'hccd'."$ip".'_cnt';
-				open(OUT6, ">$web_dir/Disp_dir/$name");
+				open(OUT6, ">$data_dir/Disp_dir/$name");
 				for($k = 0; $k < $ptot; $k++){
 					print OUT6 "$bdate[$k]<>";
 					print OUT6 "$b_pix_cnt[$k]:";
@@ -1973,7 +1986,7 @@ sub prep_bad_col {
 #
 #--- check the name of the last new_col lists
 #
-	$temp_wdir = `ls $web_dir/Disp_dir/today_new_col*`;
+	$temp_wdir = `ls $data_dir/Disp_dir/today_new_col*`;
 	@temp_wdir_list = split(/\s+/, $temp_wdir);
 	@today_bad_col = ();
 	foreach $ent (@temp_wdir_list){
@@ -1983,7 +1996,7 @@ sub prep_bad_col {
 #
 #--- check the name of the last imp_col lists
 #
-	$temp_wdir = `ls $web_dir/Disp_dir/today_imp_col*`;
+	$temp_wdir = `ls $data_dir/Disp_dir/today_imp_col*`;
 	@temp_wdir_list = split(/\s+/, $temp_wdir);
 	@today_imp_col = ();
 	foreach $ent (@temp_wdir_list){
@@ -1993,7 +2006,7 @@ sub prep_bad_col {
 #
 #--- check the name of the last col lists
 #
-	$temp_wdir = `ls $web_dir/Disp_dir/col*`;
+	$temp_wdir = `ls $data_dir/Disp_dir/col*`;
 	@temp_wdir_list = split(/\s+/, $temp_wdir);
 	@tcol_list = ();
 	foreach $ent (@temp_wdir_list){
@@ -2012,15 +2025,15 @@ sub prep_bad_col {
 #
 	foreach $ent (@today_bad_col){		
 		if(${tdycnt.$ent} > 0){
-			system("cat $web_dir/Disp_dir/today_new_col$ent >> $web_dir/Disp_dir/new_col$ent");
-			system("rm  $web_dir/Disp_dir/today_new_col$ent");
+			system("cat $data_dir/Disp_dir/today_new_col$ent >> $data_dir/Disp_dir/new_col$ent");
+			system("rm  $data_dir/Disp_dir/today_new_col$ent");
 		}
 	}
 
 	foreach $ent (@today_imp_col){
 		if(${tdycnt.$ent} > 0){
-			system("cat $web_dir/Disp_dir/today_imp_col$ent >> $web_dir/Disp_dir/imp_col$ent"); 
-			system("rm  $web_dir/Disp_dir/today_imp_col$ent");
+			system("cat $data_dir/Disp_dir/today_imp_col$ent >> $data_dir/Disp_dir/imp_col$ent"); 
+			system("rm  $data_dir/Disp_dir/today_imp_col$ent");
 		}
 	}
 #
@@ -2030,7 +2043,7 @@ sub prep_bad_col {
 		if(${tdycnt.$ent} > 0){
 			@{col_data.$ent} = ();
 			${col_cnt.$ent} = 0;
-			open(IN, "$web_dir/Disp_dir/col$ent");
+			open(IN, "$data_dir/Disp_dir/col$ent");
 
 			OUTER:
 			while(<IN>){
@@ -2044,7 +2057,7 @@ sub prep_bad_col {
 			}
 			close(IN);
 
-			system("rm $web_dir/Disp_dir/col$ent");
+			system("rm $data_dir/Disp_dir/col$ent");
 		}
 	}
 }
@@ -2186,15 +2199,15 @@ sub print_bad_col{
 ##		}
 
 		if(${bcnt.$k} == 0){
-			open(OUTW, ">$web_dir/Disp_dir/col$k");
+			open(OUTW, ">$data_dir/Disp_dir/col$k");
 			close(OUTW);
 
-			open(OUTW, ">>$web_dir/Disp_dir/hist_col$k");
+			open(OUTW, ">>$data_dir/Disp_dir/hist_col$k");
 			$nline = "$dom<>$date_obs2<>:";
 			print OUTW "$nline\n";
 			close(OUTW);
 
-##			open(IN, "$web_dir/Disp_dir/hist_col$k");
+##			open(IN, "$data_dir/Disp_dir/hist_col$k");
 ##			$last_line = '';
 ##			while(<IN>){
 ##				chomp $_;
@@ -2203,17 +2216,17 @@ sub print_bad_col{
 ##			close(IN);
 ##			@atemp = split(/<>:/, $last_line);
 ##
-##			open(OUTW, ">>$web_dir/Disp_dir/imp_col$k");
+##			open(OUTW, ">>$data_dir/Disp_dir/imp_col$k");
 ##			$nline = "$dom<>$date_obs2<>:$atemp[1]";
 ##			print OUTW "$nline\n";
 ##			close(OUTW);
 ##
-##			open(OUTW, ">>$web_dir/Disp_dir/new_col$k");
+##			open(OUTW, ">>$data_dir/Disp_dir/new_col$k");
 ##			$nline = "$dom<>$date_obs2<>:";
 ##			print OUTW "$nline\n";
 ##			close(OUTW);
 ##
-##			open(OUTW, ">$web_dir/Disp_dir/col$k");
+##			open(OUTW, ">$data_dir/Disp_dir/col$k");
 ##			close(OUTW);
 
 #
@@ -2265,7 +2278,7 @@ sub print_bad_col{
 #
 #---history file for col
 #
-				open(IN, "$web_dir/Disp_dir/hist_col$k");
+				open(IN, "$data_dir/Disp_dir/hist_col$k");
 				@tline = ();
 				$tcnt  = 0;
 				$last  = '';
@@ -2290,7 +2303,7 @@ sub print_bad_col{
 				@new_col        = ();
 				@imp_col        = ();
 				$nline          = "$dom<>$date_obs2<>";
-				$col_name       = "$web_dir".'/Disp_dir/col'."$k";
+				$col_name       = "$data_dir".'/Disp_dir/col'."$k";
 
 				open(OUT2,">$col_name");
 
@@ -2348,7 +2361,7 @@ sub print_bad_col{
 ##				foreach $ent (@new_col){
 ##					$sline = "$sline".":$ent";
 ##				}
-##				$out_line = "$web_dir".'/Disp_dir/new_col'."$k";
+##				$out_line = "$data_dir".'/Disp_dir/new_col'."$k";
 ##				open(OUT3, ">>$out_line");
 ##				print OUT3 "$sline\n";
 ##				close(OUT3);
@@ -2359,7 +2372,7 @@ sub print_bad_col{
 ##				foreach $ent (@imp_col){
 ##					$sline = "$sline".":$ent";
 ##				}
-##				$out_line = "$web_dir".'/Disp_dir/imp_col'."$k";
+##				$out_line = "$data_dir".'/Disp_dir/imp_col'."$k";
 ##				open(OUT3, ">>$out_line");
 ##				print OUT3 "$sline\n";
 ##				close(OUT3);
@@ -2379,7 +2392,7 @@ sub print_bad_col{
 					push(@cleaned, $sorted_tline[$i]);
 				}
 				$name = "hist_col$k";
-				open(OUT, ">$web_dir/Disp_dir/$name");
+				open(OUT, ">$data_dir/Disp_dir/$name");
 				foreach $ent (@cleaned){
 					print OUT "$ent\n";
 				}
@@ -2389,7 +2402,7 @@ sub print_bad_col{
 #---history file for new bad col
 #
 ##				$name = "new_col$k";
-##				open(IN, "$web_dir/Disp_dir/$name");
+##				open(IN, "$data_dir/Disp_dir/$name");
 #
 #--- cleaning up col history list
 #
@@ -2416,7 +2429,7 @@ sub print_bad_col{
 ##					push(@cleaned, $sorted_tline[$i]);
 ##				}
 ##				$name = "new_col$k";
-##				open(OUT, ">$web_dir/Disp_dir/$name");
+##				open(OUT, ">$data_dir/Disp_dir/$name");
 ##				foreach $ent (@cleaned){
 ##					print OUT "$ent\n";
 ##				}
@@ -2427,7 +2440,7 @@ sub print_bad_col{
 #---history file for disappeared  bad col
 #
 ##				$name = "imp_col$k";
-##				open(IN, "$web_dir/Disp_dir/$name");
+##				open(IN, "$data_dir/Disp_dir/$name");
 ##				@tline = ();
 ##				$tcnt  = 0;
 ##				while(<IN>){
@@ -2450,7 +2463,7 @@ sub print_bad_col{
 ##					}
 ##					push(@cleaned, $sorted_tline[$i]);
 ##				}
-##				open(OUT, ">$web_dir/Disp_dir/imp_col$k");
+##				open(OUT, ">$data_dir/Disp_dir/imp_col$k");
 ##				foreach $ent (@cleaned){
 ##					print OUT "$ent\n";
 ##				}
@@ -2459,7 +2472,7 @@ sub print_bad_col{
 #---- bad col count history
 #
 ##				$name = "col$k".'_cnt';
-##				open(IN, "$web_dir/Disp_dir/$name");
+##				open(IN, "$data_dir/Disp_dir/$name");
 ##				@tline = ();
 ##				$tcnt  = 0;
 ##				while(<IN>){
@@ -2480,7 +2493,7 @@ sub print_bad_col{
 ##					}
 ##					push(@cleaned, $sorted_tline[$i]);
 ##				}
-##				open(OUT, ">$web_dir/Disp_dir/$name");
+##				open(OUT, ">$data_dir/Disp_dir/$name");
 ##				foreach $ent (@cleaned){
 ##					print OUT "$ent\n";
 ##				}
@@ -2686,7 +2699,7 @@ sub print_html{
                         if(${tot_new_pix.$kccd} > 0){
                                 print OUT "<th>CCD $kccd</th>","\n";
                                 print OUT '<td>';
-                                open(IN,"$web_dir/Disp_dir/totally_new$kccd");
+                                open(IN,"$data_dir/Disp_dir/totally_new$kccd");
                                 while(<IN>){
                                         chomp $_;
                                         print OUT "$_\n";
@@ -2709,7 +2722,7 @@ sub print_html{
                         if(${tot_new_hot.$kccd} > 0){
                                 print OUT "<th>CCD $kccd</th>","\n";
                                 print OUT '<td>';
-                                open(IN,"$web_dir/Disp_dir/totally_new_hot$kccd");
+                                open(IN,"$data_dir/Disp_dir/totally_new_hot$kccd");
                                 while(<IN>){
                                         chomp $_;
                                         print OUT "$_\n";
@@ -2731,7 +2744,7 @@ sub print_html{
                         if(${tot_new_col.$kccd} > 0){
                                 print OUT "<th>CCD $kccd</th>","\n";
                                 print OUT '<td>';
-                                open(IN,"$web_dir/Disp_dir/totally_new_col$kccd");
+                                open(IN,"$data_dir/Disp_dir/totally_new_col$kccd");
                                 while(<IN>){
                                         chomp $_;
                                         print OUT "$_\n";
@@ -2760,14 +2773,14 @@ sub print_html{
         print OUT '<th style="text-align:center">Data List</th>',"\n";
         print OUT '</tr>',"\n";
 
-        $test = `ls $web_dir/Disp_dir/*`;
+        $test = `ls $data_dir/Disp_dir/*`;
         for($i = 0; $i < 10; $i++) {
                 print OUT '<tr><td>CCD',"$i</td>\n";
 
 #------  data display page
 
                 $chk = 0;
-                open(CH, "$web_dir/Disp_dir/ccd$i");
+                open(CH, "$data_dir/Disp_dir/ccd$i");
                 while(<CH>){
                         chomp $_;
                         if($_ =~ /\d/){
@@ -2776,7 +2789,7 @@ sub print_html{
                 }
                 close(CH);
 
-                open(CH, "$web_dir/Disp_dir/hccd$i");
+                open(CH, "$data_dir/Disp_dir/hccd$i");
                 while(<CH>){
                         chomp $_;
                         if($_ =~ /\d/){
@@ -2935,7 +2948,7 @@ sub plot_hist{
 #---	Imaging CCDs
 #
 		
-	open(FH, "$web_dir/Disp_dir/front_ccd_cnt");
+	open(FH, "$data_dir/Disp_dir/front_ccd_cnt");
 	@new_list  = ();
 	@imp_list  = ();
 	@diff_list = ();
@@ -3011,7 +3024,7 @@ sub plot_hist{
 #---	 CCD 5
 #
 		
-	open(FH, "$web_dir/Disp_dir/ccd5_cnt");
+	open(FH, "$data_dir/Disp_dir/ccd5_cnt");
 	@new_list  = ();
 	@imp_list  = ();
 	@diff_list = ();
@@ -3086,7 +3099,7 @@ sub plot_hist{
 #--- CCD7
 #
 		
-	open(FH, "$web_dir/Disp_dir/ccd7_cnt");
+	open(FH, "$data_dir/Disp_dir/ccd7_cnt");
 	@new_list  = ();
 	@imp_list  = ();
 	@diff_list = ();
@@ -3167,7 +3180,7 @@ sub plot_hist{
 #
 
 		
-	open(FH, "$web_dir/Disp_dir/front_hccd_cnt");
+	open(FH, "$data_dir/Disp_dir/front_hccd_cnt");
 	@new_list  = ();
 	@imp_list  = ();
 	@diff_list = ();
@@ -3243,7 +3256,7 @@ sub plot_hist{
 #----	 CCD 5
 #
 		
-	open(FH, "$web_dir/Disp_dir/hccd5_cnt");
+	open(FH, "$data_dir/Disp_dir/hccd5_cnt");
 	@new_list  = ();
 	@imp_list  = ();
 	@diff_list = ();
@@ -3316,7 +3329,7 @@ sub plot_hist{
 #---	 CCD7
 #
 		
-	open(FH, "$web_dir/Disp_dir/hccd7_cnt");
+	open(FH, "$data_dir/Disp_dir/hccd7_cnt");
 	@new_list  = ();
 	@imp_list  = ();
 	@diff_list = ();
@@ -3390,7 +3403,7 @@ sub plot_hist{
 #---	 Col: Front Side CCDs
 #
 		
-	open(FH, "$web_dir/Disp_dir/front_col_cnt");
+	open(FH, "$data_dir/Disp_dir/front_col_cnt");
 	@new_list  = ();
 	@imp_list  = ();
 	@diff_list = ();
@@ -3465,7 +3478,7 @@ sub plot_hist{
 #---	 Col: CCD 5
 #
 		
-	open(FH, "$web_dir/Disp_dir/col5_cnt");
+	open(FH, "$data_dir/Disp_dir/col5_cnt");
 	@new_list  = ();
 	@imp_list  = ();
 	@diff_list = ();
@@ -3540,7 +3553,7 @@ sub plot_hist{
 #---	 Col: CCD 7
 #
 		
-	open(FH, "$web_dir/Disp_dir/col5_cnt");
+	open(FH, "$data_dir/Disp_dir/col5_cnt");
 	@new_list  = ();
 	@imp_list  = ();
 	@diff_list = ();
@@ -3701,8 +3714,8 @@ sub mv_old_data{
 			$old_file = 'acis'."$btemp[1]";
 			@ctemp = split(/_/, $btemp[1]);
 			if($ctemp[0] < $sec_form_time){
-				system("mv  $_ $web_dir/Old_data/CCD$dccd/.");
-				system("gzip $web_dir/Old_data/CCD$dccd/$old_file");
+				system("mv  $_ $data_dir/Old_data/CCD$dccd/.");
+				system("gzip   $data_dir/Old_data/CCD$dccd/$old_file");
 			}
 		}
 		close(FH);
@@ -3756,7 +3769,7 @@ sub flickering_check{
 #--- read data and find which pixels appeared in the past.
 #
 		$name = "$chk$iccd";
-		open(IN, "$web_dir/Disp_dir/$name");	
+		open(IN, "$data_dir/Disp_dir/$name");	
 		OUTER:
 		while(<IN>){			
 			chomp $_;
@@ -3818,9 +3831,9 @@ sub flickering_check{
 		${fck_cnt.$iccd} = 0;
 
 		if($ind =~ /warm/i){
-			open(OUT, "> $web_dir/Disp_dir/flickering$iccd");
+			open(OUT, "> $data_dir/Disp_dir/flickering$iccd");
 		}else{
-			open(OUT, "> $web_dir/Disp_dir/hflickering$iccd");
+			open(OUT, "> $data_dir/Disp_dir/hflickering$iccd");
 		}
 #
 #--- if pixels went on and off more than 3 times record they are flickering pixels
@@ -3873,7 +3886,7 @@ sub flickering_col{
 #
 #--- read data and find which columns appeared in the past.
 #
-		open(IN, "$web_dir/Disp_dir/new_col$iccd");	
+		open(IN, "$data_dir/Disp_dir/new_col$iccd");	
 		OUTER:
 		while(<IN>){			
 			chomp $_;
@@ -3925,7 +3938,7 @@ sub flickering_col{
 		
 		${fck_col_cnt.$iccd} = 0;
 
-		open(OUT, "> $web_dir/Disp_dir/flickering_col$iccd");
+		open(OUT, "> $data_dir/Disp_dir/flickering_col$iccd");
 #
 #--- if columns went on and off more than 3 times record they are flickering columns
 #
@@ -3999,7 +4012,7 @@ sub rm_incomplete_data{
 			'new_bad_pix_save','new_bad_pix_save5','new_bad_pix_save7',
 			'new_hot_pix_save','new_hot_pix_save5','new_hot_pix_save7'){
 	
-		open(FH, "$web_dir/Disp_dir/$file");
+		open(FH, "$data_dir/Disp_dir/$file");
 		open(OUT, '>./Working_dir/temp');
 		OUTER:
 		while(<FH>){
@@ -4014,11 +4027,11 @@ sub rm_incomplete_data{
 		}
 		close(OUT);
 		close(FH);
-		system("mv ./Working_dir/temp $web_dir/Disp_dir/$file");
+		system("mv ./Working_dir/temp $data_dir/Disp_dir/$file");
 	}
 	
 	for($iccd = 0; $iccd < 10; $iccd++){
-		open(FH, "$web_dir/Disp_dir/date_used.$iccd");
+		open(FH, "$data_dir/Disp_dir/date_used.$iccd");
 		open(OUT, '>./Working_dir/temp');
 		while(<FH>){
 			chomp $_;
@@ -4032,12 +4045,12 @@ sub rm_incomplete_data{
 		}
 		close(OUT);
 		close(FH);
-		system("mv ./Working_dir/temp $web_dir/Disp_dir/data_used.$iccd");
+		system("mv ./Working_dir/temp $data_dir/Disp_dir/data_used.$iccd");
 	}
 	
 	foreach $head ('change_ccd', 'change_col', 'imp_ccd', 'new_ccd', 'imp_col', 'new_col'){
 		for($iccd = 0; $iccd < 10; $iccd++){
-			open(FH, "$web_dir/Disp_dir/$head$iccd");
+			open(FH, "$data_dir/Disp_dir/$head$iccd");
 			open(OUT,'>./Working_dir/temp');
 			OUTER:
 			while(<FH>){
@@ -4056,14 +4069,14 @@ sub rm_incomplete_data{
 			}
 			close(OUT);
 			close(FH);
-			system("mv ./Working_dir/temp $web_dir/Disp_dir/$head$iccd");
+			system("mv ./Working_dir/temp $data_dir/Disp_dir/$head$iccd");
 		}
 	}
 
 	foreach $head ('hist_ccd'){
 		for($iccd = 0; $iccd < 10; $iccd++){
 	
-			open(FH, "$web_dir/Disp_dir/$head$iccd");
+			open(FH, "$data_dir/Disp_dir/$head$iccd");
 			open(OUT,'>./Working_dir/temp');
 			OUTER:
 			while(<FH>){
@@ -4083,7 +4096,7 @@ sub rm_incomplete_data{
 			}
 			close(OUT);
 			close(FH);
-			system("mv ./Working_dir/temp $web_dir/Disp_dir/$head$iccd");
+			system("mv ./Working_dir/temp $data_dir/Disp_dir/$head$iccd");
 		}
 	}
 
@@ -4175,26 +4188,26 @@ sub find_more_bad_pix_info{
 #
 #---  warm pixels    
 #	
-		$file = "$web_dir/Disp_dir/hist_ccd$iccd";
+		$file = "$data_dir/Disp_dir/hist_ccd$iccd";
 	
-		$out  = "$web_dir/Disp_dir/all_past_bad_pix$iccd";
+		$out  = "$data_dir/Disp_dir/all_past_bad_pix$iccd";
 		find_all_past_bad_pix();
 		${past_cnt.$iccd} = $tot;
 #
 #---  hot pixels    
 #	
-		$file = "$web_dir/Disp_dir/hist_hccd$iccd";
+		$file = "$data_dir/Disp_dir/hist_hccd$iccd";
 	
-		$out  = "$web_dir/Disp_dir/all_past_hot_pix$iccd";
+		$out  = "$data_dir/Disp_dir/all_past_hot_pix$iccd";
 		find_all_past_bad_pix();
 		${past_hot_cnt.$iccd} = $tot;
 	
 #
 #--- bad columns
 #	
-		$file = "$web_dir/Disp_dir/hist_col$iccd";
+		$file = "$data_dir/Disp_dir/hist_col$iccd";
 	
-		$out  = "$web_dir/Disp_dir/all_past_bad_col$iccd";
+		$out  = "$data_dir/Disp_dir/all_past_bad_col$iccd";
 		find_all_past_bad_col();
 		${past_col_cnt.$iccd} = $tot;
 	}
@@ -4325,19 +4338,19 @@ sub find_totally_new {
 #
 #---- warm pixels
 #
-	$file1 = "$web_dir/Disp_dir/totally_new*";
-	$file2 = "$web_dir/Disp_dir/ccd*";
-	$file3 = "$web_dir/Disp_dir/all_past_bad_pix";
-	$file4 = "$web_dir/Disp_dir/totally_new";
+	$file1 = "$data_dir/Disp_dir/totally_new*";
+	$file2 = "$data_dir/Disp_dir/ccd*";
+	$file3 = "$data_dir/Disp_dir/all_past_bad_pix";
+	$file4 = "$data_dir/Disp_dir/totally_new";
 	$out_ind = 'tot_new_pix';
 	new_pix();
 #
 #---- hot pixels
 #
-	$file1 = "$web_dir/Disp_dir/totally_new_hot*";
-	$file2 = "$web_dir/Disp_dir/hccd*";
-	$file3 = "$web_dir/Disp_dir/all_past_hot_pix";
-	$file4 = "$web_dir/Disp_dir/totally_new_hot";
+	$file1 = "$data_dir/Disp_dir/totally_new_hot*";
+	$file2 = "$data_dir/Disp_dir/hccd*";
+	$file3 = "$data_dir/Disp_dir/all_past_hot_pix";
+	$file4 = "$data_dir/Disp_dir/totally_new_hot";
 	$out_ind = 'tot_new_hot';
 	new_pix();
 }
@@ -4455,7 +4468,7 @@ sub new_pix {
 			if($new_ind == 0){
 				$first_day = "$uyear:$uyday";
 				$dom_today = ch_ydate_to_dom($first_day);
-				open(OUT,">>$web_dir/Disp_dir/totally_new$kccd");
+				open(OUT,">>$data_dir/Disp_dir/totally_new$kccd");
 				print OUT "($x,$y)\t$first_day [$dom_today]\n";
 				close(OUT);
 				${$out_ind.$kccd}++;
@@ -4487,7 +4500,7 @@ sub find_totally_new_col {
 #
 #------- find which ccd has the new bad columns in past
 #
-	$temp_file = `ls $web_dir/Disp_dir/totally_new_col*`;
+	$temp_file = `ls $data_dir/Disp_dir/totally_new_col*`;
 	@totally_new = split(/\s+/, $temp_file);
 
 	foreach $file (@totally_new){
@@ -4513,7 +4526,7 @@ sub find_totally_new_col {
 #
 #---- find today's bad cols
 #
-	$temp_file = `ls $web_dir/Disp_dir/col*`;
+	$temp_file = `ls $data_dir/Disp_dir/col*`;
 	@col_list  = split(/\s+/, $temp_file);
 
 	OUTER:
@@ -4526,7 +4539,7 @@ sub find_totally_new_col {
 #
 #---- first read all bad pxiels appeared in the past
 #
-		$comp_file = "$web_dir/Disp_dir/all_past_bad_col"."$kccd";
+		$comp_file = "$data_dir/Disp_dir/all_past_bad_col"."$kccd";
 
 		@col_save = ();
 		$comp_cnt = 0;
@@ -4564,7 +4577,7 @@ sub find_totally_new_col {
 				$first_day = "$uyear:$uyday";
 				$dom_today = ch_ydate_to_dom($first_day);
 				if($dom_today > 0){
-					open(OUT,">>$web_dir/Disp_dir/totally_new_col$kccd");
+					open(OUT,">>$data_dir/Disp_dir/totally_new_col$kccd");
 					print OUT "$col\t$first_day [$dom_today]\n";
 					close(OUT);
 					${tot_new_col.$kccd}++;

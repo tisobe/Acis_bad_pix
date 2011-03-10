@@ -6,7 +6,7 @@
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: Jun 04, 2009							#
+#	last update: Mar 09, 2011							#
 #											#
 #########################################################################################
 
@@ -17,15 +17,24 @@
 
 #--- output directory
 
-$bin_dir       = '/data/mta/MTA/bin/';
-$bdat_dir      = '/data/mta/MTA/data/';
-$web_dir       = '/data/mta_www/mta_bias_bkg/';
-$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list");
+@dir_list = ();
+OUTER:
+while(<FH>){
+        if($_ =~ /#/){
+                next OUTER;
+        }
+        chomp $_;
+        push(@dir_list, $_);
+}
+close(FH);
 
-#$bin_dir       = '/data/mta/MTA/bin/';
-#$bdat_dir      = '/data/mta/MTA/data/';
-#$web_dir       = '/data/mta_www/mta_bias_bkg_test';
-#$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
+$bin_dir       = $dir_list[0];
+$bdat_dir      = $dir_list[1];
+$web_dir       = $dir_list[2];
+$exc_dir       = $dir_list[3];
+$data_dir      = $dir_list[4];
+$house_keeping = $dir_list[5];
 
 #######################################
 
@@ -52,6 +61,9 @@ $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 for($ccd = 0; $ccd < 10; $ccd++){
 	for($node = 0; $node < 4; $node++){
 		$file = '/data/mta_www/mta_bias_bkg/Bias_save/CCD'."$ccd".'/quad'."$node";
+		$file = "$data_dir".'/Bias_save/CCD'."$ccd".'/quad'."$node";
+
+		$file = "$data_dir".'/Bias_save/CCD'."$ccd".'/quad'."$node";
 		system("/opt/local/bin/perl $bin_dir/acis_bias_moving_avg.perl $file");
 		system("mv bias_plot_*.gif $web_dir/Plots/Sub2/");
 	}

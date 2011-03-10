@@ -6,7 +6,7 @@ use PGPLOT;
 #	plot_sub_info.perl: plot bias background data of different classifications	#
 #											#
 #		author: t. isobe (tiosbe@cfa.harvard.edu)				#
-#		last update: Sep 21, 2010						#
+#		last update: Mar 07, 2011						#
 #											#
 #########################################################################################
 
@@ -17,15 +17,24 @@ use PGPLOT;
 
 #--- output directory
 
-$bin_dir       = '/data/mta/MTA/bin/';
-$bdat_dir      = '/data/mta/MTA/data/';
-$web_dir       = '/data/mta_www/mta_bias_bkg/';
-$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list");
+@dir_list = ();
+OUTER:
+while(<FH>){
+        if($_ =~ /#/){
+                next OUTER;
+        }
+        chomp $_;
+        push(@dir_list, $_);
+}
+close(FH);
 
-#$bin_dir       = '/data/mta/MTA/bin/';
-#$bdat_dir      = '/data/mta/MTA/data/';
-#$web_dir       = '/data/mta_www/mta_bias_bkg_test/';
-#$house_keeping = '/data/mta/www/mta_bad_pixel/Test/house_keeping/';
+$bin_dir       = $dir_list[0];
+$bdat_dir      = $dir_list[1];
+$web_dir       = $dir_list[2];
+$exc_dir       = $dir_list[3];
+$data_dir      = $dir_list[4];
+$house_keeping = $dir_list[5];
 
 #######################################
 
@@ -33,7 +42,7 @@ $house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
 for($ccd = 0; $ccd < 10; $ccd++){
 	for($quad = 0; $quad < 4; $quad++){
 		$y_axis = 'Bias';
-		$dir = "$web_dir".'/Info_dir/CCD'."$ccd".'/quad'."$quad";
+		$dir = "$data_dir".'/Info_dir/CCD'."$ccd".'/quad'."$quad";
 	}
 }
 #	
@@ -69,7 +78,7 @@ sub plot_param_dep{
 	
 	$dest_dir = $dir2;
 	
-	open(FH, "$web_dir/Info_dir/list_of_ccd_no");
+	open(FH, "$data_dir/Info_dir/list_of_ccd_no");
 	@ttime = ();
 	@ccd_no = ();
 	$c_nt   = 0;
@@ -367,7 +376,7 @@ sub plot_param_dep2{
 	$in_file = 'CCD'."$btemp[1]";
 	
 	
-	open(FH, "$web_dir/Info_dir/list_of_ccd_no");
+	open(FH, "$data_dir/Info_dir/list_of_ccd_no");
 	@ttime = ();
 	@ccd_no = ();
 	$ttcnt  = 0;
@@ -424,7 +433,7 @@ sub plot_param_dep2{
 	}
 	close(FH);
 	
-	open(FH, "$web_dir/Bias_save/$in_file");
+	open(FH, "$data_dir/Bias_save/$in_file");
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/\s+/, $_);

@@ -5,7 +5,7 @@
 #	acis_bad_pix_create_data_table.perl: create a data display html sub pages 		#
 #												#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)					#
-#	last update: Sep 19, 2005								#
+#	last update: Mar 09, 2011								#
 #												#
 #################################################################################################
 
@@ -16,9 +16,25 @@
 
 #--- output directory
 
-$bin_dir = '/data/mta/MTA/bin/';
-$web_dir = '/data/mta/www/mta_bad_pixel/';
-#$web_dir = '/data/mta/www/mta_bad_pixel/Test/';
+open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list");
+@dir_list = ();
+OUTER:
+while(<FH>){
+        if($_ =~ /#/){
+                next OUTER;
+        }
+        chomp $_;
+        push(@dir_list, $_);
+}
+close(FH);
+
+$bin_dir       = $dir_list[0];
+$bdat_dir      = $dir_list[1];
+$web_dir       = $dir_list[2];
+$exc_dir       = $dir_list[3];
+$data_dir      = $dir_list[4];
+$house_keeping = $dir_list[5];
+
 
 #######################################
 
@@ -27,17 +43,17 @@ for($iccd = 0; $iccd < 10; $iccd++){
 #
 #---- set pathes to directories, and other initializations
 #
-	$bad_pix = "$web_dir".'/Disp_dir/ccd'."$iccd";
-	$hot_pix = "$web_dir".'/Disp_dir/hccd'."$iccd";
-	$bad_col = "$web_dir".'/Disp_dir/col'."$iccd";
+	$bad_pix = "$data_dir".'/Disp_dir/ccd'."$iccd";
+	$hot_pix = "$data_dir".'/Disp_dir/hccd'."$iccd";
+	$bad_col = "$data_dir".'/Disp_dir/col'."$iccd";
 
-	$flickering_bad = "$web_dir".'/Disp_dir/flickering'."$iccd";
-	$flichering_hot = "$web_dir".'/Disp_dir/hflickering'."$iccd";
-	$flickering_col = "$web_dir".'/Disp_dir/flickering_col'."$iccd";
+	$flickering_bad = "$data_dir".'/Disp_dir/flickering'."$iccd";
+	$flichering_hot = "$data_dir".'/Disp_dir/hflickering'."$iccd";
+	$flickering_col = "$data_dir".'/Disp_dir/flickering_col'."$iccd";
 
-	$past_bad_pix = "$web_dir".'/Disp_dir/all_past_bad_pix'."$iccd";
-	$past_hot_pix = "$web_dir".'/Disp_dir/all_past_hot_pix'."$iccd";
-	$past_bad_col = "$web_dir".'/Disp_dir/all_past_bad_col'."$iccd";
+	$past_bad_pix = "$data_dir".'/Disp_dir/all_past_bad_pix'."$iccd";
+	$past_hot_pix = "$data_dir".'/Disp_dir/all_past_hot_pix'."$iccd";
+	$past_bad_col = "$data_dir".'/Disp_dir/all_past_bad_col'."$iccd";
 
 	@bad_pix_list = ();
 	@hot_pix_list = ();
@@ -138,8 +154,8 @@ for($iccd = 0; $iccd < 10; $iccd++){
 #
 #---- start printing the html pages
 #
-
 	$file_name = "$web_dir".'/Html_dir/ccd_data'."$iccd".'.html';
+
 	open(OUT, ">$file_name");
 	print OUT '<HTML><BODY TEXT="#FFFFFF" BGCOLOR="#000000" LINK="#00CCFF"'; 
 	print OUT 'VLINK="yellow" ALINK="#FF0000" background="./stars.jpg">',"\n";
@@ -268,5 +284,6 @@ for($iccd = 0; $iccd < 10; $iccd++){
 
 	print OUT '</tr>',"\n";
 	print OUT '</table>',"\n";
+	close(OUT);
 }
 

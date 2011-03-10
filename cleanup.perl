@@ -7,15 +7,28 @@
 
 #--- output directory
 
-$bin_dir       = '/data/mta/MTA/bin/';
-$bdat_dir      = '/data/mta/MTA/data/';
-$web_dir       = '/data/mta/www/mta_bad_pixel/';
-$old_dir       = $web_dir;
-$house_keeping = '/data/mta/www/mta_bad_pixel/house_keeping/';
+open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list");
+@dir_list = ();
+OUTER:
+while(<FH>){
+        if($_ =~ /#/){
+                next OUTER;
+        }
+        chomp $_;
+        push(@dir_list, $_);
+}
+close(FH);
+
+$bin_dir       = $dir_list[0];
+$bdat_dir      = $dir_list[1];
+$web_dir       = $dir_list[2];
+$exc_dir       = $dir_list[3];
+$data_dir      = $dir_list[4];
+$house_keeping = $dir_list[5];
 
 #######################################
 
-system("ls $web_dir/Disp_dir/*cnt* > zdata_list"); 
+system("ls $data_dir/Disp_dir/*cnt* > zdata_list"); 
 @in_list = split(/\s+/, $list);
 
 open(FH, "./zdata_list");
@@ -75,7 +88,7 @@ sub clearnup_duplicate {
 ###################################################################
 
 sub clean_up_dupl_entry{
-	$in_list = `ls $web_dir/Disp_dir/hist_*`;
+	$in_list = `ls $data_dir/Disp_dir/hist_*`;
 	@list = split(/\s+/, $in_list);
 	foreach $ent (@list){
         	open(FH, "$ent");
