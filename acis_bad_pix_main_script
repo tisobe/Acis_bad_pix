@@ -1,6 +1,6 @@
 source /home/mta/.ascrc 
 
-cd /data/mta/Script/ACIS/Bad_pixels/Exc2
+cd /data/mta/Script/ACIS/Bad_pixels/Exc
 rm -rf param
 mkdir param
 source /home/mta/bin/reset_param
@@ -8,22 +8,22 @@ setenv PFILES "${PDIRS}"
 set path = (/home/ascds/DS.release/bin/  $path)
 set path = (/home/ascds/DS.release/ots/bin/ $path)
 
-/opt/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Test/acis_bad_pix_find_bad_pix.perl live
-/opt/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Test/acis_bad_pix_clean_up.perl
-/opt/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Test/acis_bad_pix_new_plot_set.perl
-/opt/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Test/acis_bad_pix_create_data_table.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bad_pix_find_bad_pix.perl live
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bad_pix_clean_up.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bad_pix_new_plot_set.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bad_pix_create_data_table.perl
 
-/opt/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Test/acis_bias_print_today_data.perl
-/opt/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Test/acis_bias_compute_avg.perl ./Working_dir/today_input_data
-/opt/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Test/acis_bias_get_info.perl ./Working_dir/today_input_data
-/opt/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Test/acis_bias_plot_bias.perl
-/opt/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Test/acis_bias_plot_sub_info.perl
-/opt/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Test/acis_bias_html_update.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bias_print_today_data.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bias_compute_avg.perl ./Working_dir/today_input_data
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bias_get_info.perl ./Working_dir/today_input_data
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bias_plot_bias.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bias_plot_sub_info.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bias_html_update.perl
 
-/opt/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Test/acis_bias_run_all_ccd.perl
+/opt/local/bin/perl /data/mta/MTA/bin/acis_bias_run_all_ccd.perl
 
-/opt/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Test/cleanup.perl
+/opt/local/bin/perl /data/mta/MTA/bin/cleanup.perl
 
 rm -rf ./Working_dir
 
-rm -rf  /data/mta/Script/ACIS/Bad_pixels/Exc2/*
+rm -rf  /data/mta/Script/ACIS/Bad_pixels/Exc/*
