@@ -53,7 +53,7 @@
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: 04/21/2006								#
+#	last update: 02/02/2012								#
 #											#
 #########################################################################################
 
@@ -258,7 +258,7 @@ for($i = 0; $i < $dcnt; $i++){
 			next OUTER;
 		}
 		$avg = $sum/$mcnt;
-		$std = sqrt($sum2/$mcnt - $avg * $avg);
+		$std = sqrt(abs($sum2/$mcnt - $avg * $avg));
 		push(@mvavg,  $avg);
 		push(@sigma,  $std);
 		push(@max_sv, $max);

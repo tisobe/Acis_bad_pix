@@ -23,7 +23,7 @@ use PGPLOT;
 
 #--- output directory
 
-pen(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list");
+open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list");
 @dir_list = ();
 OUTER:
 while(<FH>){

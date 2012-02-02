@@ -5,6 +5,29 @@ One set of scripts finds out bad pixels on ACIS CCDs, and the other set
 computes ACIS  Bias backgrounds. These two were originally one set
 of script, and hence, they are still kept under the same script group.
 
+-----------
+directories
+-----------
+
+Bad pixel related
+-----------------
+$bin_dir:	/data/mta/MTA/bin/
+$bdata_dir:	/data/mta/MTA/data/
+$web_dir:	/data/mta/www/mta_bad_pixel/
+$exc_dir:	/data/mta/Script/ACIS/Bad_pixels/Exc/
+$data_dir:	/data/mta/Script/ACIS/Bad_pixels/Data/
+$house_keeping:	/data/mta/Script/ACIS/Bad_pixels/house_keeping/
+
+Bias related
+-------------
+$bin_dir:	/data/mta/MTA/bin/
+$bdata_dir:	/data/mta/MTA/data/
+$web_dir:	/data/mta/www/mta_bias_bkg/
+$exc_dir:	/data/mta/Script/ACIS/Bad_pixels/Exc/
+$data_dir:	/data/mta/Script/ACIS/Bad_pixels/Bias_data/
+$house_keeping:	/data/mta/Script/ACIS/Bad_pixels/house_keeping/
+
+
 ------------------
 Controling Scripts
 ------------------
@@ -34,10 +57,10 @@ and pick up data which had not been processed. Otherwise, you need to give a dir
 which contains bias0.fits files.
 
 output:                                                                 
-        $web_dir/Defect/CCD*/                                           
+        $house_keeping/Defect/CCD*/                                           
                 acis*_q*_max: bad pix candidates                        
                 acis*_q*_hot: hot pix candidates                        
-        $web_dir/Disp_dir/                                              
+        $data_dir/Disp_dir/                                              
                 all_past_bad_col*: a list of all past bad columns       
                 all_past_bad_pix*: a list of all past bad pixels        
                 all_past_hot_pix*: a list of all past hot pixels        
@@ -70,9 +93,9 @@ output:
                 today_new_col*:    a list of today's bad columns        
                 totally_new*:      a list of totally new bad pix        
                 totally_new_col*:  a list of totally new bad cols       
-        $web_dir/Bias_save/CCD*/                                        
+        (bias)$data_dir/Bias_save/CCD*/                                        
                 quad*:  a list of time bias averge and sigma            
-        $web_dir/Plot/                                                  
+        (bias)$web_dir/Plot/                                                  
                 ccd*.gif: a plot of bias background                     
                 hist_ccd*.gif:  a plot of history of # of bad pix       
                 hist_col*.gif:  a plot of history of # of bad col       
@@ -83,15 +106,15 @@ acis_bad_pix_create_data_table.perl
 -----------------------------------
 This script creates a data display html sub pages.
 
-input: 	$web_dir/Disp_dir/ccd*			warm pixels
-	$web_dir/Disp_dir/hccd*			hot pixels
-	$web_dir/Disp_dir/col*			warm columns
-	$web_dir/Disp_dir/flickering*		warm flickering pixels
-	$web_dir/Disp_dir/hflickering*		hot flickering pixels
-	$web_dir/Disp_dir/flickering_col*	flickering columns
-	$web_dir/Disp_dir/all_past_bad_pix*	list of all past warm pixels
-	$web_dir/Disp_dir/all_past_hot_pix*	list of all past hot pixels
-	$web_dir/Disp_dir/all_past_bad_col*	list of all past warm columns
+input: 	$house_keepging/Disp_dir/ccd*			warm pixels
+	$house_keepging/Disp_dir/hccd*			hot pixels
+	$house_keepging/Disp_dir/col*			warm columns
+	$house_keepging/Disp_dir/flickering*		warm flickering pixels
+	$house_keepging/Disp_dir/hflickering*		hot flickering pixels
+	$house_keepging/Disp_dir/flickering_col*	flickering columns
+	$house_keepging/Disp_dir/all_past_bad_pix*	list of all past warm pixels
+	$house_keepging/Disp_dir/all_past_hot_pix*	list of all past hot pixels
+	$house_keepging/Disp_dir/all_past_bad_col*	list of all past warm columns
 
 output:
 	$web_dir/Html_dir/ccd_data*
@@ -116,7 +139,7 @@ argument:	data list---- ./Working_dir/today_input_data
 
 input:		today_input_data		a list of input data
 
-output:		$web_dir/Info_dir/CCD*/quad*	a data list
+output:		(bias)$data_dir/Info_dir/CCD*/quad*	a data list
 					time
 					overclock
 					data mode
