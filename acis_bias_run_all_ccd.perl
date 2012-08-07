@@ -6,7 +6,7 @@
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: Mar 09, 2011							#
+#	last update: Aug 01, 2012							#
 #											#
 #########################################################################################
 
@@ -17,24 +17,15 @@
 
 #--- output directory
 
-open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list");
-@dir_list = ();
-OUTER:
+$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list';
+open(FH, $dir_list);
 while(<FH>){
-        if($_ =~ /#/){
-                next OUTER;
-        }
-        chomp $_;
-        push(@dir_list, $_);
+    chomp $_;
+    @atemp = split(/\s+/, $_);
+    ${$atemp[0]} = $atemp[1];
 }
 close(FH);
 
-$bin_dir       = $dir_list[0];
-$bdat_dir      = $dir_list[1];
-$web_dir       = $dir_list[2];
-$exc_dir       = $dir_list[3];
-$data_dir      = $dir_list[4];
-$house_keeping = $dir_list[5];
 
 #######################################
 
@@ -60,11 +51,11 @@ $house_keeping = $dir_list[5];
 
 for($ccd = 0; $ccd < 10; $ccd++){
 	for($node = 0; $node < 4; $node++){
-		$file = '/data/mta_www/mta_bias_bkg/Bias_save/CCD'."$ccd".'/quad'."$node";
-		$file = "$data_dir".'/Bias_save/CCD'."$ccd".'/quad'."$node";
 
 		$file = "$data_dir".'/Bias_save/CCD'."$ccd".'/quad'."$node";
-		system("/opt/local/bin/perl $bin_dir/acis_bias_moving_avg.perl $file");
+        
+		system("$op_dir/perl $bin_dir/acis_bias_moving_avg.perl $file");
+
 		system("mv bias_plot_*.gif $web_dir/Plots/Sub2/");
 	}
 }

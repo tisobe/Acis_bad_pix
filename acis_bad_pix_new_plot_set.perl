@@ -8,30 +8,21 @@
 #												#
 #		author: t. isobe (tisobe@cfa.harvard.edu)					#
 #												#
-#		last update: Mar 09, 2011							#
+#		last update: Aug 01, 2012							#
 #												#
 #################################################################################################
 
 #--- output directory
 
-open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list");
-@dir_list = ();
-OUTER:
+$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list';
+open(FH, $dir_list);
 while(<FH>){
-        if($_ =~ /#/){
-                next OUTER;
-        }
-        chomp $_;
-        push(@dir_list, $_);
+    chomp $_;
+    @atemp = split(/\s+/, $_);
+    ${$atemp[0]} = $atemp[1];
 }
 close(FH);
 
-$bin_dir       = $dir_list[0];
-$bdat_dir      = $dir_list[1];
-$web_dir       = $dir_list[2];
-$exc_dir       = $dir_list[3];
-$data_dir      = $dir_list[4];
-$house_keeping = $dir_list[5];
 
 #------------
 
@@ -41,29 +32,29 @@ system("cp $data_dir/Disp_dir/hist_ccd* $data_dir/Disp_dir/hist_col* .");
 #--- warm pixel cases
 #
 
-system("/opt/local/bin/perl $bin_dir/create_new_and_imp_ccd_list.perl");
+system("$op_dir/perl $bin_dir/create_new_and_imp_ccd_list.perl");
 
-system("/opt/local/bin/perl $bin_dir/create_flk_pix_hist.perl");
+system("$op_dir/perl $bin_dir/create_flk_pix_hist.perl");
 
-system("/opt/local/bin/perl $bin_dir/create_pot_warm_pix.perl");
+system("$op_dir/perl $bin_dir/create_pot_warm_pix.perl");
 
-system("/opt/local/bin/perl $bin_dir/plot_ccd_history.perl");
+system("$op_dir/perl $bin_dir/plot_ccd_history.perl");
 
-system("/opt/local/bin/perl $bin_dir/plot_front_ccd_history.perl");
+system("$op_dir/perl $bin_dir/plot_front_ccd_history.perl");
 
 #
 #--- warm column cases
 #
 
-system("/opt/local/bin/perl $bin_dir/create_new_and_imp_col_list.perl");
+system("$op_dir/perl $bin_dir/create_new_and_imp_col_list.perl");
 
-system("/opt/local/bin/perl $bin_dir/create_flk_col_hist.perl");
+system("$op_dir/perl $bin_dir/create_flk_col_hist.perl");
 
-system("/opt/local/bin/perl $bin_dir/create_pot_warm_col.perl");
+system("$op_dir/perl $bin_dir/create_pot_warm_col.perl");
 
-system("/opt/local/bin/perl $bin_dir/plot_col_history.perl");
+system("$op_dir/perl $bin_dir/plot_col_history.perl");
 
-system("/opt/local/bin/perl $bin_dir/plot_front_col_history.perl");
+system("$op_dir/perl $bin_dir/plot_front_col_history.perl");
 
 
 system("mv *gif $web_dir/Plots/");

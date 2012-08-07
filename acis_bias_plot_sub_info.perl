@@ -6,7 +6,7 @@ use PGPLOT;
 #	plot_sub_info.perl: plot bias background data of different classifications	#
 #											#
 #		author: t. isobe (tiosbe@cfa.harvard.edu)				#
-#		last update: Mar 07, 2011						#
+#		last update: Aug 01, 2012						#
 #											#
 #########################################################################################
 
@@ -17,24 +17,15 @@ use PGPLOT;
 
 #--- output directory
 
-open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list");
-@dir_list = ();
-OUTER:
+$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keepingbias_dir_list';
+open(FH, $dir_list);
 while(<FH>){
-        if($_ =~ /#/){
-                next OUTER;
-        }
-        chomp $_;
-        push(@dir_list, $_);
+    chomp $_;
+    @atemp = split(/\s+/, $_);
+    ${$atemp[0]} = $atemp[1];
 }
 close(FH);
 
-$bin_dir       = $dir_list[0];
-$bdat_dir      = $dir_list[1];
-$web_dir       = $dir_list[2];
-$exc_dir       = $dir_list[3];
-$data_dir      = $dir_list[4];
-$house_keeping = $dir_list[5];
 
 #######################################
 
@@ -189,7 +180,7 @@ sub plot_param_dep{
 		
 		pgclos();
 
-		system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/obs_mode.gif");
+		system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/obs_mode.gif");
 
 		system("rm pgplot.ps");
 
@@ -231,7 +222,7 @@ sub plot_param_dep{
 		
 		pgclos();
 
-		system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/partial_readout.gif");
+		system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/partial_readout.gif");
 
 		system("rm pgplot.ps");
 
@@ -286,7 +277,7 @@ sub plot_param_dep{
 	
 		pgclos();
 
-		system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/bias_arg1.gif");
+		system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/bias_arg1.gif");
 
 		system("rm pgplot.ps");
 	
@@ -354,7 +345,7 @@ sub plot_param_dep{
 		
 		pgclos();
 							
-		system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/no_ccds.gif");
+		system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/no_ccds.gif");
 
 		system("rm pgplots.ps");
 	}
@@ -502,7 +493,7 @@ sub plot_param_dep2{
 	
 	pgclos();
 
-	system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/obs_mode.gif");
+	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/obs_mode.gif");
 
 	system("rm pgplot.ps");
 	
@@ -548,7 +539,7 @@ sub plot_param_dep2{
 	
 	pgclos();
 
-	system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/partial_readout.gif");
+	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/partial_readout.gif");
 
 	system("rm pgplot.ps");
 	
@@ -603,7 +594,7 @@ sub plot_param_dep2{
 	
 	pgclos();
 
-	system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/bias_arg1.gif");
+	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/bias_arg1.gif");
 
 	system("rm pgplot.ps");
 	
@@ -667,7 +658,7 @@ sub plot_param_dep2{
 	
 	pgclos();
 						
-	system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $dest_dir/no_ccds.gif");
+	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/no_ccds.gif");
 
 	system("rm pgplot.ps");
 

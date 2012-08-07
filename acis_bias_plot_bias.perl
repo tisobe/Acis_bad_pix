@@ -7,7 +7,7 @@ use PGPLOT;
 #				  background html display		#
 #									#
 #	author: t. isobe (tisobe@cfa.harvard.edu)			#
-#	last upate: Mar 09, 2011					#
+#	last upate: Aug 01, 2012					#
 #									#
 #########################################################################
 
@@ -18,24 +18,14 @@ use PGPLOT;
 
 #--- output directory
 
-open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list");
-@dir_list = ();
-OUTER:
+$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list';
+open(FH, $dir_list);
 while(<FH>){
-        if($_ =~ /#/){
-                next OUTER;
-        }
-        chomp $_;
-        push(@dir_list, $_);
+    chomp $_;
+    @atemp = split(/\s+/, $_);
+    ${$atemp[0]} = $atemp[1];
 }
 close(FH);
-
-$bin_dir       = $dir_list[0];
-$bdat_dir      = $dir_list[1];
-$web_dir       = $dir_list[2];
-$exc_dir       = $dir_list[3];
-$data_dir      = $dir_list[4];
-$house_keeping = $dir_list[5];
 
 #######################################
 
@@ -93,7 +83,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	}
 	pgclos();
 
-	system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $web_dir/Plots/Bias_bkg/ccd$ccd.gif");
+	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $web_dir/Plots/Bias_bkg/ccd$ccd.gif");
 
 	system("rm pgplot.ps");
 
@@ -151,7 +141,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	}
 	pgclos();
 
-	system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $web_dir/Plots/Overclock/ccd$ccd.gif");
+	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $web_dir/Plots/Overclock/ccd$ccd.gif");
 	system("rm pgplot.ps");
 
 	pgbegin(0, "/ps",1,1);
@@ -212,7 +202,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 		pglabel("Time (DOM)", 'Bias', "$title");
 	}
 	pgclos();
-	system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$bin_dir/pnmcrop| $bin_dir/pnmflip -r270 | $bin_dir/ppmtogif > $web_dir/Plots/Sub/ccd$ccd.gif");
+	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $web_dir/Plots/Sub/ccd$ccd.gif");
 	system("rm pgplot.ps");
 }
 			

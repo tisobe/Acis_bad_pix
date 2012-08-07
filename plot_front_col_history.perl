@@ -7,31 +7,22 @@ use PGPLOT;
 #												#
 #		author: t. isobe (tisobe@cfa.harvard.edu)					#
 #												#
-#		last update: Mar 09, 2011							#
+#		last update: Aug 01, 2012							#
 #												#
 #################################################################################################
 
 
 #--- output directory
 
-open(FH, "/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list");
-@dir_list = ();
-OUTER:
+$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list';
+open(FH, $dir_list);
 while(<FH>){
-        if($_ =~ /#/){
-                next OUTER;
-        }
-        chomp $_;
-        push(@dir_list, $_);
+    chomp $_;
+    @atemp = split(/\s+/, $_);
+    ${$atemp[0]} = $atemp[1];
 }
 close(FH);
 
-$bin_dir       = $dir_list[0];
-$bdat_dir      = $dir_list[1];
-$web_dir       = $dir_list[2];
-$exc_dir       = $dir_list[3];
-$data_dir      = $dir_list[4];
-$house_keeping = $dir_list[5];
 
 #----------------------------------------------
 
@@ -71,9 +62,13 @@ foreach $ccd (0, 1, 2, 3, 4, 6, 8, 9){
 #
 	$file = "$data_dir".'/Disp_dir/col'."$ccd".'_cnt';
 	open(FH, "$file");
+	OUTER:
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/<>/, $_);
+		if($atemp[0] < 1){
+			next OUTER;
+		}
 		@btemp = split(/:/, $atemp[2]);
 
 		if($ccd == 0){
@@ -129,9 +124,13 @@ $tot  = 0;
 foreach $ccd (0, 1, 2, 3, 4, 6, 8, 9){
 	$file = "$data_dir".'/Disp_dir/bad_col'."$ccd".'_cnt';
 	open(FH, "$file");
+	OUTER:
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/<>/, $_);
+		if($atemp[0] < 1){
+			next OUTER;
+		}
 		@btemp = split(/:/, $atemp[2]);
 		if($ccd == 0){
 #			push(@x, $atemp[0]);
@@ -195,6 +194,9 @@ foreach $ccd (0, 1, 2, 3, 4, 6, 8, 9){
 	while(<FH>){
 		chomp $_;
 		@atemp = split(/<>/, $_);
+		if($atemp[0] < 1){
+			next OUTER;
+		}
 		@btemp = split(/:/, $atemp[2]);
 		if($ccd == 0){
 			if($atemp[0] == $chk1){
@@ -267,7 +269,7 @@ pgclos();
 
 $out_gif = 'hist_col_plot_front_side.gif';
 
-system("echo ''|/opt/local/bin/gs -sDEVICE=ppmraw  -r128x128 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps|pnmcrop| pnmflip -r270 | ppmtogif > $out_gif");
+system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r128x128 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $out_gif");
 	system("rm pgplot.ps");
 
 
