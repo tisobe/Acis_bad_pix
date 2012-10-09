@@ -6,7 +6,7 @@ use PGPLOT;
 #	plot_sub_info.perl: plot bias background data of different classifications	#
 #											#
 #		author: t. isobe (tiosbe@cfa.harvard.edu)				#
-#		last update: Aug 01, 2012						#
+#		last update: Oct 09, 2012						#
 #											#
 #########################################################################################
 
@@ -17,7 +17,7 @@ use PGPLOT;
 
 #--- output directory
 
-$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keepingbias_dir_list';
+$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list';
 open(FH, $dir_list);
 while(<FH>){
     chomp $_;
@@ -446,222 +446,229 @@ sub plot_param_dep2{
 	$cnt2 = 0;
 	$cnt3 = 0;
 
-	for($i = 0; $i < $cnt; $i++){
-		if($mode[$i] eq 'FAINT'){
-			push(@x1, $time[$i]);
-			push(@y1, $bias[$i]);
-			$cnt1++;
-		}elsif($mode[$i] eq 'VFAINT'){
-			push(@x2, $time[$i]);
-			push(@y2, $bias[$i]);
-			$cnt2++;
-		}else{
-			push(@x3, $time[$i]);
-			push(@y3, $bias[$i]);
-			$cnt3++;
-		}
-	}
-	
-	$xmin = $time[0];
-	$xmax = $time[$cnt-1];
-	$avg = $sum/$cnt;
-	$ymin =  -0.5;
-	$ymax =   1.5;
-	
-	pgbegin(0, "/ps",1,1);
-	pgsubp(1,3);
-	pgsch(2);
-	pgslw(2);
-	
-	@x = @x1;
-	@y = @y1;
-	$tot = $cnt1;
-	$title = 'Faint Mode';
-	plot_routine();
-	
-	@x = @x2;
-	@y = @y2;
-	$tot = $cnt2;
-	$title = 'Very Faint Mode';
-	plot_routine();
-	
-	@x = @x1;
-	@y = @y1;
-	$title = 'Others';
-	$tot = $cnt3;
-	plot_routine();
-	
-	pgclos();
+	if($cnt == 0){
+		system("cp $house_keeping/no_data.gif  $dest_dir/obs_mode.gif");
+		system("cp $house_keeping/no_data.gif  $dest_dir/partial_readout.gif");
+		system("cp $house_keeping/no_data.gif  $dest_dir/bias_arg1.gif");
+		system("cp $house_keeping/no_data.gif  $dest_dir/no_ccds.gif");
 
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/obs_mode.gif");
-
-	system("rm pgplot.ps");
-	
-	
-	@x1 = ();
-	@y1 = ();
-	@x2 = ();
-	@y2 = ();
-	@x3 = ();
-	@y3 = ();
-	$cnt1 = 0;
-	$cnt2 = 0;
-	$cnt3 = 0;
-
-	for($i = 0; $i < $cnt; $i++){
-		if($num_row[$i] == 1024){
-			push(@x1, $time[$i]);
-			push(@y1, $bias[$i]);
-			$cnt1++;
-		}else{
-			push(@x2, $time[$i]);
-			push(@y2, $bias[$i]);
-			$cnt2++;
-		}
-	}
-	
-	pgbegin(0, "/ps",1,1);
-	pgsubp(1,2);
-	pgsch(2);
-	pgslw(2);
-
-	@x = @x1;
-	@y = @y1;
-	$tot = $cnt1;
-	$title = 'Full Readout';
-	plot_routine();
-	
-	@x = @x2;
-	@y = @y2;
-	$tot = $cnt2;
-	$title = 'Partial Readout';
-	plot_routine();
-	
-	pgclos();
-
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/partial_readout.gif");
-
-	system("rm pgplot.ps");
-	
-	@x1 = ();
-	@y1 = ();
-	@x2 = ();
-	@y2 = ();
-	@x3 = ();
-	@y3 = ();
-	$cnt1 = 0;
-	$cnt2 = 0;
-	$cnt3 = 0;
-	
-	for($i = 0; $i < $cnt; $i++){
-        	if($biasarg1[$i] == 9){
-                	push(@x1, $time[$i]);
-                	push(@y1, $bias[$i]);
-                	$cnt1++;
-        	}elsif($biasarg1[$i] == 10){
-                	push(@x2, $time[$i]);
-                	push(@y2, $bias[$i]);
-                	$cnt2++;
-        	}else{
-                	push(@x3, $time[$i]);
-                	push(@y3, $bias[$i]);
-                	$cnt3++;
-        	}
-	}
-	
-	pgbegin(0, "/ps",1,1);
-	pgsubp(1,3);
-	pgsch(2);
-	pgslw(2);
-	
-	@x = @x1;
-	@y = @y1;
-	$tot = $cnt1;
-	$title = 'Bias Arg 1 = 9';
-	plot_routine();
-	
-	@x = @x2;
-	@y = @y2;
-	$tot = $cnt2;
-	$title = 'Bias Arg 1 = 10';
-	plot_routine();
-	
-	@x = @x3;
-	@y = @y3;
-	$tot = $cnt3;
-	$title = 'Bias Arg 1 = others';
-	plot_routine();
-	
-	pgclos();
-
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/bias_arg1.gif");
-
-	system("rm pgplot.ps");
-	
-	
-	$mstep = 0;
-	
-	@x1 = ();
-	@y1 = ();
-	@x2 = ();
-	@y2 = ();
-	@x3 = ();
-	@y3 = ();
-	$cnt1 = 0;
-	$cnt2 = 0;
-	$cnt3 = 0;
-	OUTER:
-	for($i = 0; $i < $cnt; $i++){
-		for($m = $mstep; $m < $ttcnt; $m++){
-			if($time[$i] == $ttime[$m]){
-				if($ccd_no[$m] == 6){
-					push(@x1, $time[$i]);
-					push(@y1, $bias[$i]);
-					$cnt1++;
-				}elsif($ccd_no[$m] == 5){
-					push(@x2, $time[$i]);
-					push(@y2, $bias[$i]);
-					$cnt2++;
-				}else{
-					push(@x3, $time[$i]);
-					push(@y3, $bias[$i]);
-					$cnt3++;
-				}
-				$mstep = $m;
-				next OUTER;
+	}else{
+		for($i = 0; $i < $cnt; $i++){
+			if($mode[$i] eq 'FAINT'){
+				push(@x1, $time[$i]);
+				push(@y1, $bias[$i]);
+				$cnt1++;
+			}elsif($mode[$i] eq 'VFAINT'){
+				push(@x2, $time[$i]);
+				push(@y2, $bias[$i]);
+				$cnt2++;
+			}else{
+				push(@x3, $time[$i]);
+				push(@y3, $bias[$i]);
+				$cnt3++;
 			}
 		}
+		
+		$xmin = $time[0];
+		$xmax = $time[$cnt-1];
+		$avg = $sum/$cnt;
+		$ymin =  -0.5;
+		$ymax =   1.5;
+		
+		pgbegin(0, "/ps",1,1);
+		pgsubp(1,3);
+		pgsch(2);
+		pgslw(2);
+		
+		@x = @x1;
+		@y = @y1;
+		$tot = $cnt1;
+		$title = 'Faint Mode';
+		plot_routine();
+		
+		@x = @x2;
+		@y = @y2;
+		$tot = $cnt2;
+		$title = 'Very Faint Mode';
+		plot_routine();
+		
+		@x = @x1;
+		@y = @y1;
+		$title = 'Others';
+		$tot = $cnt3;
+		plot_routine();
+		
+		pgclos();
+	
+		system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/obs_mode.gif");
+
+		system("rm pgplot.ps");
+	
+	
+		@x1 = ();
+		@y1 = ();
+		@x2 = ();
+		@y2 = ();
+		@x3 = ();
+		@y3 = ();
+		$cnt1 = 0;
+		$cnt2 = 0;
+		$cnt3 = 0;
+	
+		for($i = 0; $i < $cnt; $i++){
+			if($num_row[$i] == 1024){
+				push(@x1, $time[$i]);
+				push(@y1, $bias[$i]);
+				$cnt1++;
+			}else{
+				push(@x2, $time[$i]);
+				push(@y2, $bias[$i]);
+				$cnt2++;
+			}
+		}
+		
+		pgbegin(0, "/ps",1,1);
+		pgsubp(1,2);
+		pgsch(2);
+		pgslw(2);
+	
+		@x = @x1;
+		@y = @y1;
+		$tot = $cnt1;
+		$title = 'Full Readout';
+		plot_routine();
+		
+		@x = @x2;
+		@y = @y2;
+		$tot = $cnt2;
+		$title = 'Partial Readout';
+		plot_routine();
+		
+		pgclos();
+	
+		system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/partial_readout.gif");
+
+		system("rm pgplot.ps");
+	
+		@x1 = ();
+		@y1 = ();
+		@x2 = ();
+		@y2 = ();
+		@x3 = ();
+		@y3 = ();
+		$cnt1 = 0;
+		$cnt2 = 0;
+		$cnt3 = 0;
+		
+		for($i = 0; $i < $cnt; $i++){
+        		if($biasarg1[$i] == 9){
+                		push(@x1, $time[$i]);
+                		push(@y1, $bias[$i]);
+                		$cnt1++;
+        		}elsif($biasarg1[$i] == 10){
+                		push(@x2, $time[$i]);
+                		push(@y2, $bias[$i]);
+                		$cnt2++;
+        		}else{
+                		push(@x3, $time[$i]);
+                		push(@y3, $bias[$i]);
+                		$cnt3++;
+        		}
+		}
+		
+		pgbegin(0, "/ps",1,1);
+		pgsubp(1,3);
+		pgsch(2);
+		pgslw(2);
+		
+		@x = @x1;
+		@y = @y1;
+		$tot = $cnt1;
+		$title = 'Bias Arg 1 = 9';
+		plot_routine();
+		
+		@x = @x2;
+		@y = @y2;
+		$tot = $cnt2;
+		$title = 'Bias Arg 1 = 10';
+		plot_routine();
+		
+		@x = @x3;
+		@y = @y3;
+		$tot = $cnt3;
+		$title = 'Bias Arg 1 = others';
+		plot_routine();
+		
+		pgclos();
+	
+		system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/bias_arg1.gif");
+	
+		system("rm pgplot.ps");
+		
+		
+		$mstep = 0;
+		
+		@x1 = ();
+		@y1 = ();
+		@x2 = ();
+		@y2 = ();
+		@x3 = ();
+		@y3 = ();
+		$cnt1 = 0;
+		$cnt2 = 0;
+		$cnt3 = 0;
+		OUTER:
+		for($i = 0; $i < $cnt; $i++){
+			for($m = $mstep; $m < $ttcnt; $m++){
+				if($time[$i] == $ttime[$m]){
+					if($ccd_no[$m] == 6){
+						push(@x1, $time[$i]);
+						push(@y1, $bias[$i]);
+						$cnt1++;
+					}elsif($ccd_no[$m] == 5){
+						push(@x2, $time[$i]);
+						push(@y2, $bias[$i]);
+						$cnt2++;
+					}else{
+						push(@x3, $time[$i]);
+						push(@y3, $bias[$i]);
+						$cnt3++;
+					}
+					$mstep = $m;
+					next OUTER;
+				}
+			}
+		}
+		
+		pgbegin(0, "/ps",1,1);
+		pgsubp(1,3);
+		pgsch(2);
+		pgslw(2);
+	
+		@x = @x1;
+		@y = @y1;
+		$tot = $cnt1;
+		$title = '# of CCDs = 6';
+		plot_routine();
+		
+		@x = @x2;
+		@y = @y2;
+		$tot = $cnt2;
+		$title = '# of CCDs = 5';
+		plot_routine();
+		
+		@x = @x3;
+		@y = @y3;
+		$tot = $cnt3;
+		$title = '# of CCDs: others';
+		plot_routine();
+		
+		pgclos();
+							
+		system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/no_ccds.gif");
+
+		system("rm pgplot.ps");
 	}
-	
-	pgbegin(0, "/ps",1,1);
-	pgsubp(1,3);
-	pgsch(2);
-	pgslw(2);
-	
-	@x = @x1;
-	@y = @y1;
-	$tot = $cnt1;
-	$title = '# of CCDs = 6';
-	plot_routine();
-	
-	@x = @x2;
-	@y = @y2;
-	$tot = $cnt2;
-	$title = '# of CCDs = 5';
-	plot_routine();
-	
-	@x = @x3;
-	@y = @y3;
-	$tot = $cnt3;
-	$title = '# of CCDs: others';
-	plot_routine();
-	
-	pgclos();
-						
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $dest_dir/no_ccds.gif");
-
-	system("rm pgplot.ps");
-
 }
 
 ####################################################################

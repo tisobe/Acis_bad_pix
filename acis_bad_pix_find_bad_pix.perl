@@ -7,7 +7,7 @@ use PGPLOT;
 #				and warm columns and plots the results		#
 #										#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)			#
-#	last update:	Aug 01, 2012						#
+#	last update:	Oct 09, 2012						#
 #										#
 #	input:									#
 #		if $ARGV[0] = live: /dsops/ap/sdp/cache/*/acis/*bias0.fits	#
@@ -233,6 +233,7 @@ if($dcnt > 0){						# yes we have new data, so let compute
 mv_old_data();						# move old data from an active dir to a save dir
 
 #system("rm -rf ./Working_dir/");
+
 
 
 #########################################################
@@ -2629,20 +2630,32 @@ sub find_today_dom{
 ### print_html: print up-dated html page for bad pixel      ####
 ################################################################
 
+#
+#--- html 5 conformed Oct 9, 2012
+#
 sub print_html{
 
 	find_today_dom();
 
 	open(OUT,">$web_dir/mta_bad_pixel_list.html");
 
-        print OUT "<!DOCTYPE html PUBLIC \"-//W3C//Dtd XHTML 1.0 Transitional//EN\" \"http://www.w3.org/tr/xhtml1/Dtd/xhtml1-transitional.dtd\"> \n";
+        print OUT "<!DOCTYPE html> \n";
         print OUT " \n";
         print OUT "<html> \n";
         print OUT "<head> \n";
+	print OUT "	   <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />\n";
         print OUT "        <link rel=\"stylesheet\" type=\"text/css\" href=\"http://asc.harvard.edu/mta/REPORTS/Template/mta.css\" /> \n";
+        print OUT "        <style  type='text/css'>\n";
+        print OUT "        table{text-align:center;margin-left:auto;margin-right:auto;border-style:solid;border-spacing:8px;border-width:2px;border-collapse:separate}\n";
+        print OUT "        td{text-align:center;padding:8px}\n";
+        print OUT "        a:link {color:#00CCFF;}\n";
+        print OUT "        a:visited {color:yellow;}\n";
+        print OUT "        span.nobr {white-space:nowrap;}\n";
+        print OUT "        </style>\n";
+
         print OUT "        <title>ACIS Bad Pixel List  </title> \n";
         print OUT " \n";
-        print OUT "        <script language=\"JavaScript\"> \n";
+        print OUT "        <script> \n";
         print OUT "                function WindowOpener(imgname) { \n";
         print OUT "                        msgWindow = open(\"\",\"displayname\",\"toolbar=no,directories=no,menubar=no,location=no,scrollbars=no,status=no,width=1260,height=980,resize=no\"); \n";
         print OUT "                        msgWindow.document.clear(); \n";
@@ -2658,12 +2671,12 @@ sub print_html{
         print OUT "<body> \n";
         print OUT "\n";
 
-        print OUT "<h1 style='text-align:center'>ACIS Bad Pixel List</h1> \n";
+        print OUT "<h1 style='text-align:center;mergin-left:auto;mergin-right:auto'>ACIS Bad Pixel List</h1> \n";
 
-        print OUT "<h3 style='text-align:center'>Updated: ";
+        print OUT "<h2 style='text-size:110%;text-align:center;mergin-left:auto;mergin-right:auto'>Updated: ";
         print OUT "$hyear-$month-$hmday  ";
         $hyday++;                                       # hyday starts from day 0 in localtime(time) function
-        print OUT "(DOY: $hyday / DOM: $dom) </h3>\n";;
+        print OUT "(DOY: $hyday / DOM: $dom) </h2>\n";;
         print OUT "<hr /> \n";
 
         $tot_warm = 0;
@@ -2676,15 +2689,15 @@ sub print_html{
         }
 
 
-        print OUT '<h3>Previously unknown bad pixels/columns appeared in the last 14 days:<h3> ',"\n";
+        print OUT '<h3>Previously unknown bad pixels/columns appeared in the last 14 days:</h3> ',"\n";
 
-        print OUT "<table border=2 cellspacin =2 cellpadding=3 style='font-size:90%'> \n";
+        print OUT "<table border=1 style='border-width:2px;font-size:90%'> \n";
 #
 #---- warm pix
 #
         print OUT '<tr><th>Warm Pixels</th>',"\n";
         if($tot_warm > 0){
-                print OUT '<td>&#160</td></tr>',"\n";
+                print OUT '<td>&#160;</td></tr>',"\n";
                 for($kccd = 0; $kccd < 10; $kccd++){
                         if(${tot_new_pix.$kccd} > 0){
                                 print OUT "<th>CCD $kccd</th>","\n";
@@ -2707,7 +2720,7 @@ sub print_html{
 #
         print OUT '<tr><th>Hot Pixels</th>',"\n";
         if($tot_hot > 0){
-                print OUT '<td>&#160</td></tr>',"\n";
+                print OUT '<td>&#160;</td></tr>',"\n";
                 for($kccd = 0; $kccd < 10; $kccd++){
                         if(${tot_new_hot.$kccd} > 0){
                                 print OUT "<th>CCD $kccd</th>","\n";
@@ -2729,7 +2742,7 @@ sub print_html{
 #
         print OUT '<tr><th>Bad Columns</th>',"\n";
         if($tot_col > 0){
-                print OUT '<td>&#160</td></tr>',"\n";
+                print OUT '<td>&#160;</td></tr>',"\n";
                 for($kccd = 0; $kccd < 10; $kccd++){
                         if(${tot_new_col.$kccd} > 0){
                                 print OUT "<th>CCD $kccd</th>","\n";
@@ -2753,7 +2766,7 @@ sub print_html{
         print OUT '<h3>Current Bad Pixels/Columns</h3>',"\n";
         print OUT "<p><strong>Click one of the cell under \"Data\" to see lists of warm pixels and other entires. \n";
         print OUT "The description of each column is found <a href=\"#col_name\">below</a>.</strong></p> \n";
-        print OUT "<table border=2 cellspacing=2 cellpadding=3 > \n";
+        print OUT "<table border=1 style='border-width:2px;'> \n";
         print OUT '<tr>',"\n";
         print OUT '<th style="text-align:center">CCD</th>';
         print OUT '<th style="text-align:center">Data</th>';
@@ -2827,10 +2840,9 @@ sub print_html{
 
         print OUT "</table> \n";
 
-        print OUT "<div style='margin-bottom:20px'>&#160</div> \n";
-        print OUT "<p style='font-size:90%'> \n";
+        print OUT "<div style='margin-bottom:20px'>&#160;</div> \n";
         print OUT '<h4>Bad Pixel Trend Plots</h4>',"\n";
-        print OUT "<ul>\n";
+        print OUT "<ul style='font-size:90%'>\n";
 
         print OUT "<li><a href=\"javascript:WindowOpener('hist_plot_front_side.gif')\">Plot for History of Warm Pixel: Front Side CCDs</a></li>\n";
         print OUT "<li><a href=\"javascript:WindowOpener('hist_plot_ccd5.gif')\">Plot for History of Warm Pixel: CCD 5</a></li>\n";
@@ -2840,32 +2852,30 @@ sub print_html{
         print OUT "<li><a href=\"javascript:WindowOpener('hist_plot_col5.gif')\">Plot for History of Bad Columns: CCD 5</a></li>\n";
         print OUT "<li><a href=\"javascript:WindowOpener('hist_plot_col7.gif')\">Plot for History of Bad Columns: CCD 7</a></li>\n";
         print OUT '</ul>',"\n";
-        print OUT '</p>',"\n";
 
-        print OUT '<hr \>',"\n\n";
+        print OUT '<hr />',"\n\n";
 
-        print OUT '<a name="col_name"><h4>Columns in Table</h4></a>',"\n";
+        print OUT '<h4 id="col_name">Columns in Table</h4>',"\n";
 
-        print OUT "<p style='color:yellow; font-size:90%; padding-left:30px'> \n";
-        print OUT "<table border=0 style='margin-left:20px'> \n";
-        print OUT '<tr><td>Warm Pixel:</td><td> a list of warm pixels currently observed</td></tr>',"\n";
-        print OUT '<tr><td>Flickering:</td><td> any warm pixels which were on and off 3 times or more in the last 3 months</td></tr>',"\n";
-        print OUT '<tr><td>Past Warm Pixels:</td><td> a list of all pixels appeared as warm pixels in past</td></tr>',"\n";
-        print OUT '<tr><td>History:</td><td> history of when a particular warm pixel was on or off</td></tr>',"\n";
+        print OUT "<table style='border-width:0px;margin-left:20px'> \n";
+        print OUT '<tr><td>Warm Pixel:</td><td style="text-align:left"> a list of warm pixels currently observed</td></tr>',"\n";
+        print OUT '<tr><td>Flickering:</td><td style="text-align:left"> any warm pixels which were on and off 3 times or more in the last 3 months</td></tr>',"\n";
+        print OUT '<tr><td>Past Warm Pixels:</td><td style="text-align:left"> a list of all pixels appeared as warm pixels in past</td></tr>',"\n";
+        print OUT '<tr><td>History:</td><td style="text-align:left"> history of when a particular warm pixel was on or off</td></tr>',"\n";
 
-        print OUT '<tr><td>Hot Pixel:</td><td> a list of hot pixels currently observed</td></tr>',"\n";
-        print OUT '<tr><td>Flickering:</td><td> any hot pixels which were on and off 3 times or more in the last 3 months</td></tr>',"\n";
-        print OUT '<tr><td>Past Hot Pixels:</td><td> a list of all pixels appeared as hot pixels in past</td></tr>',"\n";
-        print OUT '<tr><td>History:</td><td> history of when a particular hot pixel was on or off</td></tr>',"\n";
+        print OUT '<tr><td>Hot Pixel:</td><td style="text-align:left"> a list of hot pixels currently observed</td></tr>',"\n";
+        print OUT '<tr><td>Flickering:</td><td style="text-align:left"> any hot pixels which were on and off 3 times or more in the last 3 months</td></tr>',"\n";
+        print OUT '<tr><td>Past Hot Pixels:</td><td style="text-align:left"> a list of all pixels appeared as hot pixels in past</td></tr>',"\n";
+        print OUT '<tr><td>History:</td><td style="text-align:left"> history of when a particular hot pixel was on or off</td></tr>',"\n";
 
-        print OUT '<tr><td>Warm Column:</td><td> a list of warm columns currently observed</td></tr>',"\n";
-        print OUT '<tr><td>Flickering:</td><td> any warm columns which were on and off 3 times or more in the last 3 months</td></tr>',"\n";
-        print OUT '<tr><td>Past Warm Columns:</td><td> a list of all columns appeared as warm columns in past</td></tr>',"\n";
-        print OUT '<tr><td>History:</td><td> history of when a particular warm columns was on or off</td></tr>',"\n";
-        print OUT '</table></p>',"\n";
-        print OUT "<p style='font:yellow;font-size:90%'> \n";
+        print OUT '<tr><td>Warm Column:</td><td style="text-align:left"> a list of warm columns currently observed</td></tr>',"\n";
+        print OUT '<tr><td>Flickering:</td><td style="text-align:left"> any warm columns which were on and off 3 times or more in the last 3 months</td></tr>',"\n";
+        print OUT '<tr><td>Past Warm Columns:</td><td style="text-align:left"> a list of all columns appeared as warm columns in past</td></tr>',"\n";
+        print OUT '<tr><td>History:</td><td style="text-align:left"> history of when a particular warm columns was on or off</td></tr>',"\n";
+        print OUT '</table>',"\n";
+
         print OUT '<h4>A bad pixel was selected as follows:</h4>',"\n";
-        print OUT '<ul>',"\n";
+        print OUT '<ul style="font:yellow;font-size:90%">',"\n";
         print OUT '<li> acis*bias0.fits in a given period were obtained</li>',"\n";
         print OUT '<li> compute an average of ADU for each CCD</li>',"\n";
         print OUT '<li> compare the value of each pixel to the CCD average, if a pixel value',"\n";
@@ -2885,12 +2895,10 @@ sub print_html{
         print OUT '<li>for a hot pixel, a process was same, except a threshold was ',"\n";
         print OUT 'a ccd  average plus 1000 counts</li>',"\n";
         print OUT '</ul>',"\n";
-        print OUT "</p> \n";
 
 
-        print OUT "<p style='font:yellow;font-size:90%'> \n";
         print OUT '<h4>A bad column was selected as follows:</h4>',"\n";
-        print OUT '<ul>';
+        print OUT '<ul style="font:yellow;font-size:90%">';
         print OUT '<li> each column was averaged out, and compared to an average for an entire ccd.</li>',"\n";
         print OUT '<li> if the average of the column was 5 sigma  higher than the average of the ccd',"\n";
         print OUT 'compare the column average to a local average (10 columns).</li>',"\n";
@@ -2899,12 +2907,12 @@ sub print_html{
         print OUT '<li> if the column appeared as a bad column for a 3 consecutive frames, it was ',"\n";
         print OUT 'marked as a real bad column.</li>',"\n";
         print OUT '</ul>',"\n";
-        print OUT "</p> \n";
 
         print OUT "<hr /> \n";
         print OUT "<p style='margin-top:5px'> \n";
         print OUT "If you have any quesitons about this page, please contact ";
         print OUT "<a href='mailto:swolk\@head.cfa.harvard.edu'>swolk\@head.cfa.harvard.edu</a>. \n";
+        print OUT "</p> \n";
 
         print OUT "</body>\n";
         print OUT "</html>\n";

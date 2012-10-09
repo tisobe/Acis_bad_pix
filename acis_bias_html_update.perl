@@ -6,7 +6,7 @@
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: Aug 01, 2012							#
+#	last update: Oct 09, 2012							#
 #											#
 #########################################################################################
 
@@ -36,7 +36,7 @@ $month = $umon + 1;
 
 $line =  "Last Update: $month/$umday/$uyear";
 
-open(FH, "$web_dir/bias_home.html");
+open(FH, "$house_keeping/bias_home.html");
 open(OUT, "> ./temp");
 while(<FH>){
 	chomp $_;
