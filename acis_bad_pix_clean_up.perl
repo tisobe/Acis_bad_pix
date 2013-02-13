@@ -8,9 +8,19 @@
 #									#
 #	author: t isobe (tisobe@cfa.harvard.edu)			#
 #									#
-#	last update: Aug 01, 2012		#
+#	last update: Feb 12, 2013		#
 #									#
 #########################################################################
+
+#
+#--- if this is the test run, ignore this function, and simply exist. 
+#
+
+$comp_test = $ARGV[0];
+chomp $comp_test;
+if($comp_test =~ /test/i){
+	exit 1;
+}
 
 #######################################
 #
@@ -19,7 +29,7 @@
 
 #--- output directory
 
-$dir_list =  "/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list";
+$dir_list =  "/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list";
 open(FH, $dir_list);
 while(<FH>){
     chomp $_;

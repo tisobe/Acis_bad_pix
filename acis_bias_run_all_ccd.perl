@@ -6,9 +6,12 @@
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: Aug 01, 2012							#
+#	last update: Feb 12, 201e							#
 #											#
 #########################################################################################
+
+$comp_test = $ARGV[0];
+chomp $comp_test;
 
 #######################################
 #
@@ -17,7 +20,11 @@
 
 #--- output directory
 
-$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list';
+if($comp_test =~ /test/i){
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/bias_dir_list_test';
+}else{
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/bias_dir_list';
+}
 open(FH, $dir_list);
 while(<FH>){
     chomp $_;
@@ -54,9 +61,9 @@ for($ccd = 0; $ccd < 10; $ccd++){
 
 		$file = "$data_dir".'/Bias_save/CCD'."$ccd".'/quad'."$node";
         
-		system("$op_dir/perl $bin_dir/acis_bias_moving_avg.perl $file");
+		system("$op_dir/perl $bin_dir/acis_bias_moving_avg.perl $file test");
 
-		system("mv bias_plot_*.gif $web_dir/Plots/Sub2/");
+		system("mv bias_plot_*.gif $web_dir/Plots_bias/Sub2/");
 	}
 }
  

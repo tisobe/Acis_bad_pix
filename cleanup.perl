@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+$comp_test = $ARGV[0];
+chomp $comp_test;
+
 #######################################
 #
 #--- setting a few paramters
@@ -7,7 +10,11 @@
 
 #--- output directory
 
-$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list';
+if($comp_test =~ /test/i){
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list_test';
+}else{
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list';
+}
 open(FH, $dir_list);
 while(<FH>){
     chomp $_;

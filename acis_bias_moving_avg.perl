@@ -15,6 +15,16 @@ use PGPLOT;
 #											#
 #########################################################################################
 
+OUTER:
+for($i = 0; $i < 10; $i++){
+	if($ARGV[$i] =~ /test/i){
+		$comp_test = 'test';
+		last OUTER;
+	}elsif($ARGV[$i] eq ''){
+		$comp_test = '';
+		last OUTER;
+	}
+}
 
 #######################################
 #
@@ -23,7 +33,11 @@ use PGPLOT;
 
 #--- output directory
 
-$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list';
+if($comp_test =~ /test/i){
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list_test';
+}else{
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list';
+}
 open(FH, $dir_list);
 while(<FH>){
     chomp $_;

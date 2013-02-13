@@ -6,9 +6,12 @@ use PGPLOT;
 #	plot_sub_info.perl: plot bias background data of different classifications	#
 #											#
 #		author: t. isobe (tiosbe@cfa.harvard.edu)				#
-#		last update: Oct 09, 2012						#
+#		last update: Feb 12, 2013						#
 #											#
 #########################################################################################
+
+$comp_test = $ARGV[0];
+chomp $comp_test;
 
 #######################################
 #
@@ -17,7 +20,11 @@ use PGPLOT;
 
 #--- output directory
 
-$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list';
+if($comp_test =~ /test/i){
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/bias_dir_list_test';
+}else{
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/bias_dir_list';
+}
 open(FH, $dir_list);
 while(<FH>){
     chomp $_;
@@ -42,7 +49,11 @@ for($ccd = 0; $ccd < 10; $ccd++){
 for($ccd = 0; $ccd < 10; $ccd++){
 	for($quad = 0; $quad < 4; $quad++){
 		$y_axis = 'Overclock';
-                $dir2 = "$web_dir".'/Plots/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_q'."$quad";
+		if($comp_test =~ /test/i){
+                	$dir2 = "$web_dir".'/Plots_bias/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_q'."$quad";
+		}else{
+                	$dir2 = "$web_dir".'/Plots/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_q'."$quad";
+		}
                 plot_param_dep();
 	}
 }
@@ -54,7 +65,11 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	for($quad = 0; $quad < 4; $quad++){
 
 		$y_axis = 'Bias';
-		$dir3 = "$web_dir".'/Plots/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_bias_q'."$quad";
+		if($comp_test =~ /test/i){
+			$dir3 = "$web_dir".'/Plots_bias/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_bias_q'."$quad";
+		}else{
+			$dir3 = "$web_dir".'/Plots/Param_diff/CCD'."$ccd".'/CCD'."$ccd".'_bias_q'."$quad";
+		}
 		plot_param_dep2();
 	}
 }

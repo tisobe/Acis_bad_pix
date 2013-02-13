@@ -1,33 +1,34 @@
 setenv HEADAS /soft/lheasoft/headas/x86_64-pc-linux;
 source $HEADAS/headas-init.csh
 
-source /home/mta/.ascrc
+source  /home/mta/.ascrc -r /home/ascds/DS.test
 
 rm -rf param
 mkdir param
 
 source /home/mta/bin/reset_param
 
-setenv PFILES "${PDIRS}"
-set path = (/home/ascds/DS.release/bin/  $path)
-set path = (/home/ascds/DS.release/ots/bin/ $path)
+set path = (/home/ascds/DS.test/bin/  $path)
+set path = (/home/ascds/DS.test/ots/bin/ $path)
 
 
-/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Acis_bad_pix/acis_bad_pix_find_bad_pix.perl live
-/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Acis_bad_pix/acis_bad_pix_clean_up.perl
-/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Acis_bad_pix/acis_bad_pix_new_plot_set.perl
-/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Acis_bad_pix/acis_bad_pix_create_data_table.perl
+/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels_linux/Acis_bad_pix/acis_bad_pix_find_bad_pix.perl live
+/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels_linux/Acis_bad_pix/acis_bad_pix_clean_up.perl
+/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels_linux/Acis_bad_pix/acis_bad_pix_new_plot_set.perl
+/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels_linux/Acis_bad_pix/acis_bad_pix_create_data_table.perl
 
-/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Acis_bad_pix/acis_bias_print_today_data.perl
-/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Acis_bad_pix/acis_bias_compute_avg.perl ./Working_dir/today_input_data
-/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Acis_bad_pix/acis_bias_get_info.perl ./Working_dir/today_input_data
-/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Acis_bad_pix/acis_bias_plot_bias.perl
-/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Acis_bad_pix/acis_bias_plot_sub_info.perl
-/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Acis_bad_pix/acis_bias_html_update.perl
+mkdir /data/mta/Script/ACIS/Bad_pixels_linux/Exc/Working_dir
 
-/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Acis_bad_pix/acis_bias_run_all_ccd.perl
+/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels_linux/Acis_bad_pix/acis_bias_print_today_data.perl
+/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels_linux/Acis_bad_pix/acis_bias_compute_avg.perl ./Working_dir/today_input_data
+/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels_linux/Acis_bad_pix/acis_bias_get_info.perl ./Working_dir/today_input_data
+/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels_linux/Acis_bad_pix/acis_bias_plot_bias.perl
+/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels_linux/Acis_bad_pix/acis_bias_plot_sub_info.perl
+/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels_linux/Acis_bad_pix/acis_bias_html_update.perl
 
-/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels/Acis_bad_pix/cleanup.perl
+/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels_linux/Acis_bad_pix/acis_bias_run_all_ccd.perl
+
+/usr/local/bin/perl /data/mta/Script/ACIS/Bad_pixels_linux/Acis_bad_pix/cleanup.perl
 
 rm -rf ./Working_dir
 

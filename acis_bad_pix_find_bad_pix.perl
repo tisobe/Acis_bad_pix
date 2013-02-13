@@ -113,6 +113,15 @@ use PGPLOT;
 #										#
 #################################################################################
 
+
+$input_type = $ARGV[0];                                 # three different types of input: live, <dir path>, or test
+chomp $input_type;       
+
+if($input_type =~ /test/i){
+	$comp_test  = 'test';
+	$input_type = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/Test_data_save/Test_data/';
+}
+
 #######################################
 #
 #--- setting a few paramters
@@ -120,7 +129,12 @@ use PGPLOT;
 
 #--- output directory
 
-$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list';
+if($comp_test =~ /test/i){
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list_test';
+}else{
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list';
+}
+
 open(FH, $dir_list);
 while(<FH>){
     chomp $_;
@@ -153,16 +167,11 @@ if($file =~ /param/){
 }
 system("mkdir ./param");
 
-$input_type = $ARGV[0];                                 # two different types of input
-chomp $input_type;       
-
-
 if($input_type eq 'live'){
 	get_dir();					# this is for the automated case
 }else{
-	regroup_data();
+	regroup_data();					# this is a test case or the case in which a path to data is given
 }
-
 
 read_bad_pix_list();					# read known bad pixel list and bad col list
 
@@ -230,7 +239,9 @@ if($dcnt > 0){						# yes we have new data, so let compute
 	print_html();					# print up-dated html page for bad pixel
 }
 
-mv_old_data();						# move old data from an active dir to a save dir
+if($comp_test !~ /test/i){
+	mv_old_data();					# move old data from an active dir to a save dir
+}
 
 #system("rm -rf ./Working_dir/");
 
@@ -401,7 +412,7 @@ sub get_dir {
 }
 
 ################################################################
-### regroup_data: regroup data for further analysis          ###
+### regroup_data: regroup data for farther analysis          ###
 ################################################################
 
 sub regroup_data{
@@ -3968,7 +3979,8 @@ sub conv_date_form4{
 	elsif($month == 11){$add = 304}
 	elsif($month == 12){$add = 334}
 	
-	if($year == 2000 || $year == 2004 || $year == 2008 || $year == 2012){
+	$ychk = 4.0 * int($year/4.0);
+	if($ychk == $year){
 		if($month > 3){
 			$add++;
 		}

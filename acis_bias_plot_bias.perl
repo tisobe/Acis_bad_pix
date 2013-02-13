@@ -7,10 +7,12 @@ use PGPLOT;
 #				  background html display		#
 #									#
 #	author: t. isobe (tisobe@cfa.harvard.edu)			#
-#	last upate: Aug 01, 2012					#
+#	last upate: Feb 12, 2013					#
 #									#
 #########################################################################
 
+$comp_test = $ARGV[0];
+chomp $comp_test;
 #######################################
 #
 #--- setting a few paramters
@@ -18,7 +20,11 @@ use PGPLOT;
 
 #--- output directory
 
-$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list';
+if($comp_test =~ /test/i){
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/bias_dir_list_test';
+}else{
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/bias_dir_list';
+}
 open(FH, $dir_list);
 while(<FH>){
     chomp $_;
@@ -83,7 +89,12 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	}
 	pgclos();
 
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $web_dir/Plots/Bias_bkg/ccd$ccd.gif");
+	if($comp_test =~ /test/i){
+		system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $web_dir/Plots_bias/Bias_bkg/ccd$ccd.gif");
+	}else{
+		system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $web_dir/Plots/Bias_bkg/ccd$ccd.gif");
+	}
+
 
 	system("rm pgplot.ps");
 
@@ -141,7 +152,12 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	}
 	pgclos();
 
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $web_dir/Plots/Overclock/ccd$ccd.gif");
+	if($comp_test =~ /test/i){
+		system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $web_dir/Plots_bias/Overclock/ccd$ccd.gif");
+	}else{
+		system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $web_dir/Plots/Overclock/ccd$ccd.gif");
+	}
+
 	system("rm pgplot.ps");
 
 	pgbegin(0, "/ps",1,1);
@@ -202,7 +218,12 @@ for($ccd = 0; $ccd < 10; $ccd++){
 		pglabel("Time (DOM)", 'Bias', "$title");
 	}
 	pgclos();
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $web_dir/Plots/Sub/ccd$ccd.gif");
+	if($comp_test =~ /test/i){
+		system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $web_dir/Plots_bias/Sub/ccd$ccd.gif");
+	}else{
+		system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $web_dir/Plots/Sub/ccd$ccd.gif");
+	}
+
 	system("rm pgplot.ps");
 }
 			
