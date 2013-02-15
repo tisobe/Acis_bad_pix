@@ -6,7 +6,7 @@
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: Feb 12, 201e							#
+#	last update: Feb 15, 2013							#
 #											#
 #########################################################################################
 
@@ -61,7 +61,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
 
 		$file = "$data_dir".'/Bias_save/CCD'."$ccd".'/quad'."$node";
         
-		system("$op_dir/perl $bin_dir/acis_bias_moving_avg.perl $file test");
+		system("$op_dir/perl $bin_dir/acis_bias_moving_avg.perl $file $comp_test");
 
 		system("mv bias_plot_*.gif $web_dir/Plots_bias/Sub2/");
 	}

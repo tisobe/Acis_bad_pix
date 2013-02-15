@@ -8,7 +8,7 @@
 #												#
 #		author: t. isobe (tisobe@cfa.harvard.edu)					#
 #												#
-#		last update: Feb 12, 2013							#
+#		last update: Feb 15, 2013							#
 #												#
 #################################################################################################
 
@@ -39,29 +39,29 @@ system("cp $data_dir/Disp_dir/hist_ccd* $data_dir/Disp_dir/hist_col* .");
 #--- warm pixel cases
 #
 
-system("$op_dir/perl $bin_dir/create_new_and_imp_ccd_list.perl test");
+system("$op_dir/perl $bin_dir/create_new_and_imp_ccd_list.perl $comp_test");
 
-system("$op_dir/perl $bin_dir/create_flk_pix_hist.perl test");
+system("$op_dir/perl $bin_dir/create_flk_pix_hist.perl $comp_test");
 
-system("$op_dir/perl $bin_dir/create_pot_warm_pix.perl test");
+system("$op_dir/perl $bin_dir/create_pot_warm_pix.perl $comp_test");
 
-system("$op_dir/perl $bin_dir/plot_ccd_history.perl test");
+system("$op_dir/perl $bin_dir/plot_ccd_history.perl $comp_test");
 
-system("$op_dir/perl $bin_dir/plot_front_ccd_history.perl test");
+system("$op_dir/perl $bin_dir/plot_front_ccd_history.perl $comp_test");
 
 #
 #--- warm column cases
 #
 
-system("$op_dir/perl $bin_dir/create_new_and_imp_col_list.perl test");
+system("$op_dir/perl $bin_dir/create_new_and_imp_col_list.perl $comp_test");
 
-system("$op_dir/perl $bin_dir/create_flk_col_hist.perl test");
+system("$op_dir/perl $bin_dir/create_flk_col_hist.perl $comp_test");
 
-system("$op_dir/perl $bin_dir/create_pot_warm_col.perl test");
+system("$op_dir/perl $bin_dir/create_pot_warm_col.perl $comp_test");
 
-system("$op_dir/perl $bin_dir/plot_col_history.perl test");
+system("$op_dir/perl $bin_dir/plot_col_history.perl $comp_test");
 
-system("$op_dir/perl $bin_dir/plot_front_col_history.perl test");
+system("$op_dir/perl $bin_dir/plot_front_col_history.perl $comp_test");
 
 
 system("mv *gif $web_dir/Plots/");

@@ -143,7 +143,6 @@ while(<FH>){
 }
 close(FH);
 
-
 $lookup   = '/home/ascds/DS.release/data/dmmerge_header_lookup.txt';    # dmmerge header rule lookup table
 
 #--- factor for how may std out from the mean
