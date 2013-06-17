@@ -1,4 +1,4 @@
-#!/usr/bin/perl 
+#!/usr/bin/env /usr/local/bin/perl
 use PGPLOT;
 
 #################################################################################################
@@ -7,7 +7,7 @@ use PGPLOT;
 #												#
 #		author: t. isobe (tisobe@cfa.harvard.edu)					#
 #												#
-#		last update: Feb 12, 2013							#
+#		last update: Apr 15, 2013							#
 #												#
 #################################################################################################
 
@@ -19,9 +19,9 @@ chomp $comp_test;
 #--- output directory
 
 if($comp_test =~ /test/i){
-        $dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list_test';
+        $dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list_test';
 }else{
-        $dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list';
+        $dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list';
 }
 
 open(FH, $dir_list);
@@ -201,8 +201,8 @@ for($ccd = 0; $ccd < 10; $ccd++){
 	
 	$out_gif = 'hist_plot_col'."$ccd".'.gif';
 
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r128x128 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $out_gif");
-	system("rm pgplot.ps");
+	system("echo ''|gs -sDEVICE=ppmraw  -r128x128 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps| pnmflip -r270 | ppmtogif > $out_gif");
+	system("rm -rf  pgplot.ps");
 
 }
 		

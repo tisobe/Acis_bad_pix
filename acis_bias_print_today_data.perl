@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env /usr/local/bin/perl
 
 #################################################################################
 #										#
@@ -6,7 +6,7 @@
 #			                 for bias background computation	#
 #										#
 #		author: t. isobe (tisobe@cfa.harvard.edu)			#
-#		last update: Feb 12, 2013					#
+#		last update: Apr 15, 2013					#
 #										#
 #################################################################################
 
@@ -20,9 +20,9 @@ chomp $comp_test;
 #--- output directory
 
 if($comp_test =~ /test/i){
-	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/bias_dir_list_test';
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list_test';
 }else{
-	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/bias_dir_list';
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list';
 }
 
 open(FH, $dir_list);
@@ -44,7 +44,7 @@ if($comp_test =~ /test/i){
 #
 #--- test case
 #
-	system("ls /data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/Test_data_save/Test_data/* >./Working_dir/today_input_data");
+	system("ls /data/mta/Script/ACIS/Bad_pixels/house_keeping/Test_data_save/Test_data/* >./Working_dir/today_input_data");
 }else{
 #
 #--- normal case
@@ -73,7 +73,7 @@ if($comp_test =~ /test/i){
 	
 	$test = `ls -d `;
 	if($test =~ /Working_dir/){
-		system("rm ./Working_dir/*");
+		system("rm -rf ./Working_dir/*");
 	}else{
 		system("mkdir ./Working_dir");
 	}

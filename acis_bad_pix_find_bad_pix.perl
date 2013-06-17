@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env /usr/local/bin/perl
 use PGPLOT;
 
 #################################################################################
@@ -7,7 +7,7 @@ use PGPLOT;
 #				and warm columns and plots the results		#
 #										#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)			#
-#	last update:	Oct 09, 2012						#
+#	last update:	May 22, 2013						#
 #										#
 #	input:									#
 #		if $ARGV[0] = live: /dsops/ap/sdp/cache/*/acis/*bias0.fits	#
@@ -119,7 +119,7 @@ chomp $input_type;
 
 if($input_type =~ /test/i){
 	$comp_test  = 'test';
-	$input_type = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/Test_data_save/Test_data/';
+	$input_type = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/Test_data_save/Test_data/';
 }
 
 #######################################
@@ -130,9 +130,9 @@ if($input_type =~ /test/i){
 #--- output directory
 
 if($comp_test =~ /test/i){
-	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list_test';
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list_test';
 }else{
-	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list';
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list';
 }
 
 open(FH, $dir_list);
@@ -178,9 +178,9 @@ $dcnt = 1;
 
 if($dcnt > 0){						# yes we have new data, so let compute
 	
-	system("rm $data_dir/Disp_dir/today*");
+	system("rm -rf  $data_dir/Disp_dir/today*");
 	for($kn = 0; $kn <= $kdir; $kn++){
-		system("rm ./Working_dir/today*");
+		system("rm -rf  ./Working_dir/today*");
 		$today_new_bad_pix  = 0;		# these are used to count how many new and improved
 		$today_new_bad_pix5 = 0;		# bad pixels appeared today.
 		$today_new_bad_pix7 = 0;
@@ -504,6 +504,7 @@ sub int_file_for_day{
 #
 #---  dump the fits header and find informaiton needed (ccd id, readmode)
 #
+###		system("$op_dir/dmlist infile=$file opt=head outfile=./Working_dir/zdump");
 		system("dmlist infile=$file opt=head outfile=./Working_dir/zdump");
 		open(FH, './Working_dir/zdump');			
 		$ccd_id   = -999;
@@ -531,6 +532,7 @@ sub int_file_for_day{
 			}
 		}
 		close(FH);
+
 #
 #---  if it is in a timed mode add to process list for the ccd
 #		
@@ -607,7 +609,7 @@ sub int_file_for_day{
 			}
 			
 			$ccd_dir = "$house_keeping/Defect/CCD"."$im";
-			system("rm ./Working_dir/out*.fits");
+			system("rm -rf  ./Working_dir/out*.fits");
 
 			system("dmcopy \"./Working_dir/comb.fits[x=1:256]\" ./Working_dir/out1.fits clobber='yes'");
 			$q_file       = 'out1.fits';
@@ -618,7 +620,7 @@ sub int_file_for_day{
 			$xlow         = 1;
 			$xhigh        = 256;
 			extract();                                    # sub to extract pixels
-			system("rm ./Working_dir/out1.fits");         # outside of acceptance range
+			system("rm -rf  ./Working_dir/out1.fits");         # outside of acceptance range
 
 			system("dmcopy \"./Working_dir/comb.fits[x=257:512]\" ./Working_dir/out2.fits clobber='yes'");
 			$q_file       = 'out2.fits';
@@ -629,7 +631,7 @@ sub int_file_for_day{
 			$xlow         = 257;
 			$xhigh        = 512;
 			extract();
-			system("rm ./Working_dir/out2.fits");
+			system("rm -rf  ./Working_dir/out2.fits");
 
 			system("dmcopy \"./Working_dir/comb.fits[x=513:768]\" ./Working_dir/out3.fits clobber='yes'");
 			$q_file       = 'out3.fits';
@@ -640,7 +642,7 @@ sub int_file_for_day{
 			$xlow         = 513;
 			$xhigh        = 768;
 			extract();
-			system("rm ./Working_dir/out3.fits");
+			system("rm -rf  ./Working_dir/out3.fits");
 
 			system("dmcopy \"./Working_dir/comb.fits[x=769:1024]\" ./Working_dir/out4.fits clobber='yes'");
 			$q_file       = 'out4.fits';
@@ -651,7 +653,7 @@ sub int_file_for_day{
 			$xlow         = 769;
 			$xhigh        = 1024;
 			extract();
-			system("rm ./Working_dir/out4.fits");
+			system("rm -rf  ./Working_dir/out4.fits");
 #
 #--- removing known bad pixels and bad columns
 #
@@ -676,7 +678,8 @@ sub extract {
 	open(HOT,">>$ccd_dir/$hot_max_file");		# bookkeeping later
 	close(HOT);
 
-	system("rm ./Working_dir/zout");
+	system("rm -rf  ./Working_dir/zout");
+###        system("$op_dir/dmlist ./Working_dir/$q_file opt=array > ./Working_dir/zout");
         system("dmlist ./Working_dir/$q_file opt=array > ./Working_dir/zout");
         open(FH, './Working_dir/zout');
         while(<FH>){
@@ -969,7 +972,7 @@ sub rm_prev_bad_data {
 		close(FH);
 		close(TEMP);
 
-		system("rm $file");
+		system("rm -rf  $file");
 		system("mv ./Working_dir/ztemp $file");
 	}
 }
@@ -1386,7 +1389,7 @@ sub add_to_list {
 
 	foreach $ent (@temp_wdir_list){
 		if(${tdycnt.$dtemp[1]} > 0){
-			system("rm $data_dir/Disp_dir/$ent");
+			system("rm -rf  $data_dir/Disp_dir/$ent");
 		}
 	}
 #
@@ -1473,7 +1476,7 @@ sub print_bad_pix_data{
 	
 	OUTER:
 	for($ip = 0; $ip < 10; $ip++){
-		system("rm $data_dir/Disp_dir/ccd$ip");
+		system("rm -rf  $data_dir/Disp_dir/ccd$ip");
 ##		if(${tdycnt.$ip} == 0){
 ##			next OUTER;				# if there is no data for this date
 ##		}						# skip this ccd
@@ -2027,14 +2030,14 @@ sub prep_bad_col {
 	foreach $ent (@today_bad_col){		
 		if(${tdycnt.$ent} > 0){
 			system("cat $data_dir/Disp_dir/today_new_col$ent >> $data_dir/Disp_dir/new_col$ent");
-			system("rm  $data_dir/Disp_dir/today_new_col$ent");
+			system("rm  -rf  $data_dir/Disp_dir/today_new_col$ent");
 		}
 	}
 
 	foreach $ent (@today_imp_col){
 		if(${tdycnt.$ent} > 0){
 			system("cat $data_dir/Disp_dir/today_imp_col$ent >> $data_dir/Disp_dir/imp_col$ent"); 
-			system("rm  $data_dir/Disp_dir/today_imp_col$ent");
+			system("rm -rf   $data_dir/Disp_dir/today_imp_col$ent");
 		}
 	}
 #
@@ -2058,7 +2061,7 @@ sub prep_bad_col {
 			}
 			close(IN);
 
-			system("rm $data_dir/Disp_dir/col$ent");
+			system("rm -rf  $data_dir/Disp_dir/col$ent");
 		}
 	}
 }
@@ -2654,7 +2657,7 @@ sub print_html{
         print OUT "<html> \n";
         print OUT "<head> \n";
 	print OUT "	   <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />\n";
-        print OUT "        <link rel=\"stylesheet\" type=\"text/css\" href=\"http://asc.harvard.edu/mta/REPORTS/Template/mta.css\" /> \n";
+        print OUT "        <link rel=\"stylesheet\" type=\"text/css\" href=\"https://cxc.cfa.harvard.edu/mta/REPORTS/Template/mta.css\" /> \n";
         print OUT "        <style  type='text/css'>\n";
         print OUT "        table{text-align:center;margin-left:auto;margin-right:auto;border-style:solid;border-spacing:8px;border-width:2px;border-collapse:separate}\n";
         print OUT "        td{text-align:center;padding:8px}\n";
@@ -3025,8 +3028,8 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $web_dir/Plots/hist_ccd.gif");
-	system("rm pgplot.ps");
+	system("echo ''|gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps| pnmflip -r270 | ppmtogif > $web_dir/Plots/hist_ccd.gif");
+	system("rm -rf  pgplot.ps");
 
 #
 #---	 CCD 5
@@ -3100,8 +3103,8 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 |$op_dir/ppmtogif > $web_dir/Plots/hist_ccd5.gif");
-	system("rm pgplot.ps");
+	system("echo ''|gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_ccd5.gif");
+	system("rm -rf  pgplot.ps");
 
 #
 #--- CCD7
@@ -3176,8 +3179,8 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 |$op_dir/ppmtogif > $web_dir/Plots/hist_ccd7.gif");
-	system("rm pgplot.ps");
+	system("echo ''|gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_ccd7.gif");
+	system("rm -rf  pgplot.ps");
 
 #
 #---     Hot:
@@ -3257,8 +3260,8 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 |$op_dir/ppmtogif > $web_dir/Plots/hist_hccd.gif");
-	system("rm pgplot.ps");
+	system("echo ''|gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_hccd.gif");
+	system("rm -rf  pgplot.ps");
 
 #
 #----	 CCD 5
@@ -3330,8 +3333,8 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 |$op_dir/ppmtogif > $web_dir/Plots/hist_hccd5.gif");
-	system("rm pgplot.ps");
+	system("echo ''|gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_hccd5.gif");
+	system("rm -rf  pgplot.ps");
 
 #
 #---	 CCD7
@@ -3404,8 +3407,8 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 |$op_dir/ppmtogif > $web_dir/Plots/hist_hccd7.gif");
-	system("rm pgplot.ps");
+	system("echo ''|$gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_hccd7.gif");
+	system("rm -rf  pgplot.ps");
 
 #
 #---	 Col: Front Side CCDs
@@ -3479,8 +3482,8 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 |$op_dir/ppmtogif > $web_dir/Plots/hist_col.gif");
-	system("rm pgplot.ps");
+	system("echo ''|gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_col.gif");
+	system("rm -rf  pgplot.ps");
 
 #
 #---	 Col: CCD 5
@@ -3554,8 +3557,8 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 |$op_dir/ppmtogif > $web_dir/Plots/hist_col5.gif");
-	system("rm pgplot.ps");
+	system("echo ''|gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_col5.gif");
+	system("rm -rf  pgplot.ps");
 
 #
 #---	 Col: CCD 7
@@ -3628,8 +3631,8 @@ sub plot_hist{
 	plot_diff();
 	pgclos();
 
-	system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 |$op_dir/ppmtogif > $web_dir/Plots/hist_col7.gif");
-	system("rm pgplot.ps");
+	system("echo ''|gs -sDEVICE=ppmraw  -r125x125 -q -NOPAUSE -sOutputFile=-  pgplot.ps| pnmflip -r270 |ppmtogif > $web_dir/Plots/hist_col7.gif");
+	system("rm -rf  pgplot.ps");
 
 }
 
@@ -3727,7 +3730,7 @@ sub mv_old_data{
 			}
 		}
 		close(FH);
-		system("rm ./Working_dir/list");
+		system("rm -rf  ./Working_dir/list");
 	}
 }
 

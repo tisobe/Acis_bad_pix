@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env /usr/local/bin/perl
 
 #################################################################################
 #										#	
@@ -14,7 +14,7 @@
 #---- set directories
 #
 
-$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list';
+$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list';
 open(FH, $dir_list);
 while(<FH>){
     chomp $_;

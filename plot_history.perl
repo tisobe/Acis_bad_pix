@@ -1,7 +1,7 @@
-#!/usr/bin/perl
+#!/usr/bin/env /usr/local/bin/perl
 use PGPLOT;
 
-$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list';
+$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list';
 open(FH, $dir_list);
 while(<FH>){
     chomp $_;
@@ -65,7 +65,7 @@ pgclos();
 
 $out_gif = 'ccd_plot.gif';
 
-system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 |$op_dir/ppmtogif > $out_gif");
+system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps| pnmflip -r270 |ppmtogif > $out_gif");
 
 
 

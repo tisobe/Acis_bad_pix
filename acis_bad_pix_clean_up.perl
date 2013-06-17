@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env /usr/local/bin/perl
 
 #########################################################################
 #									#
@@ -8,7 +8,7 @@
 #									#
 #	author: t isobe (tisobe@cfa.harvard.edu)			#
 #									#
-#	last update: Feb 12, 2013		#
+#	last update: Apr 15, 2013		#
 #									#
 #########################################################################
 
@@ -29,7 +29,7 @@ if($comp_test =~ /test/i){
 
 #--- output directory
 
-$dir_list =  "/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list";
+$dir_list =  "/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list";
 open(FH, $dir_list);
 while(<FH>){
     chomp $_;
@@ -59,7 +59,7 @@ while(<FH>){
                                 print FILE "Due to a disk space, the data was not updated correctly\n";
                                 close(FILE);
 				system("cat ./zwarning| mailx -s \"Subject: bad pixel data problem detected !!\n \" -r isobe\@head.cfa.harvard.edu  isobe\@head.cfa.harvard.edu ");
-                                system("rm ./zwarning");
+                                system("rm  -rf ./zwarning");
 
 				exit 0;
 			}
@@ -67,7 +67,7 @@ while(<FH>){
 	}
 }
 close(FH);
-system("rm ./zspace");
+system("rm  -rf ./zspace");
 
 
 $test  = `ls $data_dir/Disp_dir/ccd*`;

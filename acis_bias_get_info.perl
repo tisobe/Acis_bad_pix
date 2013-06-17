@@ -1,11 +1,11 @@
-#!/usr/bin/perl
+#!/usr/bin/env /usr/local/bin/perl
 
 #################################################################################################
 #												#
 #	acis_bias_get_info.perl: extract information about baisbackground entires		#
 #												#
 #	author: t. isobe (tisobe@cfa.harvard.edu)						#
-#	last update: Feb 12, 2013								#
+#	last update: May 22, 2013								#
 #												#
 #################################################################################################
 
@@ -28,9 +28,9 @@ for($i = 0; $i < 10; $i++){
 #--- output directory
 
 if($comp_test =~ /test/i){
-        $dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/bias_dir_list_test';
+        $dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list_test';
 }else{
-        $dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/bias_dir_list';
+        $dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list';
 }
 
 open(FH, $dir_list);

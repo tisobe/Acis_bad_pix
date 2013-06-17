@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env /usr/local/bin/perl
 
 #################################################################################################
 #												#
@@ -8,7 +8,7 @@
 #												#
 #		author: t. isobe (tisobe@cfa.harvard.edu)					#
 #												#
-#		last update: Feb 15, 2013							#
+#		last update: May 22, 2013							#
 #												#
 #################################################################################################
 
@@ -18,9 +18,9 @@ chomp $comp_test;
 #--- output directory
 
 if($comp_test =~ /test/i){
-	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list_test';
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list_test';
 }else{
-	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list';
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list';
 }
 open(FH, $dir_list);
 while(<FH>){
@@ -41,13 +41,13 @@ system("cp $data_dir/Disp_dir/hist_ccd* $data_dir/Disp_dir/hist_col* .");
 
 system("$op_dir/perl $bin_dir/create_new_and_imp_ccd_list.perl $comp_test");
 
-system("$op_dir/perl $bin_dir/create_flk_pix_hist.perl $comp_test");
+system("$op_dir/perl $bin_dir/create_flk_pix_hist.perl         $comp_test");
 
-system("$op_dir/perl $bin_dir/create_pot_warm_pix.perl $comp_test");
+system("$op_dir/perl $bin_dir/create_pot_warm_pix.perl         $comp_test");
 
-system("$op_dir/perl $bin_dir/plot_ccd_history.perl $comp_test");
+system("$op_dir/perl $bin_dir/plot_ccd_history.perl            $comp_test");
 
-system("$op_dir/perl $bin_dir/plot_front_ccd_history.perl $comp_test");
+system("$op_dir/perl $bin_dir/plot_front_ccd_history.perl      $comp_test");
 
 #
 #--- warm column cases

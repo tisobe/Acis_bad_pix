@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env /usr/local/bin/perl
 use PGPLOT;
 
 
@@ -11,7 +11,7 @@ use PGPLOT;
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: Aug 01, 2012							#
+#	last update: May 23, 2013							#
 #											#
 #########################################################################################
 
@@ -34,9 +34,9 @@ for($i = 0; $i < 10; $i++){
 #--- output directory
 
 if($comp_test =~ /test/i){
-	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list_test';
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list_test';
 }else{
-	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list';
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list';
 }
 open(FH, $dir_list);
 while(<FH>){
@@ -399,9 +399,9 @@ pgsci(1);
 pglabel("Time (DOM)", "Sigma of Moving Average", "$title");
 
 pgclos();
-system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 |$op_dir/ppmtogif > $out_name");
+system("echo ''|gs -sDEVICE=ppmraw  -r256x256 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps| pnmflip -r270 |ppmtogif > $out_name");
 
-system("rm temp_data out_data  pgplot.ps");
+system("rm -rf temp_data out_data  pgplot.ps");
 
 ########################################################################
 ###svdfit: polinomial line fit routine                               ###

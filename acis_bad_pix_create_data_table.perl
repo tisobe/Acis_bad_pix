@@ -1,11 +1,11 @@
-#!/usr/bin/perl
+#!/usr/bin/env /usr/local/bin/perl
 
 #################################################################################################
 #												#
 #	acis_bad_pix_create_data_table.perl: create a data display html sub pages 		#
 #												#
 #	author: t. isobe	(tisobe@cfa.harvard.edu)					#
-#	last update: Feb 12, 2013								#
+#	last update: Apr 15, 2013								#
 #												#
 #################################################################################################
 
@@ -23,9 +23,9 @@ chomp $comp_test;
 #--- output directory
 
 if($comp_test =~ /test/i){
-	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list_test';
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list_test';
 }else{
-	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list';
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list';
 }
 open(FH, $dir_list);
 

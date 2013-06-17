@@ -1,4 +1,5 @@
-#!/usr/bin/perl 
+#!/usr/bin/env /usr/local/bin/perl
+#!/usr/bin/env /usr/local/bin/perl
 use PGPLOT;
 
 #################################################################################################
@@ -19,9 +20,9 @@ chomp $comp_test;
 #--- output directory
 
 if($comp_test =~ /test/i){
-        $dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list_test';
+        $dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list_test';
 }else{
-        $dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/dir_list';
+        $dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/dir_list';
 }
 
 open(FH, $dir_list);
@@ -278,8 +279,8 @@ pgclos();
 
 $out_gif = 'hist_col_plot_front_side.gif';
 
-system("echo ''|$op_dir/gs -sDEVICE=ppmraw  -r128x128 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps|$op_dir/pnmcrop| $op_dir/pnmflip -r270 | $op_dir/ppmtogif > $out_gif");
-	system("rm pgplot.ps");
+system("echo ''|gs -sDEVICE=ppmraw  -r128x128 -q -NOPAUSE -sOutputFile=-  ./pgplot.ps| pnmflip -r270 | ppmtogif > $out_gif");
+	system("rm -rf pgplot.ps");
 
 
 ##################################################################################

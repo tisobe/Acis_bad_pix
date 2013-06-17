@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env /usr/local/bin/perl
 
 #########################################################################################
 #											#
@@ -6,7 +6,7 @@
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: Feb 12, 2013							#
+#	last update: May 22, 2013							#
 #											#
 #########################################################################################
 
@@ -29,9 +29,9 @@ for($i = 0; $i < 10; $i++){
 #--- output directory
 
 if($comp_test =~ /test/i){
-	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/bias_dir_list_test';
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list_test';
 }else{
-	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/bias_dir_list';
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list';
 }
 open(FH, $dir_list);
 while(<FH>){
@@ -160,7 +160,7 @@ GETOUT:
 				$overclock = $overclock_a;
 				@bad_col = @bad_col0;
 				quad_sep();                                      # sub to extract pixels
-				system("rm out1.fits");                                 # outside of acceptance range
+				system("rm -rf out1.fits");                                 # outside of acceptance range
 
 				if($htime > 0 && $bias_avg > 0){
 					open(QIN,">> $bias_file");
@@ -180,7 +180,7 @@ GETOUT:
 				$overclock = $overclock_b;
 				@bad_col = @bad_col1;
 				quad_sep();
-				system("rm out2.fits");
+				system("rm -rf out2.fits");
 
 				if($htime > 0 && $bias_avg > 0){
 					open(QIN,">> $bias_file");
@@ -200,7 +200,7 @@ GETOUT:
 				$overclock = $overclock_c;
 				@bad_col = @bad_col2;
 				quad_sep();
-				system("rm out3.fits");
+				system("rm  -rf out3.fits");
 
 				if($htime > 0 && $bias_avg > 0){
 					open(QIN,">> $bias_file");
@@ -220,7 +220,7 @@ GETOUT:
 				$overclock = $overclock_d;
 				@bad_col = @bad_col3;
 				quad_sep();
-				system("rm out4.fits");
+				system("rm -rf  out4.fits");
 				if($htime > 0 && $bias_avg > 0){
 					open(QIN,">> $bias_file");
 					printf QIN "%10.1f\t%4.2f\t%4.2f\t%4.2f\n",$htime,$bias_avg,$bias_std,$overclock;
@@ -267,7 +267,7 @@ sub quad_sep{
                 }
         }
 
-	system("rm zout");
+	system("rm -rf zout");
 
 	find_mean();					# find bad columns
 

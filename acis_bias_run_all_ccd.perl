@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env /usr/local/bin/perl
 
 #########################################################################################
 #											#
@@ -6,7 +6,7 @@
 #											#
 #	author: t. isobe (tisobe@cfa.harvard.edu)					#
 #											#
-#	last update: Feb 15, 2013							#
+#	last update: May 22, 2013							#
 #											#
 #########################################################################################
 
@@ -21,9 +21,9 @@ chomp $comp_test;
 #--- output directory
 
 if($comp_test =~ /test/i){
-	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/bias_dir_list_test';
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list_test';
 }else{
-	$dir_list = '/data/mta/Script/ACIS/Bad_pixels_linux/house_keeping/bias_dir_list';
+	$dir_list = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list';
 }
 open(FH, $dir_list);
 while(<FH>){
@@ -63,7 +63,7 @@ for($ccd = 0; $ccd < 10; $ccd++){
         
 		system("$op_dir/perl $bin_dir/acis_bias_moving_avg.perl $file $comp_test");
 
-		system("mv bias_plot_*.gif $web_dir/Plots_bias/Sub2/");
+		system("mv bias_plot_*.gif $web_dir/Plots/Sub2/");
 	}
 }
  
