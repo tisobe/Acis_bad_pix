@@ -6,7 +6,7 @@
 #                                                                                                                       #
 #           author: t. isobe (tisobe@cfa.harvard.edu)                                                                   #
 #                                                                                                                       #
-#           last update May 13, 2014                                                                                    #
+#           last update Sep 15, 2014                                                                                    #
 #                                                                                                                       #
 #########################################################################################################################
 
@@ -19,8 +19,8 @@ import operator
 import math
 import numpy
 import astropy.io.fits as pyfits
+import unittest
 
-comp_test = 'live'
 #
 #--- from ska
 #
@@ -88,9 +88,7 @@ def find_bad_pix_main(dom):
 
     """
     contorl function to extract bad pixels and bad columns
-    Input: comp_test ---- (grobal variable): "live"  --- read data from live data
-                                             "<dir>" --- read data from <dir>
-                                             "test"  --- perform test 
+    Input: dom    --- time in "day of mission"
     Output: updated bad pixel and bad column list files
     """
 #
@@ -395,9 +393,6 @@ def setup_to_extract():
 #
 #--- for the test case, set dom to 4953
 #
-    if comp_test == 'test':
-        dom = 4953
-
     return (int(dom))
 
 #---------------------------------------------------------------------------------------------------
@@ -500,6 +495,10 @@ def find_bad_col(varray, ccd, cstart, ccd_dir, head ):
             head    --- header of the file
     Output: <ccd_dir>/<head>col --- a file which keeps a list of warm columns
     """
+#
+#--- read known bad col list
+#
+    bad_col_list = read_bad_col_list()
 #
 #--- set a data file name to record actual today's bad column positions
 #
@@ -1032,9 +1031,7 @@ def print_bad_pix_data(ccd, data_list, bind, today_time = 'NA'):
 
             similar output for hot pixel data
     """
-    if comp_test == 'test':
-        dom = 4953
-    elif today_time != 'NA':
+    if today_time != 'NA':
         dom  = today_time
     else:
         dom  = int(tcnv.currentTime(format = 'DOM'))
@@ -1539,102 +1536,52 @@ def get_data_out(start, stop):
         return 'na'
 
 
-#---------------------------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------
+#-- TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST    ---
+#-----------------------------------------------------------------------------------------
 
-def find_data_collection_interval():
+class TestFunctions(unittest.TestCase):
+    """
+    testing functions
+    """
+#------------------------------------------------------------
 
-    tlist = tcnv.currentTime(format='UTC')
-    tyear = tlist[0]
-    tyday = tlist[7]
-    tdom  = tcnv.YdateToDOM(tyear, tyday)
+    def test_bad_pix(self):
 
-    file  = data_dir + 'Disp_dir/hist_ccd3'
-    f     = open(file, 'r')
-    data  = [line.strip() for line in f.readlines()]
-    f.close()
-
-    chk   = 0
-    k     = 1
-    while(chk == 0):
-        atemp = re.split('<>', data[len(data)-k])
-        ldom  = atemp[0]
-        if mcf.chkNumeric(ldom) == True:
-            ldom = int(ldom)
-            chk = 1
-            break
-        else:
-            k += 1
-
-    ldom += 1
-    return(ldom, tdom)
-
-
-#---------------------------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------------------
-
-def mv_old_file(dom):
-
-    dom -= 30
-    if dom > 0:
-        [year, ydate] = tcnv.DOMtoYdate(dom)
-        sydate = str(ydate)
-        if ydate < 10:
-            sydate = '00' + sydate
-        elif ydate < 100:
-            sydate = '0' + sydate
-
-        atime = str(year) + ':' + sydate + ':00:00:00'
-        stime = tcnv.axTimeMTA(atime)
-
-        cmd = 'ls ' + house_keeping + '/Defect/CCD*/* > ' + zspace
+        mcf.mk_empty_dir('/data/mta/Script/ACIS/Bad_pixels/Data/Disp_dir/Ztemp_dir')
+        cmd = 'mv /data/mta/Script/ACIS/Bad_pixels/Data/Disp_dir/data_used*  /data/mta/Script/ACIS/Bad_pixels/Data/Disp_dir/Ztemp_dir'
         os.system(cmd)
-        fs = open(zspace, 'r')
-        ldata = [line.strip() for line in fs.readlines()]
-        fs.close()
-        mcf.rm_file(zspace)
-        for ent in ldata:
-            atemp = re.split('\/acis', ent)
-            btemp = re.split('_', atemp[1])
-            if int(btemp[0]) < stime:
-                out = ent
-                out = out.replace('Defect', 'Defect/Save')
-                cmd = 'mv ' + ent + ' ' + out 
-                os.system(cmd)
+        cmd = 'cp -r /data/mta/Script/ACIS/Bad_pixels/Data/Disp_dir/Ztemp_dir/* /data/mta/Script/ACIS/Bad_pixels/Data/Disp_dir/.'
+        os.system(cmd)
+        mcf.mk_empty_dir('./Working_dir')
 
+        dom = 5532
+        [start,stop] = set_date(dom)
+        get_data_out(start, stop)
+
+        odir = exc_dir + '/Temp_data/'
+        main_list = regroup_data(odir)
+
+        mcf.rm_file('./Working_dir/*_list')
+        int_file_for_day(main_list[0])
+        dom = setup_to_extract()
+
+        ccd = 3
+        quad= 0
+        (warm_data, hot_data) = select_bad_pix(ccd, quad)
+
+        test_data = ['3:0:2014:255:21:95']
+
+        self.assertEquals(warm_data, test_data)
+
+        cmd = 'mv /data/mta/Script/ACIS/Bad_pixels/Data/Disp_dir/Ztemp_dir/* /data/mta/Script/ACIS/Bad_pixels/Data/Disp_dir/.'
+        os.system(cmd)
 
 #--------------------------------------------------------------------
 
 if __name__ == '__main__':
-#
-#--- if this is a test case, prepare the test output directory
-#
-    if comp_test == 'test':
-        test_prep()
-#
-#--- read known bad pixels / columns
-#
-    bad_pix_list = read_bad_pix_list()
-    bad_col_list = read_bad_col_list()
-#
-#--- run the control function; first find out data colleciton interval
-#
-    if len(sys.argv) == 3:
-        start = sys.argv[1]
-        start.strip()
-        start = int(start)
-        stop  = sys.argv[2]
-        stop.strip()
-        stop  = int(stop)
-    else:
-        (start, stop) = find_data_collection_interval()
 
-    for dom in range(start, stop):
-
-        find_bad_pix_main(dom)
-        mv_old_file(dom)
+        unittest.main()
 
 
 

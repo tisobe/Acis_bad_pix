@@ -6,7 +6,7 @@
 #                                                                                                               #
 #                       author: t. isobe (tisobe@cfa.harvard.edu)                                               #
 #                                                                                                               #
-#                       Last Update: May 13, 2014                                                               #
+#                       Last Update: Sep 15, 2014                                                               #
 #                                                                                                               #
 #################################################################################################################
 
@@ -19,25 +19,11 @@ import operator
 import math
 import numpy
 import astropy.io.fits as pyfits
-
-#
-#--- check whether this is a test case
-#
-comp_test = 'live'
-if len(sys.argv) == 2:
-    if sys.argv[1] == 'test':                   #---- test case
-        comp_test = 'test'
-    elif sys.argv[1] == 'live':                 #---- automated read in
-        comp_test = 'live'
-    else:
-        comp_test = sys.argv[1].strip()         #---- input data name
+import unittest
 #
 #--- reading directory list
 #
-if comp_test == 'test' or comp_test == 'test2':
-    path = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list_test_py'
-else:
-    path = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list_py'
+path = '/data/mta/Script/ACIS/Bad_pixels/house_keeping/bias_dir_list_py'
 
 f    = open(path, 'r')
 data = [line.strip() for line in f.readlines()]
@@ -48,7 +34,6 @@ for ent in data:
     var  = atemp[1].strip()
     line = atemp[0].strip()
     exec "%s = %s" %(var, line)
-
 #
 #--- append a path to a private folder to python directory
 #
@@ -63,48 +48,19 @@ import bad_pix_common_function as bcf
 #
 #--- temp writing file name
 #
-
 rtail  = int(10000 * random.random())
 zspace = '/tmp/zspace' + str(rtail)
-
-#---------------------------------------------------------------------------------------------------
-#--- compute_bias_data: the calling function to extract bias data                               ----
-#---------------------------------------------------------------------------------------------------
-
-def compute_bias_data():
-
-    """
-    the calling function to extract bias data
-    Input:  None but read from local files (see find_today_data)
-    Output: bias data (see extract_bias_data)
-    """
-
-    chk = mcf.chkFile('./','Working_dir')
-    if chk == 0:
-        cmd = 'mkdir ./Working_dir'
-        os.system(cmd)
-    else:
-        cmd = 'rm -rf ./Working_dir/*'
-        os.system(cmd)
-#
-#--- find which data to use
-#
-    today_data = find_today_data()
-#
-#--- extract bias reated data
-#
-    extract_bias_data(today_data)
 
 #---------------------------------------------------------------------------------------------------
 #--- find_today_data: find which data to use for the data anaysis                                ---
 #---------------------------------------------------------------------------------------------------
 
-def find_today_data():
+def find_today_data(comp_test=''):
 
     """
     find which data to use for the data anaysis 
-    Input:      None but read from:
-                <hosue_keeping>/past_input_data
+    Input:      comp_test if it is 'test', read testdata
+                data are also read from <hosue_keeping>/past_input_data
                 /dsops/ap/sdp/cache/*/acis/*bias0.fits
 
     Output:     today_data   ---- a list of fits files to be used
@@ -172,11 +128,12 @@ def find_today_data():
 #--- extract_bias_data: extract bias data using a given data list                               ----
 #---------------------------------------------------------------------------------------------------
 
-def extract_bias_data(today_data):
+def extract_bias_data(today_data, comp_test=''):
 
     """
     extract bias data using a given data list
     Input:      today_data   --- a list of data fits files
+                comp_test    --- if 'test', test will be run
                 also need:
                 <house_keeping>/Defect/bad_col_list --- a list of known bad columns
     Output:     <data_dir>/Bias_save/CCD<ccd>/quad<quad>  see more in write_bias_data()
@@ -249,29 +206,32 @@ def extract_bias_data(today_data):
 #
 #--- compte and write out bias data
 #
-#        try:
-        [fep, dmode, srow, rowcnt, orcmode, dgain, biasalg, barg0, barg1, barg2, barg3, overclock_a, overclock_b, overclock_c, overclock_d] = bcf.extractBiasInfo(dfile)
+        result_list = bcf.extractBiasInfo(dfile)
 
-        write_bias_data(sdata, ccd_id, 0, overclock_a, stime, bad_col0)
-        write_bias_data(sdata, ccd_id, 1, overclock_b, stime, bad_col1)
-        write_bias_data(sdata, ccd_id, 2, overclock_c, stime, bad_col2)
-        write_bias_data(sdata, ccd_id, 3, overclock_d, stime, bad_col3)
+        if comp_test == 'test':
+            return result_list
+        else:
+            [fep, dmode, srow, rowcnt, orcmode, dgain, biasalg, barg0, barg1, barg2, barg3, \
+             overclock_a, overclock_b, overclock_c, overclock_d] = result_list
+
+            write_bias_data(sdata, ccd_id, 0, overclock_a, stime, bad_col0)
+            write_bias_data(sdata, ccd_id, 1, overclock_b, stime, bad_col1)
+            write_bias_data(sdata, ccd_id, 2, overclock_c, stime, bad_col2)
+            write_bias_data(sdata, ccd_id, 3, overclock_d, stime, bad_col3)
     
 #
 #---- more bias info
 #
-        printBiasInfo(ccd_id, 0, stime, fep, dmode, srow, rowcnt, orcmode, dgain, biasalg,  barg0, barg1, barg2, barg3, overclock_a)
-        printBiasInfo(ccd_id, 1, stime, fep, dmode, srow, rowcnt, orcmode, dgain, biasalg,  barg0, barg1, barg2, barg3, overclock_b)
-        printBiasInfo(ccd_id, 2, stime, fep, dmode, srow, rowcnt, orcmode, dgain, biasalg,  barg0, barg1, barg2, barg3, overclock_c)
-        printBiasInfo(ccd_id, 3, stime, fep, dmode, srow, rowcnt, orcmode, dgain, biasalg,  barg0, barg1, barg2, barg3, overclock_d)
-
-        stime_list.append(stime)
-#        except:
-#            pass
+            printBiasInfo(ccd_id, 0, stime, fep, dmode, srow, rowcnt, orcmode, dgain, biasalg,  barg0, barg1, barg2, barg3, overclock_a)
+            printBiasInfo(ccd_id, 1, stime, fep, dmode, srow, rowcnt, orcmode, dgain, biasalg,  barg0, barg1, barg2, barg3, overclock_b)
+            printBiasInfo(ccd_id, 2, stime, fep, dmode, srow, rowcnt, orcmode, dgain, biasalg,  barg0, barg1, barg2, barg3, overclock_c)
+            printBiasInfo(ccd_id, 3, stime, fep, dmode, srow, rowcnt, orcmode, dgain, biasalg,  barg0, barg1, barg2, barg3, overclock_d)
+    
+            stime_list.append(stime)
 #
 #--- now count how many CCDs are used for a particular observations and write out to list_of_ccd_no
 #
-    countObservation(stime_list)
+            countObservation(stime_list)
 
 #---------------------------------------------------------------------------------------------------
 #-- write_bias_data: extract and write out bias data                                             ---
@@ -426,57 +386,31 @@ def countObservation(stime_list):
 
         fo.close()
 
-#---------------------------------------------------------------------------------------------------
-#-- update_bias_html: update bias_home.html page                                                 ---
-#---------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------
+#-- TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST    ---
+#-----------------------------------------------------------------------------------------
 
-def update_bias_html():
-
+class TestFunctions(unittest.TestCase):
     """
-    pdate bias_home.html page
-    Input: None but read from:
-            <house_keeping>/bias_home.html
-    Output: <web_dir>/bias_home.html
+    testing functions
     """
-#
-#--- find today's date
-#
-    [year, mon, day, hours, min, sec, weekday, yday, dst] = tcnv.currentTime()
+#------------------------------------------------------------
+    
+    def test_compute_bias_data(self):
 
-    lmon = str(mon)
-    if mon < 10:
-        lmon = '0' + lmon
-    lday = str(day)
-    if day < 10:
-        lday = '0' + lday
+        today_data = find_today_data('test')
 #
-#--- line to replace
+#--- extract bias reated data
 #
-    newdate = "Last Upate: " + lmon + '/' + lday + '/' + str(year)
-#
-#--- read the template
-#
-    line = house_keeping + 'bias_home.html'
-    data = mcf.readFile(line)
-#
-#--- print out
-#
-    outfile = web_dir + 'bias_home.html'
-    fo   = open(outfile, 'w')
-    for ent in data:
-        m = re.search('Last Update', ent)
-        if m is not None:
-            fo.write(newdate)
-        else:
-            fo.write(ent)
-        fo.write('\n')
-    fo.close()
+        out = extract_bias_data(today_data, 'test')
+
+        test_data = [1, 'VFAINT', 0, 1023, 0, 0, 1, 10, 26, 20, 26, 806, 577, 724, 670]
+        self.assertEquals(out, test_data)
 
 #--------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    compute_bias_data()
+    unittest.main()
 
-    update_bias_html()
 
