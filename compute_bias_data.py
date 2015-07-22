@@ -6,7 +6,7 @@
 #                                                                                                               #
 #                       author: t. isobe (tisobe@cfa.harvard.edu)                                               #
 #                                                                                                               #
-#                       Last Update: Sep 15, 2014                                                               #
+#                       Last Update: Dec 23, 2014                                                               #
 #                                                                                                               #
 #################################################################################################################
 
@@ -82,10 +82,13 @@ def find_today_data(comp_test=''):
         file  = house_keeping + 'past_input_data'
         data1 = mcf.readFile(file)
     
-        atemp    = re.split('\/', data1[len(data1)-1])
-        btemp    = re.split('_',  atemp[5])
-        cut_date = btemp[0] + btemp[1] + btemp[2]
-        cut_date = int(cut_date)
+        try:
+            atemp    = re.split('\/', data1[len(data1)-1])
+            btemp    = re.split('_',  atemp[5])
+            cut_date = btemp[0] + btemp[1] + btemp[2]
+            cut_date = int(cut_date)
+        except:
+            cut_date = 0
     
         file2 = house_keeping + 'past_input_data~'
         
